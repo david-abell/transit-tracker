@@ -12,8 +12,8 @@ export default function Home() {
   });
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
-      <div className=" w-full max-w-5xl items-center justify-between">
-        <h1>H1 Title</h1>
+      <div className=" w-full items-center justify-between">
+        {/* <h1>H1 Title</h1> */}
         <Map />
       </div>
     </main>

@@ -5,7 +5,7 @@ import type { GTFSRealtime } from "gtfs-types";
 
 export type GTFSRealtimeResponse = GTFSRealtime["response"];
 
-import gtfsRealtime from "../../testdata/gtfsrealtime.json";
+import gtfsRealtime from "@/testdata/gtfsrealtime.json";
 
 export default function handler(
   req: NextApiRequest,

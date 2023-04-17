@@ -7,23 +7,26 @@ import {
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-
-import { useEffect } from "react";
 import Leaflet from "leaflet";
-
 import { GeoJSON } from "leaflet";
 
-import { lineString } from "../../testdata/lineString";
+import { useEffect } from "react";
+import useRealtime from "@/hooks/useRealtime";
 
-import { getStopTime } from "../../testdata/stoptimes";
+// Testdata
+import { lineString } from "@/testdata/lineString";
+import { getStopTime } from "@/testdata/stoptimes";
+import { stops } from "@/testdata/stops";
 
-import { stops } from "../../testdata/stops";
+// const TEST_TRIP_ID = "3249_11284";
+const TEST_TRIP_ID = "3249_32029";
 // Necessary because Leaflet uses northing-easting [[lat-lng]]
 // while GeoJSON stores easting-northing [[long, lat]]
 
 const coordinates = GeoJSON.coordsToLatLngs(lineString);
 
 function Map() {
+  const { realtimeTrips, isError, isLoading } = useRealtime();
   // Fix leaflet icons not importing
   useEffect(() => {
     (async function init() {
@@ -36,6 +39,11 @@ function Map() {
       });
     })();
   }, []);
+
+  useEffect(() => {
+    console.log(realtimeTrips.get(TEST_TRIP_ID));
+  }, [realtimeTrips]);
+
   return (
     <MapContainer
       center={[51.9081690653422, -8.41944955885327]}

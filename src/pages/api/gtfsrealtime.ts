@@ -1,13 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { GTFSRealtime } from "gtfs-types";
 
-import gtfsRealtime from "../../testdata/gtfsrealtime.json";
+// export type GTFSResponse = typeof gtfsRealtime;
 
-export type GTFSResponse = typeof gtfsRealtime;
+export type GTFSRealtimeResponse = GTFSRealtime["response"];
+
+import gtfsRealtime from "../../testdata/gtfsrealtime.json";
 
 export default function handler(
   req: NextApiRequest,
-  res: NextApiResponse<GTFSResponse>
+  res: NextApiResponse<GTFSRealtimeResponse>
 ) {
-  res.status(200).json(gtfsRealtime);
+  res.status(200).json(gtfsRealtime as GTFSRealtimeResponse);
 }

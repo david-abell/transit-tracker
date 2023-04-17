@@ -1,4 +1,4 @@
-import { GTFSResponse } from "@/pages/api/gtfsrealtime";
+import { GTFSRealtimeResponse } from "@/pages/api/gtfsrealtime";
 import useSWR, { Fetcher } from "swr";
 
 const fetcher = async (input: RequestInfo, init: RequestInit) => {
@@ -15,10 +15,20 @@ const fetcher = async (input: RequestInfo, init: RequestInit) => {
 const API_URL = "/api/gtfsrealtime/";
 
 function useRealtime() {
-  const { data, error, isLoading } = useSWR<GTFSResponse>(API_URL, fetcher);
+  const { data, error, isLoading } = useSWR<GTFSRealtimeResponse>(
+    API_URL,
+    fetcher
+  );
+
+  const tripsById = new Map(
+    data?.entity.map(({ trip_update: tripUpdate }) => {
+      const tripId = tripUpdate?.trip.trip_id;
+      return [tripId, tripUpdate];
+    })
+  );
 
   return {
-    realtimeData: data,
+    realtimeTrips: tripsById,
     isLoading,
     isError: error,
   };

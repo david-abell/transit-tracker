@@ -17,16 +17,18 @@ import useRealtime from "@/hooks/useRealtime";
 import { lineString } from "@/testdata/lineString";
 import { getStopTime } from "@/testdata/stoptimes";
 import { stops } from "@/testdata/stops";
+import { getStopTime2, stopTimes2 } from "@/testdata/stopTimes2";
 
 // const TEST_TRIP_ID = "3249_11284";
-const TEST_TRIP_ID = "3249_32029";
+const TEST_TRIP_ID = "3249_31930";
+const TEST_ROUTE_ID = "3249_46339";
+
 // Necessary because Leaflet uses northing-easting [[lat-lng]]
 // while GeoJSON stores easting-northing [[long, lat]]
-
 const coordinates = GeoJSON.coordsToLatLngs(lineString);
 
 function Map() {
-  const { realtimeTrips, isError, isLoading } = useRealtime();
+  const { tripsByRouteId, tripsByTripId, isError, isLoading } = useRealtime();
   // Fix leaflet icons not importing
   useEffect(() => {
     (async function init() {
@@ -41,8 +43,13 @@ function Map() {
   }, []);
 
   useEffect(() => {
-    console.log(realtimeTrips.get(TEST_TRIP_ID));
-  }, [realtimeTrips]);
+    // console.log(`Trip Id: ${TEST_TRIP_ID}`, tripsByTripId.get(TEST_TRIP_ID));
+    console.log(
+      `Route Id: ${TEST_ROUTE_ID}`,
+      tripsByRouteId.get(TEST_ROUTE_ID)
+    );
+    const trip = tripsByRouteId.get(TEST_ROUTE_ID);
+  }, [tripsByRouteId, tripsByTripId]);
 
   return (
     <MapContainer
@@ -55,7 +62,7 @@ function Map() {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {stops?.map(({ stop_id, stop_code, stop_lat, stop_lon }) => {
-        const stopTime = getStopTime(stop_id);
+        const stopTime = getStopTime2(stop_id);
 
         if (!stop_lat || !stop_lon) {
           return [];
@@ -86,7 +93,7 @@ function Map() {
               <br />
               <strong>Stop Code: {stop_code}</strong>
               <br />
-              <strong>Arrives:</strong> @ {stopTime?.arrival_time}
+              <strong>Arrival scheduled</strong> @: {stopTime?.arrival_time}
               {/* <strong>Departure:</strong> { arrivalDate.toDateString() } @ { departureTime } */}
             </Popup>
           </Marker>

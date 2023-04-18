@@ -20,15 +20,23 @@ function useRealtime() {
     fetcher
   );
 
-  const tripsById = new Map(
+  const tripsByTripId = new Map(
     data?.entity.map(({ trip_update: tripUpdate }) => {
       const tripId = tripUpdate?.trip.trip_id;
       return [tripId, tripUpdate];
     })
   );
 
+  const tripsByRouteId = new Map(
+    data?.entity.map(({ trip_update: tripUpdate }) => {
+      const routeId = tripUpdate?.trip.route_id;
+      return [routeId, tripUpdate];
+    })
+  );
+
   return {
-    realtimeTrips: tripsById,
+    tripsByTripId,
+    tripsByRouteId,
     isLoading,
     isError: error,
   };

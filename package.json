@@ -28,6 +28,7 @@
   "devDependencies": {
     "@types/leaflet": "^1.9.3",
     "eslint-config-prettier": "^8.8.0",
+    "gtfs": "^4.2.0",
     "gtfs-types": "^2.2.0",
     "prettier": "2.8.7",
     "prettier-plugin-tailwindcss": "^0.2.7"

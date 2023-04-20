@@ -1,4 +1,4 @@
-import { GTFSRealtimeResponse } from "@/pages/api/gtfsrealtime";
+import { GTFSRealtimeResponse } from "@/pages/api/gtfs/realtime";
 import useSWR, { Fetcher } from "swr";
 
 const fetcher = async (input: RequestInfo, init: RequestInit) => {
@@ -12,7 +12,7 @@ const fetcher = async (input: RequestInfo, init: RequestInit) => {
   }
 };
 
-const API_URL = "/api/gtfsrealtime/";
+const API_URL = "/api/gtfs/realtime/";
 
 function useRealtime() {
   const { data, error, isLoading } = useSWR<GTFSRealtimeResponse>(

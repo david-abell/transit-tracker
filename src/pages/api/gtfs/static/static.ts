@@ -5,13 +5,13 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const routes = await prisma.routes.findMany({
+  const routes = await prisma.route.findMany({
     where: { routeShortName: "208" },
   });
 
   const routeId = routes[0].routeId;
 
-  const trips = await prisma.trips.findMany({
+  const trips = await prisma.trip.findMany({
     where: { routeId },
   });
 

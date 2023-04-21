@@ -21,7 +21,7 @@ model Agency {
   @@map("agency")
 }
 
-model Areas {
+model Area {
   areaId   String  @id @map("area_id")
   areaName String? @map("area_name")
 
@@ -99,7 +99,7 @@ model Calendar {
   @@map("calendar")
 }
 
-model CalendarDates {
+model CalendarDate {
   id            Int     @id @default(autoincrement())
   serviceId     String  @map("service_id")
   date          Int
@@ -112,7 +112,7 @@ model CalendarDates {
   @@map("calendar_dates")
 }
 
-model DeadheadTimes {
+model DeadheadTime {
   id                 Int     @id @default(autoincrement())
   deadheadId         String  @map("deadhead_id")
   arrivalTime        String  @map("arrival_time")
@@ -131,7 +131,7 @@ model DeadheadTimes {
   @@map("deadhead_times")
 }
 
-model Deadheads {
+model Deadhead {
   deadheadId     String  @id @map("deadhead_id")
   serviceId      String  @map("service_id")
   blockId        String  @map("block_id")
@@ -150,7 +150,7 @@ model Deadheads {
   @@map("deadheads")
 }
 
-model Directions {
+model Direction {
   id          Int    @id @default(autoincrement())
   routeId     String @map("route_id")
   directionId Int?   @map("direction_id")
@@ -161,7 +161,7 @@ model Directions {
   @@map("directions")
 }
 
-model FareAttributes {
+model FareAttribute {
   fareId           String  @id @map("fare_id")
   price            Float
   currencyType     String  @map("currency_type")
@@ -174,7 +174,7 @@ model FareAttributes {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model FareLegRules {
+model FareLegRule {
   legGroupId    String? @map("leg_group_id")
   networkId     String? @map("network_id")
   fromAreaId    String? @map("from_area_id")
@@ -185,7 +185,7 @@ model FareLegRules {
   @@ignore
 }
 
-model FareProducts {
+model FareProduct {
   fareProductId   String  @id @map("fare_product_id")
   fareProductName String? @map("fare_product_name")
   amount          Float
@@ -194,7 +194,7 @@ model FareProducts {
   @@map("fare_products")
 }
 
-model FareRules {
+model FareRule {
   id            Int     @id @default(autoincrement())
   fareId        String  @map("fare_id")
   routeId       String? @map("route_id")
@@ -206,7 +206,7 @@ model FareRules {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model FareTransferRules {
+model FareTransferRule {
   fromLegGroupId    String? @map("from_leg_group_id")
   toLegGroupId      String? @map("to_leg_group_id")
   transferCount     Int?    @map("transfer_count")
@@ -235,7 +235,7 @@ model FeedInfo {
   @@map("feed_info")
 }
 
-model Frequencies {
+model Frequency {
   id             Int    @id @default(autoincrement())
   tripId         String @map("trip_id")
   startTime      String @map("start_time")
@@ -249,7 +249,7 @@ model Frequencies {
   @@map("frequencies")
 }
 
-model Levels {
+model Level {
   levelId    String  @id @map("level_id")
   levelIndex Float   @map("level_index")
   levelName  String? @map("level_name")
@@ -257,7 +257,7 @@ model Levels {
   @@map("levels")
 }
 
-model OpsLocations {
+model OpsLocation {
   opsLocationId   String  @id @map("ops_location_id")
   opsLocationCode String? @map("ops_location_code")
   opsLocationName String  @map("ops_location_name")
@@ -268,7 +268,7 @@ model OpsLocations {
   @@map("ops_locations")
 }
 
-model Pathways {
+model Pathway {
   pathwayId            String  @id @map("pathway_id")
   fromStopId           String  @map("from_stop_id")
   toStopId             String  @map("to_stop_id")
@@ -372,7 +372,7 @@ model Ridership {
   @@ignore
 }
 
-model Routes {
+model Route {
   routeId           String  @id @map("route_id")
   agencyId          String? @map("agency_id")
   routeShortName    String? @map("route_short_name")
@@ -408,7 +408,7 @@ model RunEvent {
   @@map("run_event")
 }
 
-model RunsPieces {
+model RunsPiece {
   runId             String @map("run_id")
   pieceId           String @id @map("piece_id")
   startType         Int    @map("start_type")
@@ -425,7 +425,7 @@ model RunsPieces {
   @@map("runs_pieces")
 }
 
-model ServiceAlertTargets {
+model ServiceAlertTarget {
   alertId   String  @id @map("alert_id")
   stopId    String? @map("stop_id")
   routeId   String? @map("route_id")
@@ -437,7 +437,7 @@ model ServiceAlertTargets {
   @@map("service_alert_targets")
 }
 
-model ServiceAlerts {
+model ServiceAlert {
   id          String @id
   cause       Int
   startTime   String @map("start_time")
@@ -450,7 +450,7 @@ model ServiceAlerts {
   @@map("service_alerts")
 }
 
-model Shapes {
+model Shape {
   id                Int    @id @default(autoincrement())
   shapeId           String @map("shape_id")
   shapePtLat        Float  @map("shape_pt_lat")
@@ -463,7 +463,7 @@ model Shapes {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model StopAreas {
+model StopArea {
   areaId String @map("area_id")
   stopId String @map("stop_id")
 
@@ -471,7 +471,7 @@ model StopAreas {
   @@ignore
 }
 
-model StopAttributes {
+model StopAttribute {
   id       Int     @id @default(autoincrement())
   stopId   String  @map("stop_id")
   stopCity String? @map("stop_city")
@@ -480,7 +480,7 @@ model StopAttributes {
   @@map("stop_attributes")
 }
 
-model StopTimes {
+model StopTime {
   id                 Int     @id @default(autoincrement())
   tripId             String  @map("trip_id")
   arrivalTime        String? @map("arrival_time")
@@ -505,7 +505,7 @@ model StopTimes {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model StopTimesUpdates {
+model StopTimesUpdate {
   tripId             String? @map("trip_id")
   routeId            String? @map("route_id")
   stopId             String? @map("stop_id")
@@ -523,7 +523,7 @@ model StopTimesUpdates {
   @@ignore
 }
 
-model Stops {
+model Stop {
   stopId             String  @id @map("stop_id")
   stopCode           String? @map("stop_code")
   stopName           String? @map("stop_name")
@@ -545,7 +545,7 @@ model Stops {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model TimetableNotes {
+model TimetableNote {
   noteId String? @id @map("note_id")
   symbol String?
   note   String?
@@ -555,7 +555,7 @@ model TimetableNotes {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model TimetableNotesReferences {
+model TimetableNotesReference {
   noteId         String? @map("note_id")
   timetableId    String? @map("timetable_id")
   routeId        String? @map("route_id")
@@ -574,7 +574,7 @@ model TimetableNotesReferences {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model TimetablePages {
+model TimetablePage {
   timetablePageId    String? @id @map("timetable_page_id")
   timetablePageLabel String? @map("timetable_page_label")
   filename           String?
@@ -594,7 +594,7 @@ model TimetableStopOrder {
   @@map("timetable_stop_order")
 }
 
-model Timetables {
+model Timetable {
   id                   Int     @id @default(autoincrement())
   timetableId          String? @map("timetable_id")
   routeId              String? @map("route_id")
@@ -625,7 +625,7 @@ model Timetables {
   @@map("timetables")
 }
 
-model Transfers {
+model Transfer {
   id              Int     @id @default(autoincrement())
   fromStopId      String? @map("from_stop_id")
   toStopId        String? @map("to_stop_id")
@@ -641,7 +641,7 @@ model Transfers {
   @@map("transfers")
 }
 
-model Translations {
+model Translation {
   id          Int     @id @default(autoincrement())
   tableName   String  @map("table_name")
   fieldName   String  @map("field_name")
@@ -672,7 +672,7 @@ model TripCapacity {
   @@ignore
 }
 
-model TripUpdates {
+model TripUpdate {
   updateId  String  @id @map("update_id")
   vehicleId String? @map("vehicle_id")
   tripId    String? @map("trip_id")
@@ -686,7 +686,7 @@ model TripUpdates {
   @@map("trip_updates")
 }
 
-model Trips {
+model Trip {
   routeId              String  @map("route_id")
   serviceId            String  @map("service_id")
   tripId               String  @id @map("trip_id")
@@ -707,7 +707,7 @@ model Trips {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model TripsDatedVehicleJourneys {
+model TripsDatedVehicleJourney {
   tripId                 String @map("trip_id")
   operatingDayDate       String @map("operating_day_date")
   datedVehicleJourneyGid String @map("dated_vehicle_journey_gid")
@@ -720,7 +720,7 @@ model TripsDatedVehicleJourneys {
   @@ignore
 }
 
-model VehiclePositions {
+model VehiclePosition {
   updateId  String  @id @map("update_id")
   bearing   Float?
   latitude  Float?

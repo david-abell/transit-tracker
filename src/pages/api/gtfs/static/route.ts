@@ -2,11 +2,11 @@ import { prisma } from "@/db";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import withErrorHandler from "@/withErrorHandler";
-import { Routes } from "@prisma/client";
+import { Route } from "@prisma/client";
 
 export type RouteAPIResponse = {
   routeId: string;
-  routes: Routes[];
+  routes: Route[];
 };
 
 async function handler(
@@ -20,7 +20,7 @@ async function handler(
     // throw new Error("Route shortname is required", { cause: 400 });
     // return res.status(400).end("Route shortname is required");
   }
-  const routes = await prisma.routes.findMany({
+  const routes = await prisma.route.findMany({
     where: { routeShortName: shortName },
   });
 

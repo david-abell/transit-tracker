@@ -1,4 +1,4 @@
-import { Stop } from "gtfs-types";
+import { Stop } from "@/types/static";
 
 export const stops: Stop[] = [
   {

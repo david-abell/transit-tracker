@@ -1,5 +1,7 @@
-import { GTFSResponse } from "@/pages/api/gtfs/realtime";
-import { TripUpdateHacked } from "@/pages/api/gtfs/realtime";
+// import { GTFSResponse } from "@/pages/api/gtfs/realtime";
+// import { TripUpdateHacked } from "@/pages/api/gtfs/realtime";
+
+import { GTFSResponse, TripUpdate } from "@/types/realtime";
 import useSWR, { Fetcher } from "swr";
 
 const fetcher = async (input: RequestInfo, init: RequestInit) => {
@@ -25,7 +27,7 @@ function useRealtime() {
     })
   );
 
-  const tripsByRouteId = new Map<string, TripUpdateHacked[]>();
+  const tripsByRouteId = new Map<string, TripUpdate[]>();
 
   if (data?.entity) {
     for (const { trip_update: tripUpdate } of data.entity) {

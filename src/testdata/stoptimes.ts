@@ -1,4 +1,4 @@
-import type { StopTime } from "gtfs-types";
+import { StopTime } from "@/types/static";
 
 export function getStopTime(stopId: string) {
   return stopTimes.find(({ stop_id }) => stopId === stop_id);

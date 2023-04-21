@@ -1,6 +1,6 @@
 // Stop times for trip Id 3249_11581
 
-import { StopTime } from "gtfs-types";
+import { StopTime } from "@/types/static";
 
 export function getStopTime2(stopId: string) {
   return stopTimes2.find(({ stop_id }) => stopId === stop_id);

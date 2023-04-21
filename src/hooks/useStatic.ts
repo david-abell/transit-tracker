@@ -1,6 +1,6 @@
 import useSWR from "swr";
 import { useState } from "react";
-import { Routes, Trips } from "@prisma/client";
+import { Route, Trip } from "@prisma/client";
 
 import { RouteAPIResponse } from "@/pages/api/gtfs/static/route";
 import { TripAPIResponse } from "@/pages/api/gtfs/static/trip";

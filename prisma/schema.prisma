@@ -8,91 +8,30 @@ datasource db {
 }
 
 model Agency {
-  id             Int     @id @default(autoincrement())
-  agencyId       String? @map("agency_id")
-  agencyName     String  @map("agency_name")
-  agencyUrl      String  @map("agency_url")
-  agencyTimezone String  @map("agency_timezone")
-  agencyLang     String? @map("agency_lang")
-  agencyPhone    String? @map("agency_phone")
-  agencyFareUrl  String? @map("agency_fare_url")
-  agencyEmail    String? @map("agency_email")
+  id             Int      @id @default(autoincrement())
+  agencyId       String?  @unique(map: "sqlite_autoindex_agency_1") @map("agency_id")
+  agencyName     String   @map("agency_name")
+  agencyUrl      String   @map("agency_url")
+  agencyTimezone String   @map("agency_timezone")
+  agencyFareUrl  String?  @map("agency_fare_url")
+  route         Route[]
 
   @@map("agency")
 }
 
-model Area {
-  areaId   String  @id @map("area_id")
-  areaName String? @map("area_name")
-
-  @@map("areas")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model Attributions {
-  attributionId    String? @id @map("attribution_id")
-  agencyId         String? @map("agency_id")
-  routeId          String? @map("route_id")
-  tripId           String? @map("trip_id")
-  organizationName String  @map("organization_name")
-  isProducer       Int?    @map("is_producer")
-  isOperator       Int?    @map("is_operator")
-  isAuthority      Int?    @map("is_authority")
-  attributionUrl   String? @map("attribution_url")
-  attributionEmail String? @map("attribution_email")
-  attributionPhone String? @map("attribution_phone")
-
-  @@map("attributions")
-  @@ignore
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model BoardAlight {
-  tripId                    String  @map("trip_id")
-  stopId                    String  @map("stop_id")
-  stopSequence              Int     @map("stop_sequence")
-  recordUse                 Int     @map("record_use")
-  scheduleRelationship      Int?    @map("schedule_relationship")
-  boardings                 Int?
-  alightings                Int?
-  currentLoad               Int?    @map("current_load")
-  loadCount                 Int?    @map("load_count")
-  loadType                  Int?    @map("load_type")
-  rackDown                  Int?    @map("rack_down")
-  bikeBoardings             Int?    @map("bike_boardings")
-  bikeAlightings            Int?    @map("bike_alightings")
-  rampUsed                  Int?    @map("ramp_used")
-  rampBoardings             Int?    @map("ramp_boardings")
-  rampAlightings            Int?    @map("ramp_alightings")
-  serviceDate               Int?    @map("service_date")
-  serviceArrivalTime        String? @map("service_arrival_time")
-  serviceArrivalTimestamp   Int?    @map("service_arrival_timestamp")
-  serviceDepartureTime      String? @map("service_departure_time")
-  serviceDepartureTimestamp Int?    @map("service_departure_timestamp")
-  source                    Int?
-
-  @@index([serviceDepartureTimestamp], map: "idx_board_alight_service_departure_timestamp")
-  @@index([serviceArrivalTimestamp], map: "idx_board_alight_service_arrival_timestamp")
-  @@index([serviceDate], map: "idx_board_alight_service_date")
-  @@index([recordUse], map: "idx_board_alight_record_use")
-  @@index([stopSequence], map: "idx_board_alight_stop_sequence")
-  @@index([stopId], map: "idx_board_alight_stop_id")
-  @@index([tripId], map: "idx_board_alight_trip_id")
-  @@map("board_alight")
-  @@ignore
-}
-
 model Calendar {
-  serviceId String @id @map("service_id")
-  monday    Int
-  tuesday   Int
-  wednesday Int
-  thursday  Int
-  friday    Int
-  saturday  Int
-  sunday    Int
-  startDate Int    @map("start_date")
-  endDate   Int    @map("end_date")
+  serviceId     String          @id @map("service_id")
+  monday        Int
+  tuesday       Int
+  wednesday     Int
+  thursday      Int
+  friday        Int
+  saturday      Int
+  sunday        Int
+  startDate     Int             @map("start_date")
+  endDate       Int             @map("end_date")
+  calendarDates CalendarDate[]
+  trip         Trip[]
 
   @@index([endDate], map: "idx_calendar_end_date")
   @@index([startDate], map: "idx_calendar_start_date")
@@ -100,384 +39,41 @@ model Calendar {
 }
 
 model CalendarDate {
-  id            Int     @id @default(autoincrement())
-  serviceId     String  @map("service_id")
+  id            Int      @id @default(autoincrement())
+  serviceId     String   @map("service_id")
   date          Int
-  exceptionType Int     @map("exception_type")
-  holidayName   String? @map("holiday_name")
+  exceptionType Int      @map("exception_type")
+  calendar      Calendar @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
 
+  @@index([serviceId], map: "idx_calendar_dates_service_id")
   @@index([exceptionType], map: "idx_calendar_dates_exception_type")
   @@index([date], map: "idx_calendar_dates_date")
-  @@index([serviceId], map: "idx_calendar_dates_service_id")
   @@map("calendar_dates")
 }
 
-model DeadheadTime {
-  id                 Int     @id @default(autoincrement())
-  deadheadId         String  @map("deadhead_id")
-  arrivalTime        String  @map("arrival_time")
-  arrivalTimestamp   Int?    @map("arrival_timestamp")
-  departureTime      String  @map("departure_time")
-  departureTimestamp Int?    @map("departure_timestamp")
-  opsLocationId      String? @map("ops_location_id")
-  stopId             String? @map("stop_id")
-  locationSequence   Int     @map("location_sequence")
-  shapeDistTraveled  Float?  @map("shape_dist_traveled")
-
-  @@index([locationSequence], map: "idx_deadhead_times_location_sequence")
-  @@index([departureTimestamp], map: "idx_deadhead_times_departure_timestamp")
-  @@index([arrivalTimestamp], map: "idx_deadhead_times_arrival_timestamp")
-  @@index([deadheadId], map: "idx_deadhead_times_deadhead_id")
-  @@map("deadhead_times")
-}
-
-model Deadhead {
-  deadheadId     String  @id @map("deadhead_id")
-  serviceId      String  @map("service_id")
-  blockId        String  @map("block_id")
-  shapeId        String? @map("shape_id")
-  toTripId       String? @map("to_trip_id")
-  fromTripId     String? @map("from_trip_id")
-  toDeadheadId   String? @map("to_deadhead_id")
-  fromDeadheadId String? @map("from_deadhead_id")
-
-  @@index([fromDeadheadId], map: "idx_deadheads_from_deadhead_id")
-  @@index([toDeadheadId], map: "idx_deadheads_to_deadhead_id")
-  @@index([fromTripId], map: "idx_deadheads_from_trip_id")
-  @@index([toTripId], map: "idx_deadheads_to_trip_id")
-  @@index([shapeId], map: "idx_deadheads_shape_id")
-  @@index([blockId], map: "idx_deadheads_block_id")
-  @@map("deadheads")
-}
-
-model Direction {
-  id          Int    @id @default(autoincrement())
-  routeId     String @map("route_id")
-  directionId Int?   @map("direction_id")
-  direction   String
-
-  @@index([directionId], map: "idx_directions_direction_id")
-  @@index([routeId], map: "idx_directions_route_id")
-  @@map("directions")
-}
-
-model FareAttribute {
-  fareId           String  @id @map("fare_id")
-  price            Float
-  currencyType     String  @map("currency_type")
-  paymentMethod    Int     @map("payment_method")
-  transfers        Int?
-  agencyId         String? @map("agency_id")
-  transferDuration Int?    @map("transfer_duration")
-
-  @@map("fare_attributes")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model FareLegRule {
-  legGroupId    String? @map("leg_group_id")
-  networkId     String? @map("network_id")
-  fromAreaId    String? @map("from_area_id")
-  toAreaId      String? @map("to_area_id")
-  fareProductId String  @map("fare_product_id")
-
-  @@map("fare_leg_rules")
-  @@ignore
-}
-
-model FareProduct {
-  fareProductId   String  @id @map("fare_product_id")
-  fareProductName String? @map("fare_product_name")
-  amount          Float
-  currency        String
-
-  @@map("fare_products")
-}
-
-model FareRule {
-  id            Int     @id @default(autoincrement())
-  fareId        String  @map("fare_id")
-  routeId       String? @map("route_id")
-  originId      String? @map("origin_id")
-  destinationId String? @map("destination_id")
-  containsId    String? @map("contains_id")
-
-  @@map("fare_rules")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model FareTransferRule {
-  fromLegGroupId    String? @map("from_leg_group_id")
-  toLegGroupId      String? @map("to_leg_group_id")
-  transferCount     Int?    @map("transfer_count")
-  transferId        String? @map("transfer_id")
-  durationLimit     Int?    @map("duration_limit")
-  durationLimitType Int?    @map("duration_limit_type")
-  fareTransferType  Int?    @map("fare_transfer_type")
-  fareProductId     String? @map("fare_product_id")
-
-  @@map("fare_transfer_rules")
-  @@ignore
-}
-
-model FeedInfo {
-  id                Int     @id @default(autoincrement())
-  feedPublisherName String  @map("feed_publisher_name")
-  feedPublisherUrl  String  @map("feed_publisher_url")
-  feedLang          String  @map("feed_lang")
-  defaultLang       String? @map("default_lang")
-  feedStartDate     Int?    @map("feed_start_date")
-  feedEndDate       Int?    @map("feed_end_date")
-  feedVersion       String? @map("feed_version")
-  feedContactEmail  String? @map("feed_contact_email")
-  feedContactUrl    String? @map("feed_contact_url")
-
-  @@map("feed_info")
-}
-
-model Frequency {
-  id             Int    @id @default(autoincrement())
-  tripId         String @map("trip_id")
-  startTime      String @map("start_time")
-  startTimestamp Int?   @map("start_timestamp")
-  endTime        String @map("end_time")
-  endTimestamp   Int?   @map("end_timestamp")
-  headwaySecs    Int    @map("headway_secs")
-  exactTimes     Int?   @map("exact_times")
-
-  @@index([tripId], map: "idx_frequencies_trip_id")
-  @@map("frequencies")
-}
-
-model Level {
-  levelId    String  @id @map("level_id")
-  levelIndex Float   @map("level_index")
-  levelName  String? @map("level_name")
-
-  @@map("levels")
-}
-
-model OpsLocation {
-  opsLocationId   String  @id @map("ops_location_id")
-  opsLocationCode String? @map("ops_location_code")
-  opsLocationName String  @map("ops_location_name")
-  opsLocationDesc String? @map("ops_location_desc")
-  opsLocationLat  Float   @map("ops_location_lat")
-  opsLocationLon  Float   @map("ops_location_lon")
-
-  @@map("ops_locations")
-}
-
-model Pathway {
-  pathwayId            String  @id @map("pathway_id")
-  fromStopId           String  @map("from_stop_id")
-  toStopId             String  @map("to_stop_id")
-  pathwayMode          Int     @map("pathway_mode")
-  isBidirectional      Int     @map("is_bidirectional")
-  length               Float?
-  traversalTime        Int?    @map("traversal_time")
-  stairCount           Int?    @map("stair_count")
-  maxSlope             Float?  @map("max_slope")
-  minWidth             Float?  @map("min_width")
-  signpostedAs         String? @map("signposted_as")
-  reversedSignpostedAs String? @map("reversed_signposted_as")
-
-  @@map("pathways")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model RideFeedInfo {
-  rideFiles           Int     @map("ride_files")
-  rideStartDate       Int?    @map("ride_start_date")
-  rideEndDate         Int?    @map("ride_end_date")
-  gtfsFeedDate        Int?    @map("gtfs_feed_date")
-  defaultCurrencyType String? @map("default_currency_type")
-  rideFeedVersion     String? @map("ride_feed_version")
-
-  @@index([gtfsFeedDate], map: "idx_ride_feed_info_gtfs_feed_date")
-  @@index([rideEndDate], map: "idx_ride_feed_info_ride_end_date")
-  @@index([rideStartDate], map: "idx_ride_feed_info_ride_start_date")
-  @@map("ride_feed_info")
-  @@ignore
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model RiderTrip {
-  riderId               String? @id @map("rider_id")
-  agencyId              String? @map("agency_id")
-  tripId                String? @map("trip_id")
-  boardingStopId        String? @map("boarding_stop_id")
-  boardingStopSequence  Int?    @map("boarding_stop_sequence")
-  alightingStopId       String? @map("alighting_stop_id")
-  alightingStopSequence Int?    @map("alighting_stop_sequence")
-  serviceDate           Int?    @map("service_date")
-  boardingTime          String? @map("boarding_time")
-  boardingTimestamp     Int?    @map("boarding_timestamp")
-  alightingTime         String? @map("alighting_time")
-  alightingTimestamp    Int?    @map("alighting_timestamp")
-  riderType             Int?    @map("rider_type")
-  riderTypeDescription  String? @map("rider_type_description")
-  farePaid              Float?  @map("fare_paid")
-  transactionType       Int?    @map("transaction_type")
-  fareMedia             Int?    @map("fare_media")
-  accompanyingDevice    Int?    @map("accompanying_device")
-  transferStatus        Int?    @map("transfer_status")
-
-  @@index([alightingTimestamp], map: "idx_rider_trip_alighting_timestamp")
-  @@index([boardingTimestamp], map: "idx_rider_trip_boarding_timestamp")
-  @@index([serviceDate], map: "idx_rider_trip_service_date")
-  @@index([alightingStopSequence], map: "idx_rider_trip_alighting_stop_sequence")
-  @@index([alightingStopId], map: "idx_rider_trip_alighting_stop_id")
-  @@index([boardingStopSequence], map: "idx_rider_trip_boarding_stop_sequence")
-  @@index([boardingStopId], map: "idx_rider_trip_boarding_stop_id")
-  @@index([tripId], map: "idx_rider_trip_trip_id")
-  @@index([agencyId], map: "idx_rider_trip_agency_id")
-  @@map("rider_trip")
-  @@ignore
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model Ridership {
-  totalBoardings          Int     @map("total_boardings")
-  totalAlightings         Int     @map("total_alightings")
-  ridershipStartDate      Int?    @map("ridership_start_date")
-  ridershipEndDate        Int?    @map("ridership_end_date")
-  ridershipStartTime      String? @map("ridership_start_time")
-  ridershipStartTimestamp Int?    @map("ridership_start_timestamp")
-  ridershipEndTime        String? @map("ridership_end_time")
-  ridershipEndTimestamp   Int?    @map("ridership_end_timestamp")
-  serviceId               String? @map("service_id")
-  monday                  Int?
-  tuesday                 Int?
-  wednesday               Int?
-  thursday                Int?
-  friday                  Int?
-  saturday                Int?
-  sunday                  Int?
-  agencyId                String? @map("agency_id")
-  routeId                 String? @map("route_id")
-  directionId             Int?    @map("direction_id")
-  tripId                  String? @map("trip_id")
-  stopId                  String? @map("stop_id")
-
-  @@index([directionId], map: "idx_ridership_direction_id")
-  @@index([routeId], map: "idx_ridership_route_id")
-  @@index([agencyId], map: "idx_ridership_agency_id")
-  @@index([serviceId], map: "idx_ridership_service_id")
-  @@index([ridershipEndTimestamp], map: "idx_ridership_ridership_end_timestamp")
-  @@index([ridershipStartTimestamp], map: "idx_ridership_ridership_start_timestamp")
-  @@index([ridershipEndDate], map: "idx_ridership_ridership_end_date")
-  @@index([ridershipStartDate], map: "idx_ridership_ridership_start_date")
-  @@map("ridership")
-  @@ignore
-}
-
 model Route {
-  routeId           String  @id @map("route_id")
-  agencyId          String? @map("agency_id")
-  routeShortName    String? @map("route_short_name")
-  routeLongName     String? @map("route_long_name")
-  routeDesc         String? @map("route_desc")
-  routeType         Int     @map("route_type")
-  routeUrl          String? @map("route_url")
-  routeColor        String? @map("route_color")
-  routeTextColor    String? @map("route_text_color")
-  routeSortOrder    Int?    @map("route_sort_order")
-  continuousPickup  Int?    @map("continuous_pickup")
-  continuousDropOff Int?    @map("continuous_drop_off")
-  networkId         String? @map("network_id")
+  routeId        String  @id @map("route_id")
+  agencyId       String? @map("agency_id")
+  routeShortName String? @map("route_short_name")
+  routeLongName  String? @map("route_long_name")
+  routeType      Int     @map("route_type")
+  agency         Agency? @relation(fields: [agencyId], references: [agencyId], onDelete: NoAction, onUpdate: NoAction)
+  trip          Trip[]
 
   @@map("routes")
 }
 
-model RunEvent {
-  runEventId            String  @id @map("run_event_id")
-  pieceId               String  @map("piece_id")
-  eventType             Int     @map("event_type")
-  eventName             String? @map("event_name")
-  eventTime             String  @map("event_time")
-  eventDuration         Int     @map("event_duration")
-  eventFromLocationType Int?    @map("event_from_location_type")
-  eventFromLocationId   String? @map("event_from_location_id")
-  eventToLocationType   Int?    @map("event_to_location_type")
-  eventToLocationId     String? @map("event_to_location_id")
-
-  @@index([eventToLocationType], map: "idx_run_event_event_to_location_type")
-  @@index([eventFromLocationType], map: "idx_run_event_event_from_location_type")
-  @@index([eventType], map: "idx_run_event_event_type")
-  @@map("run_event")
-}
-
-model RunsPiece {
-  runId             String @map("run_id")
-  pieceId           String @id @map("piece_id")
-  startType         Int    @map("start_type")
-  startTripId       String @map("start_trip_id")
-  startTripPosition Int?   @map("start_trip_position")
-  endType           Int    @map("end_type")
-  endTripId         String @map("end_trip_id")
-  endTripPosition   Int?   @map("end_trip_position")
-
-  @@index([endTripId], map: "idx_runs_pieces_end_trip_id")
-  @@index([endType], map: "idx_runs_pieces_end_type")
-  @@index([startTripId], map: "idx_runs_pieces_start_trip_id")
-  @@index([startType], map: "idx_runs_pieces_start_type")
-  @@map("runs_pieces")
-}
-
-model ServiceAlertTarget {
-  alertId   String  @id @map("alert_id")
-  stopId    String? @map("stop_id")
-  routeId   String? @map("route_id")
-  isUpdated Int     @default(1)
-
-  @@index([routeId], map: "idx_service_alert_targets_route_id")
-  @@index([stopId], map: "idx_service_alert_targets_stop_id")
-  @@index([alertId], map: "idx_service_alert_targets_alert_id")
-  @@map("service_alert_targets")
-}
-
-model ServiceAlert {
-  id          String @id
-  cause       Int
-  startTime   String @map("start_time")
-  endTime     String @map("end_time")
-  headline    String
-  description String
-  isUpdated   Int    @default(1)
-
-  @@index([id], map: "idx_service_alerts_id")
-  @@map("service_alerts")
-}
-
 model Shape {
-  id                Int    @id @default(autoincrement())
-  shapeId           String @map("shape_id")
-  shapePtLat        Float  @map("shape_pt_lat")
-  shapePtLon        Float  @map("shape_pt_lon")
-  shapePtSequence   Int    @map("shape_pt_sequence")
-  shapeDistTraveled Float? @map("shape_dist_traveled")
+  id                Int         @id @default(autoincrement())
+  shapeId           String      @map("shape_id")
+  shapePtLat        Float       @map("shape_pt_lat")
+  shapePtLon        Float       @map("shape_pt_lon")
+  shapePtSequence   Int         @map("shape_pt_sequence")
+  shapeDistTraveled Float?      @map("shape_dist_traveled")
+  tripShape        TripShape?
 
   @@index([shapeId], map: "idx_shapes_shape_id")
   @@map("shapes")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model StopArea {
-  areaId String @map("area_id")
-  stopId String @map("stop_id")
-
-  @@map("stop_areas")
-  @@ignore
-}
-
-model StopAttribute {
-  id       Int     @id @default(autoincrement())
-  stopId   String  @map("stop_id")
-  stopCity String? @map("stop_city")
-
-  @@index([stopId], map: "idx_stop_attributes_stop_id")
-  @@map("stop_attributes")
 }
 
 model StopTime {
@@ -492,247 +88,57 @@ model StopTime {
   stopHeadsign       String? @map("stop_headsign")
   pickupType         Int?    @map("pickup_type")
   dropOffType        Int?    @map("drop_off_type")
-  continuousPickup   Int?    @map("continuous_pickup")
-  continuousDropOff  Int?    @map("continuous_drop_off")
-  shapeDistTraveled  Float?  @map("shape_dist_traveled")
   timepoint          Int?
+  stop              Stop   @relation(fields: [stopId], references: [stopId], onDelete: NoAction, onUpdate: NoAction)
+  trip              Trip   @relation(fields: [tripId], references: [tripId], onDelete: NoAction, onUpdate: NoAction)
 
+  @@index([tripId], map: "idx_stop_times_trip_id")
   @@index([stopSequence], map: "idx_stop_times_stop_sequence")
   @@index([departureTimestamp], map: "idx_stop_times_departure_timestamp")
   @@index([arrivalTimestamp], map: "idx_stop_times_arrival_timestamp")
-  @@index([tripId], map: "idx_stop_times_trip_id")
   @@map("stop_times")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model StopTimesUpdate {
-  tripId             String? @map("trip_id")
-  routeId            String? @map("route_id")
-  stopId             String? @map("stop_id")
-  stopSequence       Int?    @map("stop_sequence")
-  arrivalDelay       Int?    @map("arrival_delay")
-  departureDelay     Int?    @map("departure_delay")
-  departureTimestamp String? @map("departure_timestamp")
-  arrivalTimestamp   String? @map("arrival_timestamp")
-  isUpdated          Int     @default(1)
-
-  @@index([stopId], map: "idx_stop_times_updates_stop_id")
-  @@index([routeId], map: "idx_stop_times_updates_route_id")
-  @@index([tripId], map: "idx_stop_times_updates_trip_id")
-  @@map("stop_times_updates")
-  @@ignore
-}
-
 model Stop {
-  stopId             String  @id @map("stop_id")
-  stopCode           String? @map("stop_code")
-  stopName           String? @map("stop_name")
-  ttsStopName        String? @map("tts_stop_name")
-  stopDesc           String? @map("stop_desc")
-  stopLat            Float?  @map("stop_lat")
-  stopLon            Float?  @map("stop_lon")
-  zoneId             String? @map("zone_id")
-  stopUrl            String? @map("stop_url")
-  locationType       Int?    @map("location_type")
-  parentStation      String? @map("parent_station")
-  stopTimezone       String? @map("stop_timezone")
-  wheelchairBoarding Int?    @map("wheelchair_boarding")
-  levelId            String? @map("level_id")
-  platformCode       String? @map("platform_code")
+  stopId     String      @id @map("stop_id")
+  stopCode   String?     @map("stop_code")
+  stopName   String?     @map("stop_name")
+  stopLat    Float?      @map("stop_lat")
+  stopLon    Float?      @map("stop_lon")
+  stopTimes  StopTime[]
+  stop      Stop       @relation("stopsTostops", fields: [stopId], references: [stopId], onDelete: NoAction, onUpdate: NoAction)
+  otherStop Stop?      @relation("stopsTostops")
 
-  @@index([parentStation], map: "idx_stops_parent_station")
   @@map("stops")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model TimetableNote {
-  noteId String? @id @map("note_id")
-  symbol String?
-  note   String?
+model TripShape {
+  shapeId Int     @id @unique(map: "sqlite_autoindex_trip_shapes_1") @default(autoincrement()) @map("shape_id")
+  tripId  String? @map("trip_id")
+  shape  Shape  @relation(fields: [shapeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  trip   Trip?  @relation(fields: [tripId], references: [tripId], onDelete: NoAction, onUpdate: NoAction)
 
-  @@map("timetable_notes")
-  @@ignore
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model TimetableNotesReference {
-  noteId         String? @map("note_id")
-  timetableId    String? @map("timetable_id")
-  routeId        String? @map("route_id")
-  tripId         String? @map("trip_id")
-  stopId         String? @map("stop_id")
-  stopSequence   Int?    @map("stop_sequence")
-  showOnStoptime Int?    @map("show_on_stoptime")
-
-  @@index([stopSequence], map: "idx_timetable_notes_references_stop_sequence")
-  @@index([stopId], map: "idx_timetable_notes_references_stop_id")
-  @@index([tripId], map: "idx_timetable_notes_references_trip_id")
-  @@index([routeId], map: "idx_timetable_notes_references_route_id")
-  @@index([timetableId], map: "idx_timetable_notes_references_timetable_id")
-  @@map("timetable_notes_references")
-  @@ignore
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model TimetablePage {
-  timetablePageId    String? @id @map("timetable_page_id")
-  timetablePageLabel String? @map("timetable_page_label")
-  filename           String?
-
-  @@map("timetable_pages")
-  @@ignore
-}
-
-model TimetableStopOrder {
-  id           Int     @id @default(autoincrement())
-  timetableId  String? @map("timetable_id")
-  stopId       String? @map("stop_id")
-  stopSequence Int?    @map("stop_sequence")
-
-  @@index([stopSequence], map: "idx_timetable_stop_order_stop_sequence")
-  @@index([timetableId], map: "idx_timetable_stop_order_timetable_id")
-  @@map("timetable_stop_order")
-}
-
-model Timetable {
-  id                   Int     @id @default(autoincrement())
-  timetableId          String? @map("timetable_id")
-  routeId              String? @map("route_id")
-  directionId          Int?    @map("direction_id")
-  startDate            Int?    @map("start_date")
-  endDate              Int?    @map("end_date")
-  monday               Int
-  tuesday              Int
-  wednesday            Int
-  thursday             Int
-  friday               Int
-  saturday             Int
-  sunday               Int
-  startTime            String? @map("start_time")
-  startTimestamp       Int?    @map("start_timestamp")
-  endTime              String? @map("end_time")
-  endTimestamp         Int?    @map("end_timestamp")
-  timetableLabel       String? @map("timetable_label")
-  serviceNotes         String? @map("service_notes")
-  orientation          String?
-  timetablePageId      String? @map("timetable_page_id")
-  timetableSequence    Int?    @map("timetable_sequence")
-  directionName        String? @map("direction_name")
-  includeExceptions    Int?    @map("include_exceptions")
-  showTripContinuation Int?    @map("show_trip_continuation")
-
-  @@index([timetableSequence], map: "idx_timetables_timetable_sequence")
-  @@map("timetables")
-}
-
-model Transfer {
-  id              Int     @id @default(autoincrement())
-  fromStopId      String? @map("from_stop_id")
-  toStopId        String? @map("to_stop_id")
-  fromRouteId     String? @map("from_route_id")
-  toRouteId       String? @map("to_route_id")
-  fromTripId      String? @map("from_trip_id")
-  toTripId        String? @map("to_trip_id")
-  transferType    Int?    @map("transfer_type")
-  minTransferTime Int?    @map("min_transfer_time")
-
-  @@index([toStopId], map: "idx_transfers_to_stop_id")
-  @@index([fromStopId], map: "idx_transfers_from_stop_id")
-  @@map("transfers")
-}
-
-model Translation {
-  id          Int     @id @default(autoincrement())
-  tableName   String  @map("table_name")
-  fieldName   String  @map("field_name")
-  language    String
-  translation String
-  recordId    String? @map("record_id")
-  recordSubId String? @map("record_sub_id")
-  fieldValue  String? @map("field_value")
-
-  @@map("translations")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model TripCapacity {
-  agencyId           String? @map("agency_id")
-  tripId             String? @map("trip_id")
-  serviceDate        Int?    @map("service_date")
-  vehicleDescription String? @map("vehicle_description")
-  seatedCapacity     Int?    @map("seated_capacity")
-  standingCapacity   Int?    @map("standing_capacity")
-  wheelchairCapacity Int?    @map("wheelchair_capacity")
-  bikeCapacity       Int?    @map("bike_capacity")
-
-  @@index([serviceDate], map: "idx_trip_capacity_service_date")
-  @@index([tripId], map: "idx_trip_capacity_trip_id")
-  @@index([agencyId], map: "idx_trip_capacity_agency_id")
-  @@map("trip_capacity")
-  @@ignore
-}
-
-model TripUpdate {
-  updateId  String  @id @map("update_id")
-  vehicleId String? @map("vehicle_id")
-  tripId    String? @map("trip_id")
-  startDate String? @map("start_date")
-  timestamp String?
-  isUpdated Int     @default(1)
-
-  @@index([tripId], map: "idx_trip_updates_trip_id")
-  @@index([vehicleId], map: "idx_trip_updates_vehicle_id")
-  @@index([updateId], map: "idx_trip_updates_update_id")
-  @@map("trip_updates")
+  @@map("trip_shapes")
 }
 
 model Trip {
-  routeId              String  @map("route_id")
-  serviceId            String  @map("service_id")
-  tripId               String  @id @map("trip_id")
-  tripHeadsign         String? @map("trip_headsign")
-  tripShortName        String? @map("trip_short_name")
-  directionId          Int?    @map("direction_id")
-  blockId              String? @map("block_id")
-  shapeId              String? @map("shape_id")
-  wheelchairAccessible Int?    @map("wheelchair_accessible")
-  bikesAllowed         Int?    @map("bikes_allowed")
+  routeId       String       @map("route_id")
+  serviceId     String       @map("service_id")
+  tripId        String       @id @map("trip_id")
+  tripHeadsign  String?      @map("trip_headsign")
+  tripShortName String?      @map("trip_short_name")
+  directionId   Int?         @map("direction_id")
+  blockId       String?      @map("block_id")
+  shapeId       String?      @map("shape_id")
+  stopTime     StopTime[]
+  tripShape    TripShape[]
+  calendar      Calendar     @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
+  route        Route       @relation(fields: [routeId], references: [routeId], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([shapeId], map: "idx_trips_shape_id")
-  @@index([blockId], map: "idx_trips_block_id")
-  @@index([directionId], map: "idx_trips_direction_id")
   @@index([serviceId], map: "idx_trips_service_id")
   @@index([routeId], map: "idx_trips_route_id")
+  @@index([directionId], map: "idx_trips_direction_id")
+  @@index([blockId], map: "idx_trips_block_id")
   @@map("trips")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model TripsDatedVehicleJourney {
-  tripId                 String @map("trip_id")
-  operatingDayDate       String @map("operating_day_date")
-  datedVehicleJourneyGid String @map("dated_vehicle_journey_gid")
-  journeyNumber          Int?   @map("journey_number")
-
-  @@index([journeyNumber], map: "idx_trips_dated_vehicle_journeys_journey_number")
-  @@index([operatingDayDate], map: "idx_trips_dated_vehicle_journeys_operating_day_date")
-  @@index([tripId], map: "idx_trips_dated_vehicle_journeys_trip_id")
-  @@map("trips_dated_vehicle_journeys")
-  @@ignore
-}
-
-model VehiclePosition {
-  updateId  String  @id @map("update_id")
-  bearing   Float?
-  latitude  Float?
-  longitude Float?
-  speed     Float?
-  tripId    String? @map("trip_id")
-  vehicleId String? @map("vehicle_id")
-  timestamp String?
-  isUpdated Int     @default(1)
-
-  @@index([vehicleId], map: "idx_vehicle_positions_vehicle_id")
-  @@index([tripId], map: "idx_vehicle_positions_trip_id")
-  @@index([updateId], map: "idx_vehicle_positions_update_id")
-  @@map("vehicle_positions")
 }

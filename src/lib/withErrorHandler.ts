@@ -1,4 +1,5 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
+import { ApiError } from "next/dist/server/api-utils";
 
 const withErrorHandler =
   (handler: NextApiHandler) =>
@@ -6,8 +7,8 @@ const withErrorHandler =
     try {
       return handler(req, res);
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(Number(error.cause) || 500).send(error.message);
+      if (error instanceof ApiError) {
+        res.status(error.statusCode).send(error.message);
       } else {
         res.status(500).send({ error: "Internal server error" });
       }

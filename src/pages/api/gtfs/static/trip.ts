@@ -1,5 +1,5 @@
 import { prisma } from "@/db";
-import withErrorHandler from "@/withErrorHandler";
+import withErrorHandler from "@/lib/withErrorHandler";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { Trip } from "@prisma/client";

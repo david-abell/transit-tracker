@@ -1,38 +1,40 @@
 import { prisma } from "@/db";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import withErrorHandler from "@/withErrorHandler";
+import withErrorHandler from "@/lib/withErrorHandler";
 import { Route } from "@prisma/client";
+import { ApiError } from "next/dist/server/api-utils";
 
-export type RouteAPIResponse = {
-  routeId: string;
-  routes: Route[];
-};
-
+export type RouteAPIResponse = Route[];
 async function handler(
   req: NextApiRequest,
   res: NextApiResponse<RouteAPIResponse>
 ) {
-  const { shortName } = req.query;
+  const { shortName = "", longName = "" } = req.query;
 
-  if (!shortName || typeof shortName !== "string") {
+  if (
+    (!shortName && !longName) ||
+    typeof shortName !== "string" ||
+    typeof longName !== "string"
+  ) {
     return res.end();
-    // throw new Error("Route shortname is required", { cause: 400 });
-    // return res.status(400).end("Route shortname is required");
   }
+
   const routes = await prisma.route.findMany({
-    where: { routeShortName: shortName },
+    take: 10,
+    where: {
+      OR: [
+        { routeShortName: { contains: shortName } },
+        { routeLongName: { contains: longName } },
+      ],
+    },
   });
 
   if (!routes.length) {
-    throw new Error("Invalid route shortname", { cause: 404 });
-    // return res.status(404).end("Invalid route shortname");
+    throw new ApiError(404, "No routes found");
   }
 
-  return res.json({
-    routeId: routes[0].routeId,
-    routes,
-  });
+  return res.json(routes);
 }
 
 export default withErrorHandler(handler);

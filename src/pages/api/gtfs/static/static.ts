@@ -1,23 +1,54 @@
 import { prisma } from "@/db";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(
+import withErrorHandler from "@/lib/withErrorHandler";
+import { Route, Stop, Trip } from "@prisma/client";
+import { ApiError } from "next/dist/server/api-utils";
+
+export type StaticAPIResponse = {
+  route: Route;
+  stops: Stop[];
+  trips: Trip[];
+};
+
+async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<StaticAPIResponse>
 ) {
-  const routes = await prisma.route.findMany({
-    where: { routeShortName: "208" },
+  const { shortName } = req.query;
+
+  if (!shortName || typeof shortName !== "string") {
+    return res.end();
+  }
+  const route = await prisma.route.findFirst({
+    where: { routeShortName: shortName },
   });
 
-  const routeId = routes[0].routeId;
+  if (!route) {
+    throw new ApiError(404, "Invalid route shortname");
+  }
 
-  const trips = await prisma.trip.findMany({
-    where: { routeId },
+  const routeId = route.routeId;
+
+  const trips = await prisma.trip.findMany({ where: { routeId } });
+  const tripIds = trips.map(({ tripId }) => tripId);
+
+  const stopTimes = await prisma.stopTime.findMany({
+    where: { tripId: { in: tripIds } },
+  });
+  const stopTimeIds = stopTimes.map(({ stopId }) => stopId);
+
+  const stops = await prisma.stop.findMany({
+    where: {
+      stopId: { in: stopTimeIds },
+    },
   });
 
-  // const stops = await prisma.stops.findMany({
-  //   where: { stop_id: "8370B2103401" },
-  // });
-  // console.log(routes);
-  res.json(trips);
+  return res.json({
+    route,
+    stops,
+    trips,
+  });
 }
+
+export default withErrorHandler(handler);

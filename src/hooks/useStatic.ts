@@ -1,9 +1,9 @@
 import useSWR from "swr";
 import { useState } from "react";
-import { Route, Trip } from "@prisma/client";
+import { Route, Shape, StopTime, Trip } from "@prisma/client";
 
-import { RouteAPIResponse } from "@/pages/api/gtfs/static/route";
-import { TripAPIResponse } from "@/pages/api/gtfs/static/trip";
+import { StaticAPIResponse } from "@/pages/api/gtfs/static/static";
+import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 
 const fetcher = async (input: RequestInfo, init: RequestInit) => {
   try {
@@ -16,33 +16,49 @@ const fetcher = async (input: RequestInfo, init: RequestInit) => {
   }
 };
 
-const API_URL = "/api/gtfs/static/route";
-
 type Props = {
-  route?: string;
+  routeQuery?: string;
   tripId?: string;
+  shapeId?: string;
 };
 
-function useStatic({ route }: Props) {
-  const routeParams = route ? new URLSearchParams({ shortName: route }) : "";
-
-  const { data: routes } = useSWR<RouteAPIResponse>(
-    () => (!!route ? `/api/gtfs/static/route?${routeParams}` : null),
+function useStatic({ routeQuery, tripId, shapeId }: Props) {
+  const { data: staticData } = useSWR<StaticAPIResponse>(
+    () =>
+      !!routeQuery
+        ? `/api/gtfs/static/static?${new URLSearchParams({
+            shortName: routeQuery,
+          })}`
+        : null,
     fetcher
   );
 
-  const tripParams = routes
-    ? new URLSearchParams({ routeId: routes.routeId })
-    : "";
+  const { route, stops, trips } = staticData || {};
 
-  const { data: trips } = useSWR<TripAPIResponse>(
-    () => (!!routes ? `/api/gtfs/static/trip?${tripParams}` : null),
+  const { data: stopTimes } = useSWR<StopTime[]>(
+    () =>
+      !!tripId
+        ? `/api/gtfs/static/stop-times/?${encodeURIComponent(tripId)}}`
+        : null,
+    fetcher
+  );
+
+  const { data: shape } = useSWR<ShapeAPIResponse>(
+    () =>
+      !!shapeId
+        ? `/api/gtfs/static/shape?${new URLSearchParams({
+            shapeId,
+          })}`
+        : null,
     fetcher
   );
 
   return {
-    routes,
+    route,
+    shape,
+    stops,
     trips,
+    stopTimes,
   };
 }
 

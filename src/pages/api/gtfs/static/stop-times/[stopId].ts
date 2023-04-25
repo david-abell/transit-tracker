@@ -1,4 +1,4 @@
-import { prisma } from "@/db";
+import { prisma } from "@/lib/db";
 import withErrorHandler from "@/lib/withErrorHandler";
 import { ApiError } from "next/dist/server/api-utils";
 

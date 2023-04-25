@@ -8,27 +8,50 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Leaflet from "leaflet";
-import { GeoJSON } from "leaflet";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useRealtime from "@/hooks/useRealtime";
+import useStatic from "@/hooks/useStatic";
 
-// Testdata
-import { lineString } from "@/testdata/lineString";
-import { getStopTime } from "@/testdata/stoptimes";
-import { stops } from "@/testdata/stops";
-import { getStopTime2, stopTimes2 } from "@/testdata/stopTimes2";
+import type { Stop } from "@prisma/client";
 
-// const TEST_TRIP_ID = "3249_11284";
-const TEST_TRIP_ID = "3249_31930";
-const TEST_ROUTE_ID = "3249_46339";
+const greenIcon = new Leaflet.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
 
 // Necessary because Leaflet uses northing-easting [[lat-lng]]
 // while GeoJSON stores easting-northing [[long, lat]]
-const coordinates = GeoJSON.coordsToLatLngs(lineString);
+// const coordinates = Leaflet.GeoJSON.coordsToLatLngs(lineString);
 
 function Map() {
-  const { tripsByRouteId, tripsByTripId, isError, isLoading } = useRealtime();
+  const [shapeId, setShapeId] = useState("3249_408");
+  const [selectedStopId, setSelectedStopId] = useState<Stop["stopId"]>();
+  const [selectedDateTime, setSelectedDateTime] = useState(
+    new Date(2023, 5, 1, 8, 21, 21)
+  );
+  const { tripsByRouteId, tripsByTripId } = useRealtime();
+  const {
+    route,
+    stops,
+    trips,
+    tripsById,
+    stopTimes,
+    shape,
+    stopsById,
+    stopTimesByTripId,
+  } = useStatic({
+    routeQuery: "208",
+    shapeId,
+    dateTime: selectedDateTime,
+  });
+
   // Fix leaflet icons not importing
   useEffect(() => {
     (async function init() {
@@ -42,15 +65,6 @@ function Map() {
     })();
   }, []);
 
-  useEffect(() => {
-    // console.log(`Trip Id: ${TEST_TRIP_ID}`, tripsByTripId.get(TEST_TRIP_ID));
-    console.log(
-      `Route Id: ${TEST_ROUTE_ID}`,
-      tripsByRouteId.get(TEST_ROUTE_ID)
-    );
-    const trip = tripsByRouteId.get(TEST_ROUTE_ID);
-  }, [tripsByRouteId, tripsByTripId]);
-
   return (
     <MapContainer
       center={[51.9081690653422, -8.41944955885327]}
@@ -61,10 +75,14 @@ function Map() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {stops?.map(({ stop_id, stop_code, stop_lat, stop_lon }) => {
-        const stopTime = getStopTime2(stop_id);
+      {stopTimes?.map(({ stopId, arrivalTime, tripId }) => {
+        const stop = stopsById.get(stopId);
+        const { stopLat, stopLon, stopCode, stopName } = stop || {};
 
-        if (!stop_lat || !stop_lon) {
+        const trip = tripsById.get(tripId);
+        const { tripHeadsign } = trip || {};
+
+        if (!stopLat || !stopLon) {
           return [];
         }
 
@@ -80,26 +98,37 @@ function Map() {
 
         return (
           <Marker
-            key={stop_id}
-            position={[stop_lat, stop_lon]}
-            // icon={Leaflet.icon({
-            //   iconUrl,
-            //   iconRetinaUrl,
-            //   iconSize: [41, 41],
-            // })}
+            key={stopId + tripId}
+            position={[stopLat, stopLon]}
+            // Set Icon color for current stop
+            {...(stopId === selectedStopId ? { icon: greenIcon } : {})}
+            // icon={greenIcon}
           >
             <Popup>
-              {/* <strong>Location:</strong> {city}, {region} */}
+              <strong>Stop Name:</strong> {stopName}
               <br />
-              <strong>Stop Code: {stop_code}</strong>
+              <strong>Stop Code: {stopCode}</strong>
               <br />
-              <strong>Arrival scheduled</strong> @: {stopTime?.arrival_time}
-              {/* <strong>Departure:</strong> { arrivalDate.toDateString() } @ { departureTime } */}
+              <strong>Stop Id: {stopId}</strong>
+              <br />
+              <strong>Arrival scheduled</strong> @: {arrivalTime}
+              <br />
+              <strong>Heading towards: </strong> {tripHeadsign}
+              <div className="w-full">
+                <button
+                  onClick={() => setSelectedStopId(stopId)}
+                  className="mx-auto block rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+                >
+                  Start here
+                </button>
+              </div>
             </Popup>
           </Marker>
         );
       })}
-      <Polyline pathOptions={{ color: "firebrick" }} positions={coordinates} />
+      {!!shape && (
+        <Polyline pathOptions={{ color: "firebrick" }} positions={shape} />
+      )}
     </MapContainer>
   );
 }

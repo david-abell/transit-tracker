@@ -27,10 +27,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime>) {
     );
   }
 
-  console.log(
-    `stop times for stop: ${stopId} on trip: ${tripId} are:`,
-    stopTime
-  );
   return res.json(stopTime);
 }
 

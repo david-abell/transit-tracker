@@ -27,8 +27,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
   let calendarDay = getDayString(date);
   let calendarDate = getCalendarDate(date);
 
-  console.log(date, calendarDay);
-
   const trips = await prisma.trip.findMany({
     where: { routeId: routeId },
   });
@@ -47,8 +45,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
       ],
     },
   });
-
-  console.log("calendar:", calendar, "calendarDate:", calendarDate);
 
   const maxDepartureTime =
     departureTime &&
@@ -76,8 +72,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
     },
     orderBy: { departureTime: "asc" },
   });
-
-  console.log(stopTimes.length);
 
   if (!stopTimes.length) {
     throw new ApiError(404, "No stop times found");

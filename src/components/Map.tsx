@@ -7,13 +7,13 @@ import {
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import Leaflet from "leaflet";
+import Leaflet, { LatLngExpression } from "leaflet";
 
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import useRealtime from "@/hooks/useRealtime";
 import useStatic from "@/hooks/useStatic";
 
-import type { Stop } from "@prisma/client";
+import type { Shape, Stop, StopTime, Trip } from "@prisma/client";
 
 const greenIcon = new Leaflet.Icon({
   iconUrl:
@@ -29,29 +29,23 @@ const greenIcon = new Leaflet.Icon({
 // Necessary because Leaflet uses northing-easting [[lat-lng]]
 // while GeoJSON stores easting-northing [[long, lat]]
 // const coordinates = Leaflet.GeoJSON.coordsToLatLngs(lineString);
+type Props = {
+  selectedStopId: Stop["stopId"] | undefined;
+  setSelectedStopId: Dispatch<SetStateAction<string | undefined>>;
+  shape: LatLngExpression[] | undefined;
+  stopsById: Map<string, Stop>;
+  stopTimes: StopTime[] | undefined;
+  tripsById: Map<string, Trip>;
+};
 
-function Map() {
-  const [shapeId, setShapeId] = useState("3249_408");
-  const [selectedStopId, setSelectedStopId] = useState<Stop["stopId"]>();
-  const [selectedDateTime, setSelectedDateTime] = useState(
-    new Date(2023, 5, 1, 8, 21, 21)
-  );
-  const { tripsByRouteId, tripsByTripId } = useRealtime();
-  const {
-    route,
-    stops,
-    trips,
-    tripsById,
-    stopTimes,
-    shape,
-    stopsById,
-    stopTimesByTripId,
-  } = useStatic({
-    routeQuery: "208",
-    shapeId,
-    dateTime: selectedDateTime,
-  });
-
+function Map({
+  stopTimes,
+  tripsById,
+  selectedStopId,
+  setSelectedStopId,
+  shape,
+  stopsById,
+}: Props) {
   // Fix leaflet icons not importing
   useEffect(() => {
     (async function init() {

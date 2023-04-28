@@ -2,23 +2,14 @@
 // import { TripUpdateHacked } from "@/pages/api/gtfs/realtime";
 
 import { GTFSResponse, TripUpdate } from "@/types/realtime";
-import useSWR, { Fetcher } from "swr";
+import useSWR from "swr";
 
-const fetcher = async (input: RequestInfo, init: RequestInit) => {
-  try {
-    const response = await fetch(input, init);
-    if (!response.ok)
-      throw new Error("An error occurred while fetching the data.");
-    return response.json();
-  } catch (error) {
-    if (error instanceof Error) console.log(error.message);
-  }
-};
+import { fetchHelper } from "@/lib/FetchHelper";
 
 const API_URL = "/api/gtfs/realtime/";
 
 function useRealtime() {
-  const { data, error, isLoading } = useSWR<GTFSResponse>(API_URL, fetcher);
+  const { data, error, isLoading } = useSWR<GTFSResponse>(API_URL, fetchHelper);
 
   const tripsByTripId = new Map(
     data?.entity.map(({ trip_update: tripUpdate }) => {

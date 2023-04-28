@@ -7,20 +7,7 @@ import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 import StopId from "@/pages/api/gtfs/static/stop-times/[stopId]";
 import { dateToStopTimeString } from "@/lib/timeHelpers";
 
-type FetchHelper = (args: RequestInfo[]) => Promise<any>;
-
-const fetcher: FetchHelper = async (args: RequestInfo[]) => {
-  const url = Array.isArray(args) ? args[0] : args;
-  console.log("fetcher:", args, url);
-  try {
-    const response = await fetch(url);
-    if (!response.ok)
-      throw new Error("An error occurred while fetching the data.");
-    return response.json();
-  } catch (error) {
-    if (error instanceof Error) console.log(error.message);
-  }
-};
+import { fetchHelper } from "@/lib/FetchHelper";
 
 type Props = {
   routeQuery?: string;
@@ -37,7 +24,7 @@ function useStatic({ routeQuery, dateTime, selectedTripId }: Props) {
             shortName: routeQuery,
           })}`
         : null,
-    fetcher
+    fetchHelper
   );
 
   const { route, stops, trips } = staticData || {};
@@ -69,7 +56,7 @@ function useStatic({ routeQuery, dateTime, selectedTripId }: Props) {
             dateTime.toDateString(),
           ]
         : null,
-    fetcher
+    fetchHelper
   );
 
   const stopTimesByTripId: Map<string, StopTime[]> | undefined =
@@ -111,7 +98,7 @@ function useStatic({ routeQuery, dateTime, selectedTripId }: Props) {
             selectedTripId,
           ]
         : null,
-    fetcher
+    fetchHelper
   );
 
   return {

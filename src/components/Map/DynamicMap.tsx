@@ -31,7 +31,8 @@ const greenIcon = new Icon({
 
 type Props = {
   selectedStopId: Stop["stopId"] | undefined;
-  setSelectedStopId: Dispatch<SetStateAction<string | undefined>>;
+  selectedTripId: Trip["tripId"];
+  handleSelectedStop: (stopId: string) => void;
   shape: LatLngExpression[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
@@ -40,7 +41,8 @@ type Props = {
 
 function DynamicMap({
   selectedStopId,
-  setSelectedStopId,
+  selectedTripId,
+  handleSelectedStop,
   shape,
   stopsById,
   stopTimes,
@@ -71,7 +73,7 @@ function DynamicMap({
 
         return (
           <Marker
-            key={stopId + tripId}
+            key={stopId + tripId + selectedTripId}
             position={[stopLat, stopLon]}
             // Set Icon color for current stop
             {...(stopId === selectedStopId ? { icon: greenIcon } : {})}
@@ -89,8 +91,9 @@ function DynamicMap({
               <strong>Heading towards: </strong> {tripHeadsign}
               <div className="w-full">
                 <button
-                  onClick={() => setSelectedStopId(stopId)}
+                  onClick={() => handleSelectedStop(stopId)}
                   className="mx-auto block rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+                  type="button"
                 >
                   Start here
                 </button>

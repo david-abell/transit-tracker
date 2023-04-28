@@ -98,6 +98,7 @@ function useStatic({ routeQuery, dateTime, selectedTripId }: Props) {
 
   const shapeId = selectedTripId && tripsById.get(selectedTripId)?.shapeId;
   console.log("shapeId:", shapeId);
+  console.log("selectedTripId:", selectedTripId);
 
   const { data: shape } = useSWR<ShapeAPIResponse>(
     () =>

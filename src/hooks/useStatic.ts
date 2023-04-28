@@ -1,5 +1,4 @@
 import useSWR from "swr";
-import { useState } from "react";
 import { Route, Shape, StopTime, Trip } from "@prisma/client";
 import { format } from "date-fns";
 
@@ -8,9 +7,13 @@ import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 import StopId from "@/pages/api/gtfs/static/stop-times/[stopId]";
 import { dateToStopTimeString } from "@/lib/timeHelpers";
 
-const fetcher = async (input: RequestInfo, init: RequestInit) => {
+type FetchHelper = (args: RequestInfo[]) => Promise<any>;
+
+const fetcher: FetchHelper = async (args: RequestInfo[]) => {
+  const url = Array.isArray(args) ? args[0] : args;
+  console.log("fetcher:", args, url);
   try {
-    const response = await fetch(input, init);
+    const response = await fetch(url);
     if (!response.ok)
       throw new Error("An error occurred while fetching the data.");
     return response.json();
@@ -21,11 +24,12 @@ const fetcher = async (input: RequestInfo, init: RequestInit) => {
 
 type Props = {
   routeQuery?: string;
-  shapeId?: string;
+  // shapeId?: string;
   dateTime?: Date;
+  selectedTripId: string;
 };
 
-function useStatic({ routeQuery, shapeId, dateTime }: Props) {
+function useStatic({ routeQuery, dateTime, selectedTripId }: Props) {
   const { data: staticData } = useSWR<StaticAPIResponse>(
     () =>
       !!routeQuery
@@ -55,16 +59,20 @@ function useStatic({ routeQuery, shapeId, dateTime }: Props) {
   const { data: stopTimes } = useSWR<StopTime[]>(
     () =>
       !!route && dateTime
-        ? `/api/gtfs/static/stop-times?${new URLSearchParams({
-            routeId: route.routeId,
-            departureTime: dateToStopTimeString(dateTime),
-            utc: dateTime.toISOString(),
-          })}`
+        ? [
+            `/api/gtfs/static/stop-times?${new URLSearchParams({
+              routeId: route.routeId,
+              departureTime: dateToStopTimeString(dateTime),
+              utc: dateTime.toISOString(),
+            })}`,
+            route,
+            dateTime.toDateString(),
+          ]
         : null,
     fetcher
   );
 
-  const stopTimesByTripId =
+  const stopTimesByTripId: Map<string, StopTime[]> | undefined =
     stopTimes &&
     stopTimes?.reduce((acc, val) => {
       const { tripId } = val;
@@ -76,12 +84,31 @@ function useStatic({ routeQuery, shapeId, dateTime }: Props) {
       return acc;
     }, new Map());
 
+  const stopTimesByStopId: Map<string, StopTime[]> | undefined =
+    stopTimes &&
+    stopTimes?.reduce((acc, val) => {
+      const { stopId } = val;
+      if (acc.has(stopId)) {
+        acc.set(stopId, acc.get(stopId).concat(val));
+      } else {
+        acc.set(stopId, [val]);
+      }
+      return acc;
+    }, new Map());
+
+  const shapeId = selectedTripId && tripsById.get(selectedTripId)?.shapeId;
+  console.log("shapeId:", shapeId);
+
   const { data: shape } = useSWR<ShapeAPIResponse>(
     () =>
-      !!shapeId
-        ? `/api/gtfs/static/shape?${new URLSearchParams({
+      !!shapeId && selectedTripId
+        ? [
+            `/api/gtfs/static/shape?${new URLSearchParams({
+              shapeId,
+            })}`,
             shapeId,
-          })}`
+            selectedTripId,
+          ]
         : null,
     fetcher
   );
@@ -93,6 +120,7 @@ function useStatic({ routeQuery, shapeId, dateTime }: Props) {
     trips,
     tripsById,
     stopTimes,
+    stopTimesByStopId,
     stopTimesByTripId,
     stopsById,
   };

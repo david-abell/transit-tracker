@@ -10,18 +10,18 @@ import { dateToStopTimeString } from "@/lib/timeHelpers";
 import { fetchHelper } from "@/lib/FetchHelper";
 
 type Props = {
-  routeQuery?: string;
+  selectedRoute: string;
   // shapeId?: string;
   dateTime?: Date;
   selectedTripId: string;
 };
 
-function useStatic({ routeQuery, dateTime, selectedTripId }: Props) {
+function useStatic({ selectedRoute, dateTime, selectedTripId }: Props) {
   const { data: staticData } = useSWR<StaticAPIResponse>(
     () =>
-      !!routeQuery
+      !!selectedRoute
         ? `/api/gtfs/static/static?${new URLSearchParams({
-            shortName: routeQuery,
+            routeId: selectedRoute,
           })}`
         : null,
     fetchHelper

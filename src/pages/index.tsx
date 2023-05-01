@@ -12,7 +12,7 @@ import TripSelect from "@/components/TripSelect";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("208");
+  const [selectedRoute, setSelectedRoute] = useState("3249_46339");
   // const [shapeId, setShapeId] = useState("3249_408");
   const [selectedStopId, setSelectedStopId] = useState<Stop["stopId"]>("");
   const [selectedTripId, setSelectedTripId] = useState<Trip["tripId"]>("");
@@ -31,7 +31,7 @@ export default function Home() {
     stopTimesByStopId,
     stopTimesByTripId,
   } = useStatic({
-    routeQuery: searchQuery,
+    selectedRoute,
     // shapeId,
     dateTime: selectedDateTime,
     selectedTripId,
@@ -55,17 +55,14 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between">
       <div className=" w-full items-center justify-between">
         {/* <h1>H1 Title</h1> */}
-        <div className="flex flex-row gap-4">
-          <SearchInput
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-          />
+        <div className="flex h-32 flex-row items-start justify-center gap-10 p-4">
+          <SearchInput setSelectedRoute={setSelectedRoute} />
           <TripSelect
             stopStopTimes={tripsAtSelectedStop}
             setSelectedTripId={setSelectedTripId}
             tripsById={tripsById}
           />
-          <span>{searchQuery}</span>
+          {/* <span>{searchQuery}</span> */}
         </div>
         <Map
           shape={shape}

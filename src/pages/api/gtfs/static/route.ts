@@ -10,13 +10,9 @@ async function handler(
   req: NextApiRequest,
   res: NextApiResponse<RouteAPIResponse>
 ) {
-  const { shortName = "", longName = "" } = req.query;
+  const { routeName = "" } = req.query;
 
-  if (
-    (!shortName && !longName) ||
-    typeof shortName !== "string" ||
-    typeof longName !== "string"
-  ) {
+  if (!routeName || typeof routeName !== "string") {
     return res.end();
   }
 
@@ -24,14 +20,14 @@ async function handler(
     take: 10,
     where: {
       OR: [
-        { routeShortName: { contains: shortName } },
-        { routeLongName: { contains: longName } },
+        { routeShortName: { contains: routeName } },
+        { routeLongName: { contains: routeName } },
       ],
     },
   });
 
   if (!routes.length) {
-    throw new ApiError(404, "No routes found");
+    return res.end();
   }
 
   return res.json(routes);

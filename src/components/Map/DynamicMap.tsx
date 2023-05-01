@@ -36,6 +36,7 @@ type Props = {
   shape: LatLngExpression[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
+  stopTimesByStopId: Map<string, StopTime[]> | undefined;
   tripsById: Map<string, Trip>;
 };
 
@@ -46,62 +47,68 @@ function DynamicMap({
   shape,
   stopsById,
   stopTimes,
+  stopTimesByStopId,
   tripsById,
 }: Props) {
   return (
     <TileLayerWrapper>
-      {stopTimes?.map(({ stopId, arrivalTime, tripId }) => {
-        const stop = stopsById.get(stopId);
-        const { stopLat, stopLon, stopCode, stopName } = stop || {};
+      {!!stopTimesByStopId &&
+        [...stopTimesByStopId?.entries()].map(([stopId, stopTimes]) => {
+          // get first stopTime data
+          const [{ arrivalTime, tripId }] = stopTimes;
 
-        const trip = tripsById.get(tripId);
-        const { tripHeadsign } = trip || {};
+          const stop = stopsById.get(stopId);
+          const { stopLat, stopLon, stopCode, stopName } = stop || {};
 
-        if (!stopLat || !stopLon) {
-          return [];
-        }
+          // const trip = tripsById.get(tripId);
+          // const { tripHeadsign } = trip || {};
 
-        // set icons this way...
+          if (!stopLat || !stopLon) {
+            return [];
+          }
 
-        // let iconUrl = "/images/tree-marker-icon.png";
-        // let iconRetinaUrl = "/images/tree-marker-icon-2x.png";
+          // set icons this way...
 
-        // if ( santaWasHere ) {
-        //   iconUrl = '/images/gift-marker-icon.png';
-        //   iconRetinaUrl = '/images/gift-marker-icon-2x.png';
-        // }
+          // let iconUrl = "/images/tree-marker-icon.png";
+          // let iconRetinaUrl = "/images/tree-marker-icon-2x.png";
 
-        return (
-          <Marker
-            key={stopId + tripId + selectedTripId}
-            position={[stopLat, stopLon]}
-            // Set Icon color for current stop
-            {...(stopId === selectedStopId ? { icon: greenIcon } : {})}
-            // icon={greenIcon}
-          >
-            <Popup>
-              <strong>Stop Name:</strong> {stopName}
-              <br />
-              <strong>Stop Code: {stopCode}</strong>
-              <br />
-              <strong>Stop Id: {stopId}</strong>
-              <br />
-              <strong>Arrival scheduled</strong> @: {arrivalTime}
-              <br />
-              <strong>Heading towards: </strong> {tripHeadsign}
-              <div className="w-full">
-                <button
-                  onClick={() => handleSelectedStop(stopId)}
-                  className="mx-auto block rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-                  type="button"
-                >
-                  Start here
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
+          // if ( santaWasHere ) {
+          //   iconUrl = '/images/gift-marker-icon.png';
+          //   iconRetinaUrl = '/images/gift-marker-icon-2x.png';
+          // }
+
+          return (
+            <Marker
+              key={stopId + tripId + selectedTripId}
+              position={[stopLat, stopLon]}
+              // Set Icon color for current stop
+              {...(stopId === selectedStopId ? { icon: greenIcon } : {})}
+              // icon={greenIcon}
+            >
+              <Popup>
+                <strong>Stop Name:</strong> {stopName}
+                <br />
+                <strong>Stop Code: {stopCode}</strong>
+                <br />
+                <strong>Stop Id: {stopId}</strong>
+                <br />
+                {/* <strong>Arrival scheduled</strong> @: {arrivalTime}
+                <br /> */}
+                {/* <strong>Heading towards: </strong> {tripHeadsign} */}
+                <div className="w-full">
+                  <button
+                    onClick={() => handleSelectedStop(stopId)}
+                    className="mx-auto block rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+                    type="button"
+                  >
+                    Start here
+                  </button>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+
       {!!shape && (
         <Polyline pathOptions={{ color: "firebrick" }} positions={shape} />
       )}

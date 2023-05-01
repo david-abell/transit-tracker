@@ -73,6 +73,7 @@ export default function Home() {
           selectedStopId={selectedStopId}
           handleSelectedStop={handleSelectedStop}
           selectedTripId={selectedTripId}
+          stopTimesByStopId={stopTimesByStopId}
         />
       </div>
     </main>

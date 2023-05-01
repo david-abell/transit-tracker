@@ -1,6 +1,6 @@
 "use-client";
 
-import { Marker, Polyline, Popup, FeatureGroup } from "react-leaflet";
+import { Marker, Polyline, Popup, FeatureGroup, useMap } from "react-leaflet";
 import { LatLngExpression, Icon } from "leaflet";
 import { useLeafletContext } from "@react-leaflet/core";
 import { useEffect, useRef } from "react";
@@ -39,22 +39,19 @@ function MapContentLayer({
   stopTimesByStopId,
   tripsById,
 }: Props) {
+  const context = useLeafletContext();
+  const map = useMap();
+  const markerGroupRef = useRef<L.FeatureGroup>(null);
   useEffect(() => {
-    console.log("stopTimes:", stopTimes);
-  }, [stopTimes]);
-  // const context = useLeafletContext();
-  // const markerGroupRef = useRef<L.FeatureGroup>(null);
-  // useEffect(() => {
-  //   const { map } = context;
-  //   const group = markerGroupRef.current; //get leaflet.markercluster instance
+    const group = markerGroupRef.current;
+    if (!group || !group.getBounds().isValid()) return;
 
-  //   if (!group) return;
-  //   // map.fitBounds(group.getBounds()); //zoom to cover visible markers
-  // }, [context]);
+    map.fitBounds(group.getBounds());
+  }, [context, stopTimesByStopId, map]);
 
   return (
     <>
-      <FeatureGroup>
+      <FeatureGroup ref={markerGroupRef}>
         {!!stopTimesByStopId &&
           [...stopTimesByStopId?.entries()].map(([stopId, stopTimes]) => {
             // get first stopTime data

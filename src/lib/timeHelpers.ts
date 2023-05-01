@@ -31,3 +31,7 @@ export function getDayString(dateTime: Date) {
 export function getCalendarDate(dateTime: Date) {
   return Number(format(dateTime, "yMMdd"));
 }
+
+export function getDateTimeInputString() {
+  return format(new Date(), `yyyy-MM-dd\'T\'HH:mm`);
+}

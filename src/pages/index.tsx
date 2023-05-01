@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { Inter } from "next/font/google";
-import dynamic from "next/dynamic";
 import { useState } from "react";
 import useRealtime from "@/hooks/useRealtime";
 import useStatic from "@/hooks/useStatic";
@@ -9,6 +8,7 @@ import Map from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripSelect from "@/components/TripSelect";
 import DateTimeSelect from "@/components/DateTimeSelect";
+import { getDateTimeInputString } from "@/lib/timeHelpers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,7 +17,9 @@ export default function Home() {
   // const [shapeId, setShapeId] = useState("3249_408");
   const [selectedStopId, setSelectedStopId] = useState<Stop["stopId"]>("");
   const [selectedTripId, setSelectedTripId] = useState<Trip["tripId"]>("");
-  const [selectedDateTime, setSelectedDateTime] = useState("");
+  const [selectedDateTime, setSelectedDateTime] = useState(
+    getDateTimeInputString()
+  );
   const { tripsByRouteId, tripsByTripId } = useRealtime();
   const {
     route,

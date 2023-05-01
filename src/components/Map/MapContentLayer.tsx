@@ -1,23 +1,11 @@
 "use-client";
 
-import {
-  MapContainer,
-  Marker,
-  Polyline,
-  Popup,
-  TileLayer,
-  FeatureGroup,
-} from "react-leaflet";
+import { Marker, Polyline, Popup, FeatureGroup } from "react-leaflet";
 import { LatLngExpression, Icon } from "leaflet";
 import { useLeafletContext } from "@react-leaflet/core";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-// import "leaflet/dist/leaflet.css";
+import { useEffect, useRef } from "react";
 
-import TileLayerWrapper from "./TileLayerWrapper";
-import useRealtime from "@/hooks/useRealtime";
-import useStatic from "@/hooks/useStatic";
-
-import type { Shape, Stop, StopTime, Trip } from "@prisma/client";
+import type { Stop, StopTime, Trip } from "@prisma/client";
 
 const greenIcon = new Icon({
   iconUrl:
@@ -41,7 +29,7 @@ type Props = {
   tripsById: Map<string, Trip>;
 };
 
-function DynamicMap({
+function MapContentLayer({
   selectedStopId,
   selectedTripId,
   handleSelectedStop,
@@ -51,21 +39,22 @@ function DynamicMap({
   stopTimesByStopId,
   tripsById,
 }: Props) {
-  const context = useLeafletContext();
-  const markerGroupRef = useRef<L.FeatureGroup>(null);
-  // const { markers } = props;
-
   useEffect(() => {
-    const { map } = context;
-    const group = markerGroupRef.current; //get leaflet.markercluster instance
+    console.log("stopTimes:", stopTimes);
+  }, [stopTimes]);
+  // const context = useLeafletContext();
+  // const markerGroupRef = useRef<L.FeatureGroup>(null);
+  // useEffect(() => {
+  //   const { map } = context;
+  //   const group = markerGroupRef.current; //get leaflet.markercluster instance
 
-    if (!group) return;
-    map.fitBounds(group.getBounds()); //zoom to cover visible markers
-  }, [context]);
+  //   if (!group) return;
+  //   // map.fitBounds(group.getBounds()); //zoom to cover visible markers
+  // }, [context]);
 
   return (
-    <TileLayerWrapper>
-      <FeatureGroup ref={markerGroupRef}>
+    <>
+      <FeatureGroup>
         {!!stopTimesByStopId &&
           [...stopTimesByStopId?.entries()].map(([stopId, stopTimes]) => {
             // get first stopTime data
@@ -127,11 +116,8 @@ function DynamicMap({
       {!!shape && (
         <Polyline pathOptions={{ color: "firebrick" }} positions={shape} />
       )}
-    </TileLayerWrapper>
+    </>
   );
 }
 
-export default DynamicMap;
-function useLeaflet() {
-  throw new Error("Function not implemented.");
-}
+export default MapContentLayer;

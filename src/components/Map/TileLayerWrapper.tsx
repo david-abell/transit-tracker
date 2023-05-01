@@ -1,6 +1,6 @@
 "use-client";
 
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, TileLayer } from "react-leaflet";
 import Leaflet from "leaflet";
 import { ReactNode, useEffect } from "react";
 

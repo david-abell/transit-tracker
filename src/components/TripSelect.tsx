@@ -37,8 +37,10 @@ function TripSelect({
 
   return (
     <div>
-      <span>Selected trip:</span>
-      <span>{stopStopTimes?.[0]?.tripId || ""}</span>
+      <span>Selected trip: </span>
+      <span>
+        {tripsById.get(stopStopTimes?.[0]?.tripId)?.tripHeadsign || ""}
+      </span>
     </div>
   );
 }

@@ -62,6 +62,7 @@ export default function Home() {
         <TripSelect
           stopStopTimes={tripsAtSelectedStop}
           setSelectedTripId={setSelectedTripId}
+          tripsById={tripsById}
         />
         <span>{searchQuery}</span>
         <Map

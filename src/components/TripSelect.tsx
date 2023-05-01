@@ -1,19 +1,24 @@
-import { StopTime } from "@prisma/client";
+import { StopTime, Trip } from "@prisma/client";
 import { Dispatch, SetStateAction } from "react";
 
 type Props = {
   stopStopTimes: StopTime[] | undefined;
   setSelectedTripId: Dispatch<SetStateAction<string>>;
+  tripsById: Map<string, Trip>;
 };
 
-function TripSelect({ stopStopTimes = [], setSelectedTripId }: Props) {
+function TripSelect({
+  stopStopTimes = [],
+  setSelectedTripId,
+  tripsById,
+}: Props) {
   if (stopStopTimes.length >= 2) {
     return (
       <div>
         <label htmlFor="trip-select">
           Pick a trip
           <select
-            className="w-24"
+            className="w-36"
             onChange={({ currentTarget }) =>
               setSelectedTripId(currentTarget.value)
             }
@@ -21,7 +26,7 @@ function TripSelect({ stopStopTimes = [], setSelectedTripId }: Props) {
           >
             {stopStopTimes.map(({ tripId, departureTime }) => (
               <option value={tripId} key={tripId}>
-                {tripId}: {departureTime}
+                {tripsById.get(tripId)?.tripHeadsign}: {departureTime}
               </option>
             ))}
           </select>

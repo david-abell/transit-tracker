@@ -8,6 +8,7 @@ import { Stop, Trip } from "@prisma/client";
 import Map from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripSelect from "@/components/TripSelect";
+import DateTimeSelect from "@/components/DateTimeSelect";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,9 +17,7 @@ export default function Home() {
   // const [shapeId, setShapeId] = useState("3249_408");
   const [selectedStopId, setSelectedStopId] = useState<Stop["stopId"]>("");
   const [selectedTripId, setSelectedTripId] = useState<Trip["tripId"]>("");
-  const [selectedDateTime, setSelectedDateTime] = useState(
-    new Date(2023, 5, 1, 8, 21, 21)
-  );
+  const [selectedDateTime, setSelectedDateTime] = useState("");
   const { tripsByRouteId, tripsByTripId } = useRealtime();
   const {
     route,
@@ -33,7 +32,7 @@ export default function Home() {
   } = useStatic({
     selectedRoute,
     // shapeId,
-    dateTime: selectedDateTime,
+    selectedDateTime,
     selectedTripId,
   });
 
@@ -55,14 +54,17 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between">
       <div className=" w-full items-center justify-between">
         {/* <h1>H1 Title</h1> */}
-        <div className="flex h-32 flex-row items-start justify-center gap-10 p-4">
+        <div className="flex h-32 flex-row items-center justify-center gap-10 p-4">
           <SearchInput setSelectedRoute={setSelectedRoute} />
           <TripSelect
             stopStopTimes={tripsAtSelectedStop}
             setSelectedTripId={setSelectedTripId}
             tripsById={tripsById}
           />
-          {/* <span>{searchQuery}</span> */}
+          <DateTimeSelect
+            setSelectedDateTime={setSelectedDateTime}
+            selectedDateTime={selectedDateTime}
+          />
         </div>
         <Map
           shape={shape}

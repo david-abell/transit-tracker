@@ -11,12 +11,11 @@ import { fetchHelper } from "@/lib/FetchHelper";
 
 type Props = {
   selectedRoute: string;
-  // shapeId?: string;
-  dateTime?: Date;
+  selectedDateTime: string;
   selectedTripId: string;
 };
 
-function useStatic({ selectedRoute, dateTime, selectedTripId }: Props) {
+function useStatic({ selectedRoute, selectedDateTime, selectedTripId }: Props) {
   const { data: staticData } = useSWR<StaticAPIResponse>(
     () =>
       !!selectedRoute
@@ -42,6 +41,8 @@ function useStatic({ selectedRoute, dateTime, selectedTripId }: Props) {
       return [stopId, data];
     })
   );
+
+  const dateTime = new Date(selectedDateTime);
 
   const { data: stopTimes } = useSWR<StopTime[]>(
     () =>
@@ -84,8 +85,6 @@ function useStatic({ selectedRoute, dateTime, selectedTripId }: Props) {
     }, new Map());
 
   const shapeId = selectedTripId && tripsById.get(selectedTripId)?.shapeId;
-  console.log("shapeId:", shapeId);
-  console.log("selectedTripId:", selectedTripId);
 
   const { data: shape } = useSWR<ShapeAPIResponse>(
     () =>

@@ -14,8 +14,6 @@ function useRoute(routeName: string) {
     fetchHelper
   );
 
-  console.log(routes);
-
   return {
     routes,
   };

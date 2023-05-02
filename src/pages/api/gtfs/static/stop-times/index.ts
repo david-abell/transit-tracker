@@ -1,31 +1,26 @@
 import { prisma } from "@/lib/db";
 import withErrorHandler from "@/lib/withErrorHandler";
-import { addHours, parseISO } from "date-fns";
-import {
-  dateToStopTimeString,
-  getCalendarDate,
-  getDayString,
-  stopTimeStringToDate,
-} from "@/lib/timeHelpers";
+import { addHours, parseISO, startOfDay, differenceInSeconds } from "date-fns";
+import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { StopTime } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";
 
 async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
-  const { routeId, departureTime, utc } = req.query;
-
+  const { routeId, dateTime } = req.query;
   if (
     !routeId ||
     typeof routeId !== "string" ||
-    !utc ||
-    typeof utc !== "string"
+    !dateTime ||
+    typeof dateTime !== "string"
   ) {
     return res.end();
   }
-  let date = parseISO(utc);
-  let calendarDay = getDayString(date);
-  let calendarDate = getCalendarDate(date);
+
+  const date = parseISO(dateTime);
+  const calendarDay = getDayString(date);
+  const calendarDate = getCalendarDate(date);
 
   const trips = await prisma.trip.findMany({
     where: { routeId: routeId },
@@ -46,11 +41,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
     },
   });
 
-  const maxDepartureTime =
-    departureTime &&
-    dateToStopTimeString(
-      addHours(stopTimeStringToDate(departureTime as string), 1)
-    );
+  const startOfDate = startOfDay(date);
+  const departureTimeInSeconds = differenceInSeconds(date, startOfDate);
+  const maxDepartureTimeInSeconds = differenceInSeconds(
+    addHours(date, 1),
+    startOfDate
+  );
 
   const stopTimes = await prisma.stopTime.findMany({
     // take: 20,
@@ -58,9 +54,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
       AND: [
         { tripId: { in: trips.map(({ tripId }) => tripId) } },
         {
-          departureTime: {
-            gte: departureTime as string,
-            lte: maxDepartureTime,
+          departureTimestamp: {
+            gte: departureTimeInSeconds,
+            lte: maxDepartureTimeInSeconds,
           },
         },
         {

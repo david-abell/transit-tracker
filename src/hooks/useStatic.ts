@@ -1,11 +1,9 @@
 import useSWR from "swr";
 import { Route, Shape, StopTime, Trip } from "@prisma/client";
-import { format } from "date-fns";
 
 import { StaticAPIResponse } from "@/pages/api/gtfs/static/static";
 import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 import StopId from "@/pages/api/gtfs/static/stop-times/[stopId]";
-import { dateToStopTimeString } from "@/lib/timeHelpers";
 
 import { fetchHelper } from "@/lib/FetchHelper";
 
@@ -42,19 +40,16 @@ function useStatic({ selectedRoute, selectedDateTime, selectedTripId }: Props) {
     })
   );
 
-  const dateTime = new Date(selectedDateTime);
-
   const { data: stopTimes } = useSWR<StopTime[]>(
     () =>
-      !!route && dateTime
+      !!route && selectedDateTime
         ? [
             `/api/gtfs/static/stop-times?${new URLSearchParams({
               routeId: route.routeId,
-              departureTime: dateToStopTimeString(dateTime),
-              utc: dateTime.toISOString(),
+              dateTime: selectedDateTime,
             })}`,
             route,
-            dateTime.toDateString(),
+            selectedDateTime,
           ]
         : null,
     fetchHelper

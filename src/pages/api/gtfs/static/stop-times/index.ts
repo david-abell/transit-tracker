@@ -7,6 +7,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { StopTime } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";
 
+const serviceException = {
+  added: 1,
+  removed: 2,
+} as const;
+
 async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
   const { routeId, dateTime } = req.query;
   if (
@@ -30,11 +35,37 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
     throw new ApiError(400, "Invalid route Id");
   }
 
+  const serviceIds = trips.map(({ serviceId }) => serviceId);
+
+  const calendarDates = await prisma.calendarDate.findMany({
+    where: { serviceId: { in: serviceIds } },
+  });
+
+  const servicesAdded = calendarDates
+    .filter(
+      ({ date, exceptionType }) =>
+        date === calendarDate && exceptionType === serviceException.added
+    )
+    .map(({ serviceId }) => serviceId);
+
+  const servicesRemoved = calendarDates
+    .filter(
+      ({ date, exceptionType }) =>
+        date === calendarDate && exceptionType === serviceException.removed
+    )
+    .map(({ serviceId }) => serviceId);
+
   const calendar = await prisma.calendar.findMany({
     where: {
+      NOT: { serviceId: { in: servicesRemoved } },
       AND: [
-        { serviceId: { in: trips.map(({ serviceId }) => serviceId) } },
-        { [calendarDay]: { equals: 1 } },
+        { serviceId: { in: serviceIds } },
+        {
+          OR: [
+            { [calendarDay]: { equals: 1 } },
+            { serviceId: { in: servicesAdded } },
+          ],
+        },
         { startDate: { lte: calendarDate } },
         { endDate: { gte: calendarDate } },
       ],

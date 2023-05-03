@@ -5,11 +5,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { Trip } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";
 
-export type TripAPIResponse = Trip[];
+export type TripIdAPIResponse = Trip;
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<TripAPIResponse>
+  res: NextApiResponse<TripIdAPIResponse>
 ) {
   const { tripId } = req.query;
 
@@ -17,13 +17,13 @@ async function handler(
     return res.end();
   }
 
-  const trips = await prisma.trip.findMany({ where: { tripId } });
+  const trip = await prisma.trip.findFirst({ where: { tripId } });
 
-  if (!trips.length) {
+  if (!trip) {
     throw new ApiError(404, "No trips found");
   }
 
-  return res.json(trips);
+  return res.json(trip);
 }
 
 export default withErrorHandler(handler);

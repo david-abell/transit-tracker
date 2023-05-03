@@ -28,8 +28,9 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
   const { data: trips } = useSWR<TripAPIResponse>(
     () =>
       !!routeId
-        ? `/api/gtfs/static/trip?${new URLSearchParams({
+        ? `/api/gtfs/static/trips?${new URLSearchParams({
             routeId,
+            dateTime: selectedDateTime,
           })}`
         : null,
     fetchHelper

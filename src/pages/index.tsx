@@ -8,7 +8,7 @@ import Map from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripSelect from "@/components/TripSelect";
 import DateTimeSelect from "@/components/DateTimeSelect";
-import { getDateTimeInputString } from "@/lib/timeHelpers";
+import { initDateTimeValue } from "@/lib/timeHelpers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,9 +17,7 @@ export default function Home() {
   // const [shapeId, setShapeId] = useState("3249_408");
   const [selectedStopId, setSelectedStopId] = useState<Stop["stopId"]>("");
   const [selectedTripId, setSelectedTripId] = useState<Trip["tripId"]>("");
-  const [selectedDateTime, setSelectedDateTime] = useState(
-    getDateTimeInputString()
-  );
+  const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
   const { tripsByRouteId, tripsByTripId } = useRealtime();
   const {
     route,

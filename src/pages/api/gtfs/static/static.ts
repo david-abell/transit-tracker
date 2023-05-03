@@ -21,17 +21,9 @@ async function handler(
   }
 
   const trips = await prisma.trip.findMany({ where: { routeId } });
-  const tripIds = trips.map(({ tripId }) => tripId);
-
-  const stopTimes = await prisma.stopTime.findMany({
-    where: { tripId: { in: tripIds } },
-  });
-  const stopTimeIds = stopTimes.map(({ stopId }) => stopId);
 
   const stops = await prisma.stop.findMany({
-    where: {
-      stopId: { in: stopTimeIds },
-    },
+    where: { stopTime: { some: { trip: { routeId: routeId } } } },
   });
 
   return res.json({

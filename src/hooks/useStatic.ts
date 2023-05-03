@@ -6,6 +6,7 @@ import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 import StopId from "@/pages/api/gtfs/static/stop-times/[stopId]";
 
 import { fetchHelper } from "@/lib/FetchHelper";
+import { TripAPIResponse } from "@/pages/api/gtfs/static/trips";
 
 type Props = {
   routeId: string;
@@ -14,7 +15,7 @@ type Props = {
 };
 
 function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
-  const { data: staticData } = useSWR<StaticAPIResponse>(
+  const { data: stops } = useSWR<StaticAPIResponse>(
     () =>
       !!routeId
         ? `/api/gtfs/static/static?${new URLSearchParams({
@@ -24,7 +25,15 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
     fetchHelper
   );
 
-  const { stops, trips } = staticData || {};
+  const { data: trips } = useSWR<TripAPIResponse>(
+    () =>
+      !!routeId
+        ? `/api/gtfs/static/trip?${new URLSearchParams({
+            routeId,
+          })}`
+        : null,
+    fetchHelper
+  );
 
   const tripsById = new Map(
     trips?.map((data) => {

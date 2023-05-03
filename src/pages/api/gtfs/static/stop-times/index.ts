@@ -6,11 +6,7 @@ import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { StopTime } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";
-
-const serviceException = {
-  added: 1,
-  removed: 2,
-} as const;
+import { serviceException } from "@/lib/api/static/consts";
 
 async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
   const { routeId, dateTime } = req.query;
@@ -56,6 +52,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
     .map(({ serviceId }) => serviceId);
 
   const calendar = await prisma.calendar.findMany({
+    select: { serviceId: true },
     where: {
       NOT: { serviceId: { in: servicesRemoved } },
       AND: [

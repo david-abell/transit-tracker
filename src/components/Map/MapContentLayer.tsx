@@ -23,6 +23,7 @@ type Props = {
   selectedTripId: Trip["tripId"];
   handleSelectedStop: (stopId: string) => void;
   shape: LatLngExpression[] | undefined;
+  stops: Stop[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
   stopTimesByStopId: Map<string, StopTime[]> | undefined;
@@ -34,6 +35,7 @@ function MapContentLayer({
   selectedTripId,
   handleSelectedStop,
   shape,
+  stops,
   stopsById,
   stopTimes,
   stopTimesByStopId,
@@ -52,17 +54,8 @@ function MapContentLayer({
   return (
     <>
       <FeatureGroup ref={markerGroupRef}>
-        {!!stopTimesByStopId &&
-          [...stopTimesByStopId?.entries()].map(([stopId, stopTimes]) => {
-            // get first stopTime data
-            const [{ arrivalTime, tripId }] = stopTimes;
-
-            const stop = stopsById.get(stopId);
-            const { stopLat, stopLon, stopCode, stopName } = stop || {};
-
-            // const trip = tripsById.get(tripId);
-            // const { tripHeadsign } = trip || {};
-
+        {!!stops &&
+          stops.flatMap(({ stopId, stopLat, stopLon, stopCode, stopName }) => {
             if (!stopLat || !stopLon) {
               return [];
             }
@@ -79,7 +72,7 @@ function MapContentLayer({
 
             return (
               <Marker
-                key={stopId + tripId + selectedTripId}
+                key={stopId + selectedTripId}
                 position={[stopLat, stopLon]}
                 // Set Icon color for current stop
                 {...(stopId === selectedStopId ? { icon: greenIcon } : {})}

@@ -6,7 +6,7 @@ import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { StopTime } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";
-import { serviceException } from "@/lib/api/static/consts";
+import { scheduledService, serviceException } from "@/lib/api/static/consts";
 
 async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
   const { routeId, dateTime } = req.query;
@@ -59,7 +59,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
         { serviceId: { in: serviceIds } },
         {
           OR: [
-            { [calendarDay]: { equals: 1 } },
+            { [calendarDay]: { equals: scheduledService.isTrue } },
             { serviceId: { in: servicesAdded } },
           ],
         },

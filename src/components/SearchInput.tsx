@@ -1,8 +1,9 @@
 import useRoute from "@/hooks/useRoute";
+import { Route } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";
 
 type Props = {
-  setSelectedRoute: Dispatch<SetStateAction<string>>;
+  setSelectedRoute: Dispatch<SetStateAction<Route>>;
 };
 function SearchInput({ setSelectedRoute }: Props) {
   const [routeName, setRouteName] = useState("");
@@ -10,10 +11,10 @@ function SearchInput({ setSelectedRoute }: Props) {
 
   const handleSetSelectedRoute = (
     e: React.MouseEvent<HTMLButtonElement>,
-    routeId: string
+    route: Route
   ) => {
     e.stopPropagation();
-    setSelectedRoute(routeId);
+    setSelectedRoute(route);
     setRouteName("");
   };
 
@@ -31,17 +32,20 @@ function SearchInput({ setSelectedRoute }: Props) {
       />
       {!!routes && (
         <ul className="absolute left-0 top-full z-[2000] bg-white p-2">
-          {routes.map(({ routeId, routeLongName, routeShortName }) => (
-            <li key={routeId}>
-              <button
-                onClick={(e) => handleSetSelectedRoute(e, routeId)}
-                className="w-full text-left hover:bg-slate-200"
-              >
-                <strong>{routeShortName}: </strong>
-                {routeLongName}
-              </button>
-            </li>
-          ))}
+          {routes.map((route) => {
+            const { routeId, routeLongName, routeShortName } = route;
+            return (
+              <li key={routeId}>
+                <button
+                  onClick={(e) => handleSetSelectedRoute(e, route)}
+                  className="w-full text-left hover:bg-slate-200"
+                >
+                  <strong>{routeShortName}: </strong>
+                  {routeLongName}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

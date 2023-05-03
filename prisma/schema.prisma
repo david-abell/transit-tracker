@@ -30,7 +30,7 @@ model Calendar {
   sunday        Int
   startDate     Int            @map("start_date")
   endDate       Int            @map("end_date")
-  calendarDates CalendarDate[]
+  calendarDate CalendarDate[]
   trip          Trip[]
 
   @@index([endDate], map: "idx_calendar_end_date")

@@ -1,22 +1,12 @@
 "use-client";
 
 import { Marker, Polyline, Popup, FeatureGroup, useMap } from "react-leaflet";
-import { LatLngExpression, Icon } from "leaflet";
+import { LatLngExpression } from "leaflet";
 import { useLeafletContext } from "@react-leaflet/core";
 import { useEffect, useRef } from "react";
 
 import type { Stop, StopTime, Trip } from "@prisma/client";
-
-const greenIcon = new Icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+import { markerIcon } from "./markerIcon";
 
 type Props = {
   selectedStopId: Stop["stopId"] | undefined;
@@ -75,7 +65,9 @@ function MapContentLayer({
                 key={stopId + selectedTripId}
                 position={[stopLat, stopLon]}
                 // Set Icon color for current stop
-                {...(stopId === selectedStopId ? { icon: greenIcon } : {})}
+                {...(stopId === selectedStopId
+                  ? { icon: markerIcon("gold") }
+                  : { icon: markerIcon("blue") })}
                 // icon={greenIcon}
               >
                 <Popup>

@@ -19,9 +19,13 @@ function SearchInput({ setSelectedRoute }: Props) {
   };
 
   // Move focus to/from search input into next/previous <li><button>This child button</button></li>
-  const handleArrowKeydown = (
+  const handleSearchKeydown = (
     e: React.KeyboardEvent<HTMLButtonElement | HTMLInputElement>
   ) => {
+    e.stopPropagation();
+    if (e.key === "Escape") {
+      e.preventDefault();
+    }
     if (e.key === "ArrowDown" && e.currentTarget instanceof HTMLInputElement) {
       (
         e.currentTarget.nextElementSibling?.firstChild
@@ -92,7 +96,7 @@ function SearchInput({ setSelectedRoute }: Props) {
             value={routeName}
             onChange={({ currentTarget }) => setRouteName(currentTarget.value)}
             autoComplete="off"
-            onKeyDown={(e) => handleArrowKeydown(e)}
+            onKeyDown={(e) => handleSearchKeydown(e)}
           />
           {!!routes && (
             <ul className="border-gray-300text-md absolute left-0 top-full block w-full rounded-b-lg border bg-gray-50 p-2.5 pl-10 text-gray-900 focus:border-blue-500 focus:ring-blue-500  dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500">
@@ -103,7 +107,7 @@ function SearchInput({ setSelectedRoute }: Props) {
                     <button
                       onClick={(e) => handleSetSelectedRoute(e, route)}
                       className="w-full text-left hover:bg-slate-200"
-                      onKeyDown={(e) => handleArrowKeydown(e)}
+                      onKeyDown={(e) => handleSearchKeydown(e)}
                     >
                       <strong>{routeShortName}: </strong>
                       {routeLongName}

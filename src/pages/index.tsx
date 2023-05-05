@@ -9,6 +9,7 @@ import SearchInput from "@/components/SearchInput";
 import TripSelect from "@/components/TripSelect";
 import DateTimeSelect from "@/components/DateTimeSelect";
 import { initDateTimeValue } from "@/lib/timeHelpers";
+import Modal from "@/components/Modal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,6 +43,7 @@ export default function Home() {
     selectedDateTime,
     selectedTripId,
   });
+  const [showModal, setShowModal] = useState(true);
 
   const tripsAtSelectedStop = stopTimesByStopId?.get(selectedStopId);
 
@@ -59,33 +61,26 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
-      <div className=" w-full items-center justify-between">
+      <div className="relative w-full">
         {/* <h1>H1 Title</h1> */}
-        <div className="flex h-32 flex-row items-center justify-center gap-10 p-4">
-          {!!selectedRoute ? (
-            <div>
-              <strong>Selected route: </strong>#{selectedRoute?.routeShortName}{" "}
-              {selectedRoute?.routeLongName}
-            </div>
-          ) : (
-            <div>
-              <strong>Selected route: </strong>
-            </div>
-          )}
-          <SearchInput setSelectedRoute={setSelectedRoute} />
-          <TripSelect
-            stopStopTimes={tripsAtSelectedStop}
-            setSelectedTripId={setSelectedTripId}
-            tripsById={tripsById}
-          />
-          <DateTimeSelect
-            setSelectedDateTime={setSelectedDateTime}
-            selectedDateTime={selectedDateTime}
-          />
+        <div className="md: absolute left-1/2 top-10 z-[2000] w-64 -translate-x-1/2 transform rounded-lg border bg-gray-50 p-4 text-center md:w-96 md:p-6">
+          <h2 className="pb-2.5 text-lg font-medium md:pb-4 md:text-2xl">
+            Travel route: <strong>{selectedRoute?.routeShortName}</strong>
+          </h2>
+          <button
+            className="md:text-md w-full rounded-md
+              border border-blue-700 bg-blue-700 p-2.5 text-sm font-medium text-white hover:bg-blue-800 
+              focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            onClick={() => setShowModal(true)}
+          >
+            {!!selectedRoute
+              ? selectedRoute?.routeLongName
+              : "Select a travel route:"}
+          </button>
         </div>
-        <div>{JSON.stringify(trips?.slice(0, 10))}</div>
         <Map
           shape={shape}
+          stops={stops}
           stopTimes={stopTimes}
           stopsById={stopsById}
           tripsById={tripsById}
@@ -95,6 +90,23 @@ export default function Home() {
           stopTimesByStopId={stopTimesByStopId}
         />
       </div>
+      <Modal
+        isOpen={showModal}
+        title="Plan your trip"
+        onClose={() => setShowModal(false)}
+        onProceed={() => setShowModal(false)}
+      >
+        <DateTimeSelect
+          setSelectedDateTime={setSelectedDateTime}
+          selectedDateTime={selectedDateTime}
+        />
+        <SearchInput setSelectedRoute={setSelectedRoute} />
+        {/* <TripSelect
+            stopStopTimes={tripsAtSelectedStop}
+            setSelectedTripId={setSelectedTripId}
+            tripsById={tripsById}
+          /> */}
+      </Modal>
     </main>
   );
 }

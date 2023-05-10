@@ -22,9 +22,7 @@ function TripSelect({
           <li value={tripId} key={tripId}>
             <button
               type="button"
-              onClick={({ currentTarget }) =>
-                setSelectedTripId(currentTarget.value)
-              }
+              onClick={() => setSelectedTripId(tripId)}
               className="w-full cursor-pointer border-b border-gray-200 px-4 py-2 text-left font-medium 
                 hover:bg-gray-100 hover:text-blue-700 focus:text-blue-700 focus:outline-none focus:ring-2 
                 focus:ring-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white 

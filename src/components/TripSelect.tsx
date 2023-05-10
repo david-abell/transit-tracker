@@ -1,15 +1,17 @@
-import { StopTime, Trip } from "@prisma/client";
+import { Route, StopTime, Trip } from "@prisma/client";
 import { Dispatch, SetStateAction } from "react";
 
 type Props = {
+  route: Route;
   stopStopTimes: StopTime[] | undefined;
-  setSelectedTripId: Dispatch<SetStateAction<string>>;
+  handleSelectedTrip: (tripId: string) => void;
   tripsById: Map<string, Trip>;
 };
 
 function TripSelect({
+  route,
   stopStopTimes = [],
-  setSelectedTripId,
+  handleSelectedTrip,
   tripsById,
 }: Props) {
   return (
@@ -22,13 +24,21 @@ function TripSelect({
           <li value={tripId} key={tripId}>
             <button
               type="button"
-              onClick={() => setSelectedTripId(tripId)}
-              className="w-full cursor-pointer border-b border-gray-200 px-4 py-2 text-left font-medium 
-                hover:bg-gray-100 hover:text-blue-700 focus:text-blue-700 focus:outline-none focus:ring-2 
-                focus:ring-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white 
-                dark:focus:text-white dark:focus:ring-gray-500"
+              onClick={() => handleSelectedTrip(tripId)}
+              className="flex w-full cursor-pointer justify-between border-b border-gray-200 px-4 py-2 
+                text-left font-medium hover:bg-gray-100 hover:text-blue-700 focus:text-blue-700 
+                focus:outline-none focus:ring-2 focus:ring-blue-700 dark:border-gray-600 
+                dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white dark:focus:ring-gray-500"
             >
-              {tripsById.get(tripId)?.tripHeadsign}: {departureTime}
+              <span>
+                Route <b>{route?.routeShortName}</b>
+                {" towards "}
+                {tripsById.get(tripId)?.tripHeadsign}
+              </span>
+              <span>
+                {" Scheduled arrival - "}
+                {departureTime}
+              </span>
             </button>
           </li>
         ))}

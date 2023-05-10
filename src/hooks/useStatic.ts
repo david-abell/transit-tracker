@@ -1,12 +1,12 @@
 import useSWR from "swr";
-import { Route, Shape, StopTime, Trip } from "@prisma/client";
+import { StopTime, Trip } from "@prisma/client";
 
 import { StaticAPIResponse } from "@/pages/api/gtfs/static/static";
 import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
-import StopId from "@/pages/api/gtfs/static/stop-times/[stopId]";
 
 import { fetchHelper } from "@/lib/FetchHelper";
 import { TripAPIResponse } from "@/pages/api/gtfs/static/trips";
+import { StopTimesApiResponse } from "@/pages/api/gtfs/static/stop-times";
 
 type Props = {
   routeId: string;
@@ -36,12 +36,15 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
     fetchHelper
   );
 
-  const tripsById = new Map(
-    trips?.map((data) => {
-      const { tripId } = data;
-      return [tripId, data];
-    })
-  );
+  const tripsById: Map<string, Trip> =
+    trips && trips.length
+      ? new Map(
+          trips.map((data) => {
+            const { tripId } = data;
+            return [tripId, data];
+          })
+        )
+      : new Map();
 
   const stopsById = new Map(
     stops?.map((data) => {
@@ -50,7 +53,7 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
     })
   );
 
-  const { data: stopTimes } = useSWR<StopTime[]>(
+  const { data: stopTimes } = useSWR<StopTimesApiResponse>(
     () =>
       !!routeId && selectedDateTime
         ? [
@@ -65,9 +68,11 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
     fetchHelper
   );
 
-  const stopTimesByTripId: Map<string, StopTime[]> | undefined =
-    stopTimes &&
-    stopTimes?.reduce((acc, val) => {
+  const { stopTimesZero, stopTimesOne } = stopTimes || {};
+
+  const stopTimesZeroByTripId: Map<string, StopTime[]> | undefined =
+    stopTimesOne &&
+    stopTimesZero?.reduce((acc, val) => {
       const { tripId } = val;
       if (acc.has(tripId)) {
         acc.set(tripId, acc.get(tripId).concat(val));
@@ -77,9 +82,21 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
       return acc;
     }, new Map());
 
-  const stopTimesByStopId: Map<string, StopTime[]> | undefined =
-    stopTimes &&
-    stopTimes?.reduce((acc, val) => {
+  const stopTimesOneByTripId: Map<string, StopTime[]> | undefined =
+    stopTimesOne &&
+    stopTimesOne?.reduce((acc, val) => {
+      const { tripId } = val;
+      if (acc.has(tripId)) {
+        acc.set(tripId, acc.get(tripId).concat(val));
+      } else {
+        acc.set(tripId, [val]);
+      }
+      return acc;
+    }, new Map());
+
+  const stopTimesZeroByStopId: Map<string, StopTime[]> | undefined =
+    stopTimesZero &&
+    stopTimesZero?.reduce((acc, val) => {
       const { stopId } = val;
       if (acc.has(stopId)) {
         acc.set(stopId, acc.get(stopId).concat(val));
@@ -89,7 +106,19 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
       return acc;
     }, new Map());
 
-  const shapeId = selectedTripId && tripsById.get(selectedTripId)?.shapeId;
+  const stopTimesOneByStopId: Map<string, StopTime[]> | undefined =
+    stopTimesOne &&
+    stopTimesOne?.reduce((acc, val) => {
+      const { stopId } = val;
+      if (acc.has(stopId)) {
+        acc.set(stopId, acc.get(stopId).concat(val));
+      } else {
+        acc.set(stopId, [val]);
+      }
+      return acc;
+    }, new Map());
+
+  const shapeId = selectedTripId && tripsById?.get(selectedTripId)?.shapeId;
 
   const { data: shape } = useSWR<ShapeAPIResponse>(
     () =>
@@ -110,9 +139,12 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
     stops,
     trips,
     tripsById,
-    stopTimes,
-    stopTimesByStopId,
-    stopTimesByTripId,
+    stopTimesZero,
+    stopTimesOne,
+    stopTimesZeroByStopId,
+    stopTimesOneByStopId,
+    stopTimesZeroByTripId,
+    stopTimesOneByTripId,
     stopsById,
   };
 }

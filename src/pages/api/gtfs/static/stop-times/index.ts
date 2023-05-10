@@ -4,11 +4,19 @@ import { addHours, parseISO, startOfDay, differenceInSeconds } from "date-fns";
 import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { StopTime } from "@prisma/client";
+import type { StopTime, Trip } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";
 import { scheduledService, serviceException } from "@/lib/api/static/consts";
 
-async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
+export type StopTimesApiResponse = {
+  stopTimesZero: StopTime[];
+  stopTimesOne: StopTime[];
+};
+
+async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<StopTimesApiResponse>
+) {
   const { routeId, dateTime } = req.query;
   if (
     !routeId ||
@@ -27,40 +35,96 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
     where: { routeId: routeId },
   });
 
+  const [directionZeroTripsById, directionOneTripsById] = trips?.length
+    ? trips.reduce<[Map<Trip["tripId"], Trip>, Map<string, Trip>]>(
+        (acc, trip) => {
+          const { directionId } = trip;
+          let [directionZero, directionOne] = acc;
+
+          if (directionId === 0) {
+            directionZero.set(trip.tripId, trip);
+          } else {
+            directionOne.set(trip.tripId, trip);
+          }
+          return acc;
+        },
+        [new Map(), new Map()]
+      )
+    : [];
+
   if (!trips.length) {
     throw new ApiError(400, "Invalid route Id");
   }
 
-  const serviceIds = trips.map(({ serviceId }) => serviceId);
+  const serviceZeroIds = directionZeroTripsById
+    ? [...directionZeroTripsById.values()].map(({ serviceId }) => serviceId)
+    : undefined;
+  const serviceOneIds = directionOneTripsById
+    ? [...directionOneTripsById.values()].map(({ serviceId }) => serviceId)
+    : undefined;
 
-  const calendarDates = await prisma.calendarDate.findMany({
-    where: { serviceId: { in: serviceIds } },
+  const calendarZeroDates = await prisma.calendarDate.findMany({
+    where: { serviceId: { in: serviceZeroIds } },
+  });
+  const calendarOneDates = await prisma.calendarDate.findMany({
+    where: { serviceId: { in: serviceOneIds } },
   });
 
-  const servicesAdded = calendarDates
+  const servicesZeroAdded = calendarZeroDates
     .filter(
       ({ date, exceptionType }) =>
         date === calendarDate && exceptionType === serviceException.added
     )
     .map(({ serviceId }) => serviceId);
 
-  const servicesRemoved = calendarDates
+  const servicesOneAdded = calendarOneDates
+    .filter(
+      ({ date, exceptionType }) =>
+        date === calendarDate && exceptionType === serviceException.added
+    )
+    .map(({ serviceId }) => serviceId);
+
+  const servicesZeroRemoved = calendarZeroDates
+    .filter(
+      ({ date, exceptionType }) =>
+        date === calendarDate && exceptionType === serviceException.removed
+    )
+    .map(({ serviceId }) => serviceId);
+  const servicesOneRemoved = calendarOneDates
     .filter(
       ({ date, exceptionType }) =>
         date === calendarDate && exceptionType === serviceException.removed
     )
     .map(({ serviceId }) => serviceId);
 
-  const calendar = await prisma.calendar.findMany({
+  const calendarZero = await prisma.calendar.findMany({
     select: { serviceId: true },
     where: {
-      NOT: { serviceId: { in: servicesRemoved } },
+      NOT: { serviceId: { in: servicesZeroRemoved } },
       AND: [
-        { serviceId: { in: serviceIds } },
+        { serviceId: { in: serviceZeroIds } },
         {
           OR: [
             { [calendarDay]: { equals: scheduledService.isTrue } },
-            { serviceId: { in: servicesAdded } },
+            { serviceId: { in: servicesZeroAdded } },
+          ],
+        },
+        { startDate: { lte: calendarDate } },
+        { endDate: { gte: calendarDate } },
+      ],
+    },
+  });
+
+  const calendarOne = await prisma.calendar.findMany({
+    select: { serviceId: true },
+    where: {
+      NOT: { serviceId: { in: servicesOneRemoved } },
+      AND: [
+        { serviceId: { in: serviceOneIds } },
+        {
+          OR: [
+            { [calendarDay]: { equals: scheduledService.isTrue } },
+            { serviceId: { in: servicesOneAdded } },
           ],
         },
         { startDate: { lte: calendarDate } },
@@ -76,32 +140,74 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
     startOfDate
   );
 
-  const stopTimes = await prisma.stopTime.findMany({
-    // take: 20,
-    where: {
-      AND: [
-        { tripId: { in: trips.map(({ tripId }) => tripId) } },
-        {
-          departureTimestamp: {
-            gte: departureTimeInSeconds,
-            lte: maxDepartureTimeInSeconds,
-          },
-        },
-        {
-          trip: {
-            serviceId: { in: calendar.map(({ serviceId }) => serviceId) },
-          },
-        },
-      ],
-    },
-    orderBy: { departureTime: "asc" },
-  });
+  let stopTimesZero: StopTime[] = [];
 
-  if (!stopTimes.length) {
-    throw new ApiError(404, "No stop times found");
+  if (directionZeroTripsById) {
+    stopTimesZero = await prisma.stopTime.findMany({
+      // take: 20,
+      where: {
+        AND: [
+          {
+            tripId: {
+              in: [...directionZeroTripsById.values()].map(
+                ({ tripId }) => tripId
+              ),
+            },
+          },
+          {
+            departureTimestamp: {
+              gte: departureTimeInSeconds,
+              lte: maxDepartureTimeInSeconds,
+            },
+          },
+          {
+            trip: {
+              serviceId: {
+                in: calendarZero.map(({ serviceId }) => serviceId),
+              },
+            },
+          },
+        ],
+      },
+      orderBy: { departureTime: "asc" },
+    });
   }
 
-  return res.json(stopTimes);
+  let stopTimesOne: StopTime[] = [];
+
+  if (directionOneTripsById) {
+    stopTimesOne = await prisma.stopTime.findMany({
+      // take: 20,
+      where: {
+        AND: [
+          {
+            tripId: {
+              in: [...directionOneTripsById.values()].map(
+                ({ tripId }) => tripId
+              ),
+            },
+          },
+          {
+            departureTimestamp: {
+              gte: departureTimeInSeconds,
+              lte: maxDepartureTimeInSeconds,
+            },
+          },
+          {
+            trip: {
+              serviceId: { in: calendarOne.map(({ serviceId }) => serviceId) },
+            },
+          },
+        ],
+      },
+      orderBy: { departureTime: "asc" },
+    });
+  }
+
+  return res.json({
+    stopTimesZero,
+    stopTimesOne,
+  });
 }
 
 export default withErrorHandler(handler);

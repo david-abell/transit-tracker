@@ -64,79 +64,80 @@ async function handler(
   // or service is added
   // and service is not canceled
 
-  const trips = await prisma.trip.findMany({
-    // take: 6,
-    where: {
-      AND: [
-        { route: { routeId: routeId } },
-        {
-          NOT: {
-            calendar: {
-              [dayOfWeek]: { equals: scheduledService.isFalse },
-            },
-          },
-          OR: [
-            {
-              calendar: { calendarDate: { some: { date: dateOfYear } } },
-            },
-            {
-              calendar: { [dayOfWeek]: { equals: scheduledService.isTrue } },
-            },
-          ],
-        },
-      ],
-    },
-    orderBy: {},
-  });
+  // const trips = await prisma.trip.findMany({
+  //   // take: 6,
+  //   where: {
+  //     AND: [
+  //       { route: { routeId: routeId } },
+  //       {
+  //         NOT: {
+  //           calendar: {
+  //             [dayOfWeek]: { equals: scheduledService.isFalse },
+  //           },
+  //         },
+  //         OR: [
+  //           {
+  //             calendar: { calendarDate: { some: { date: dateOfYear } } },
+  //           },
+  //           {
+  //             calendar: { [dayOfWeek]: { equals: scheduledService.isTrue } },
+  //           },
+  //         ],
+  //       },
+  //     ],
+  //   },
+  //   orderBy: {},
+  // });
 
   // raw SQL version
 
-  // async function findOrderedTrips(routeId: string, cursor?: string) {
-  //   // const limit = 15;
-  //   // const where = cursor
-  //   //   ? Prisma.sql`AND last."sentDateTime" <= ${new Date(cursor)}`
-  //   //   : Prisma.empty;
-  //   // console.log("routeId:", routeId);
+  async function findOrderedTrips(routeId: string, cursor?: string) {
+    // const limit = 15;
+    // const where = cursor
+    //   ? Prisma.sql`AND last."sentDateTime" <= ${new Date(cursor)}`
+    //   : Prisma.empty;
+    // console.log("routeId:", routeId);
 
-  //   const tripList = await prisma.$queryRaw<Trip[]>`
-  //     SELECT DISTINCT
-  //       t.route_id,
-  //       t.service_id,
-  //       t.trip_headsign,
-  //       t.trip_short_name,
-  //       t.direction_id,
-  //       t.shape_id,
-  //       t.trip_id
-  //     FROM trips as t
-  //     INNER JOIN (SELECT trip_id, arrival_time, departure_time FROM stop_times) stop_times
-  //         ON stop_times.trip_id = t.trip_id
-  //     INNER JOIN (SELECT ${
-  //       calendarDayColumns[dayOfWeek]
-  //     }, service_id, start_date, end_date FROM calendar) calendar
-  //         ON calendar.service_id=t.service_id
-  //         AND ${calendarDayColumns[dayOfWeek]}=1
-  //         AND ${dateOfYear} BETWEEN start_date AND end_date
-  //     WHERE t.route_id = ${routeId}
-  //     AND (t.service_id NOT IN (
-  //         SELECT service_id FROM calendar_dates
-  //             WHERE calendar_dates.service_id=t.service_id
-  //                 AND calendar_dates.exception_type=${serviceException.removed}
-  //                 AND calendar_dates.date=${dateOfYear}
-  //         )
-  //         OR t.service_id IN (
-  //             SELECT service_id FROM calendar_dates
-  //                 WHERE calendar_dates.service_id=t.service_id
-  //                 AND calendar_dates.exception_type=${1}
-  //                 AND calendar_dates.date=${dateOfYear}
-  //         ))
-  //   `;
+    const tripList = await prisma.$queryRaw<Trip[]>`
+      SELECT DISTINCT
+        t.route_id,
+        t.service_id,
+        t.trip_headsign,
+        t.trip_short_name,
+        t.direction_id,
+        t.shape_id,
+        t.trip_id
+      FROM trips as t
+      INNER JOIN (SELECT trip_id, arrival_time, departure_time, stop_sequence FROM stop_times) stop_times
+          ON stop_times.trip_id = t.trip_id
+      INNER JOIN (SELECT ${
+        calendarDayColumns[dayOfWeek]
+      }, service_id, start_date, end_date FROM calendar) calendar
+          ON calendar.service_id=t.service_id
+          AND ${calendarDayColumns[dayOfWeek]}=1
+          AND ${dateOfYear} BETWEEN start_date AND end_date
+      WHERE t.route_id = ${routeId}
+      AND (t.service_id NOT IN (
+          SELECT service_id FROM calendar_dates
+              WHERE calendar_dates.service_id=t.service_id
+                  AND calendar_dates.exception_type=${serviceException.removed}
+                  AND calendar_dates.date=${dateOfYear}
+          )
+          OR t.service_id IN (
+              SELECT service_id FROM calendar_dates
+                  WHERE calendar_dates.service_id=t.service_id
+                  AND calendar_dates.exception_type=${1}
+                  AND calendar_dates.date=${dateOfYear}
+          ))
+      ORDER BY stop_times.stop_sequence
+    `;
 
-  //   return tripList;
-  // }
+    return tripList;
+  }
   // this clause excludes valid partial trips
   // AND stop_times.departure_time >= ${departureTimeInSeconds};
 
-  // const trips = await findOrderedTrips(routeId);
+  const trips = await findOrderedTrips(routeId);
 
   if (!trips.length) {
     throw new ApiError(404, "No trips found");

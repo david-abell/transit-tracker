@@ -18,6 +18,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
 
   let stopTimes = await prisma.stopTime.findMany({
     where: { tripId: tripId },
+    orderBy: { stopSequence: "asc" },
   });
 
   if (!stopTimes.length) {

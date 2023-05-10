@@ -169,7 +169,7 @@ async function handler(
           },
         ],
       },
-      orderBy: { departureTime: "asc" },
+      orderBy: { stopSequence: "asc" },
     });
   }
 
@@ -200,7 +200,7 @@ async function handler(
           },
         ],
       },
-      orderBy: { departureTime: "asc" },
+      orderBy: { stopSequence: "asc" },
     });
   }
 

@@ -134,7 +134,26 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
     fetchHelper
   );
 
+  const { data: selectedTripStopTimes } = useSWR<StopTime[]>(
+    () =>
+      !!selectedTripId && selectedTripId
+        ? [`/api/gtfs/static/stop-times/${selectedTripId}`, selectedTripId]
+        : null,
+    fetchHelper
+  );
+
+  const selectedTripStopTimesById: Map<StopTime["tripId"], StopTime> =
+    selectedTripStopTimes
+      ? new Map(
+          selectedTripStopTimes.map((data) => {
+            const { stopId } = data;
+            return [stopId, data];
+          })
+        )
+      : new Map();
+
   return {
+    selectedTripStopTimesById,
     shape,
     stops,
     trips,

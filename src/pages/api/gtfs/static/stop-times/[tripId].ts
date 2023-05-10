@@ -5,29 +5,26 @@ import { ApiError } from "next/dist/server/api-utils";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { StopTime } from "@prisma/client";
 
-async function handler(req: NextApiRequest, res: NextApiResponse<StopTime>) {
-  const { tripId, stopId } = req.query;
+async function handler(req: NextApiRequest, res: NextApiResponse<StopTime[]>) {
+  const { tripId } = req.query;
 
   if (!tripId?.length) {
     return res.end();
   }
 
-  if (typeof stopId !== "string" || typeof tripId !== "string") {
+  if (typeof tripId !== "string") {
     throw new Error("Must only supply one stop id");
   }
 
-  let stopTime = await prisma.stopTime.findFirst({
-    where: { AND: [{ stopId: stopId }, { tripId: tripId }] },
+  let stopTimes = await prisma.stopTime.findMany({
+    where: { tripId: tripId },
   });
 
-  if (!stopTime) {
-    throw new ApiError(
-      404,
-      `No stop times were found for trip: ${tripId} at stop: ${stopId}`
-    );
+  if (!stopTimes.length) {
+    throw new ApiError(404, `No stop times were found for trip: ${tripId}`);
   }
 
-  return res.json(stopTime);
+  return res.json(stopTimes);
 }
 
 export default withErrorHandler(handler);

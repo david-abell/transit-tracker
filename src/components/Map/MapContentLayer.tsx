@@ -1,34 +1,49 @@
 "use-client";
 
-import { Marker, Polyline, Popup, FeatureGroup, useMap } from "react-leaflet";
+import {
+  Marker,
+  Polyline,
+  Popup,
+  FeatureGroup,
+  useMap,
+  Tooltip,
+} from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { useLeafletContext } from "@react-leaflet/core";
 import { useEffect, useRef } from "react";
 
 import type { Stop, StopTime, Trip } from "@prisma/client";
 import { markerIcon } from "./markerIcon";
+import { isPastArrivalTime } from "@/lib/timeHelpers";
+import { stopMarkerIcon } from "./stopMarkerIcon";
 
 type Props = {
+  selectedDateTime: string;
   selectedStopId: Stop["stopId"] | undefined;
   selectedTripId: Trip["tripId"];
   handleSelectedStop: (stopId: string) => void;
   shape: LatLngExpression[] | undefined;
-  stops: Stop[] | undefined;
+  stopIds: string[];
   stopsById: Map<string, Stop>;
-  stopTimes: StopTime[] | undefined;
+  selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
   stopTimesByStopId: Map<string, StopTime[]> | undefined;
+  stopTimesByTripId: Map<string, StopTime[]> | undefined;
+  tripsByDirection: Map<Trip["tripId"], Trip> | undefined;
   tripsById: Map<string, Trip>;
 };
 
 function MapContentLayer({
+  selectedDateTime,
   selectedStopId,
   selectedTripId,
   handleSelectedStop,
   shape,
-  stops,
+  stopIds,
   stopsById,
-  stopTimes,
+  selectedTripStopTimesById,
   stopTimesByStopId,
+  stopTimesByTripId,
+  tripsByDirection,
   tripsById,
 }: Props) {
   const context = useLeafletContext();
@@ -44,52 +59,39 @@ function MapContentLayer({
   return (
     <>
       <FeatureGroup ref={markerGroupRef}>
-        {!!stops &&
-          stops.flatMap(({ stopId, stopLat, stopLon, stopCode, stopName }) => {
+        {!!stopIds &&
+          stopIds.map((stopId) => {
+            const { stopLat, stopLon, stopName } = stopsById.get(stopId) || {};
             if (!stopLat || !stopLon) {
               return [];
             }
 
-            // set icons this way...
-
-            // let iconUrl = "/images/tree-marker-icon.png";
-            // let iconRetinaUrl = "/images/tree-marker-icon-2x.png";
-
-            // if ( santaWasHere ) {
-            //   iconUrl = '/images/gift-marker-icon.png';
-            //   iconRetinaUrl = '/images/gift-marker-icon-2x.png';
-            // }
+            const { arrivalTime } = selectedTripStopTimesById.get(stopId) || {};
 
             return (
               <Marker
-                key={stopId + selectedTripId}
+                key={stopId}
                 position={[stopLat, stopLon]}
-                // Set Icon color for current stop
-                {...(stopId === selectedStopId
-                  ? { icon: markerIcon("gold") }
-                  : { icon: markerIcon("blue") })}
-                // icon={greenIcon}
+                {...{
+                  icon: stopMarkerIcon(
+                    !!arrivalTime && !isPastArrivalTime(arrivalTime)
+                  ),
+                }}
+                eventHandlers={{
+                  click: () => {
+                    handleSelectedStop(stopId);
+                  },
+                }}
               >
-                <Popup>
+                <Tooltip className="rounded-lg">
                   <strong>Stop Name:</strong> {stopName}
                   <br />
-                  <strong>Stop Code: {stopCode}</strong>
-                  <br />
-                  <strong>Stop Id: {stopId}</strong>
-                  <br />
-                  {/* <strong>Arrival scheduled</strong> @: {arrivalTime}
-                <br /> */}
-                  {/* <strong>Heading towards: </strong> {tripHeadsign} */}
-                  <div className="w-full">
-                    <button
-                      onClick={() => handleSelectedStop(stopId)}
-                      className="mx-auto block rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-                      type="button"
-                    >
-                      Start here
-                    </button>
-                  </div>
-                </Popup>
+                  {!!arrivalTime && (
+                    <>
+                      <strong>Scheduled arrival</strong> @: {arrivalTime}
+                    </>
+                  )}
+                </Tooltip>
               </Marker>
             );
           })}

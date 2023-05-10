@@ -1,5 +1,5 @@
 import { Calendar } from "@prisma/client";
-import { format, parse, getDay } from "date-fns";
+import { format, parse, getDay, compareAsc, parseISO, isValid } from "date-fns";
 
 export function stopTimeStringToDate(timeString: string) {
   return parse(timeString, "H:mm:ss", new Date());
@@ -34,4 +34,13 @@ export function getCalendarDate(dateTime: Date) {
 
 export function initDateTimeValue() {
   return format(new Date(), `yyyy-MM-dd\'T\'HH:mm`);
+}
+
+export function isPastArrivalTime(arrivalTime: string) {
+  const comparedDate = compareAsc(
+    new Date(),
+    stopTimeStringToDate(arrivalTime)
+  );
+
+  return comparedDate === 1;
 }

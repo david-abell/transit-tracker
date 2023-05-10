@@ -36,6 +36,7 @@ export function initDateTimeValue() {
   return format(new Date(), `yyyy-MM-dd\'T\'HH:mm`);
 }
 
+// add trip start time instead of new Date()
 export function isPastArrivalTime(arrivalTime: string) {
   const comparedDate = compareAsc(
     new Date(),

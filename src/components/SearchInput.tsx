@@ -4,8 +4,9 @@ import { Dispatch, SetStateAction, useState } from "react";
 
 type Props = {
   setSelectedRoute: Dispatch<SetStateAction<Route>>;
+  selectedRoute: Route;
 };
-function SearchInput({ setSelectedRoute }: Props) {
+function SearchInput({ selectedRoute, setSelectedRoute }: Props) {
   const [routeName, setRouteName] = useState("");
   const { routes } = useRoute(routeName);
 
@@ -91,8 +92,9 @@ function SearchInput({ setSelectedRoute }: Props) {
             className="inline-block flex-1 rounded-b-lg rounded-t-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900
                focus-within:rounded-b-none focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400
                dark:focus:border-blue-500 dark:focus:ring-blue-500"
-            placeholder="Search for a bus or train route"
-            required
+            placeholder={
+              selectedRoute.routeLongName || "Search for a bus or train route"
+            }
             type="search"
             value={routeName}
             onChange={({ currentTarget }) => setRouteName(currentTarget.value)}

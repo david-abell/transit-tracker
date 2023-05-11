@@ -209,7 +209,10 @@ export default function Home() {
           setSelectedDateTime={setSelectedDateTime}
           selectedDateTime={selectedDateTime}
         />
-        <SearchInput setSelectedRoute={setSelectedRoute} />
+        <SearchInput
+          setSelectedRoute={setSelectedRoute}
+          selectedRoute={selectedRoute}
+        />
       </Modal>
 
       {/* Trip select modal */}

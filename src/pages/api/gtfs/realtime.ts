@@ -7,5 +7,5 @@ export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<GTFSResponse>
 ) {
-  res.status(200).json(gtfsRealtime as GTFSResponse);
+  res.status(200).json(gtfsRealtime as unknown as GTFSResponse);
 }

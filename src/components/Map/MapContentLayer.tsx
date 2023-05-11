@@ -131,11 +131,12 @@ function MapContentLayer({
               })}
           </FeatureGroup>
         </LayersControl.Overlay>
+        {!!shape && (
+          <LayersControl.Overlay name="Route Path" checked>
+            <Polyline pathOptions={{ color: "firebrick" }} positions={shape} />
+          </LayersControl.Overlay>
+        )}
       </LayersControl>
-
-      {!!shape && (
-        <Polyline pathOptions={{ color: "firebrick" }} positions={shape} />
-      )}
     </>
   );
 }

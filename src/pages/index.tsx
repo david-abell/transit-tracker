@@ -47,6 +47,7 @@ export default function Home() {
     selectedTripId,
   });
 
+  const [showRouteControls, setShowRouteControls] = useState(true);
   const [showRouteModal, setShowRouteModal] = useState(true);
   const [showTripModal, setShowTripModal] = useState(false);
 
@@ -117,33 +118,61 @@ export default function Home() {
     : [];
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between">
+    <main className="flex min-h-[100dvh] flex-col items-center justify-between">
       <div className="relative w-full">
         {/* <h1>H1 Title</h1> */}
 
         {/* Floating Route info and controls */}
         <div className="md: absolute left-1/2 top-10 z-[2000] w-64 -translate-x-1/2 transform rounded-lg border bg-gray-50 p-4 text-center md:w-96 md:p-6">
-          <h2 className="text-lg font-medium md:pb-4 md:text-2xl">
-            Route {selectedRoute?.routeShortName}:
-          </h2>
-          <p className="pb-2.5 text-lg font-medium">{directionalRouteName}</p>
-          <div className="flex flex-col gap-2.5">
-            <button
-              className="md:text-md w-full rounded-md
+          <div className="relative">
+            {/* toggle for route controls */}
+            <div className="absolute right-0 top-0">
+              <label className="relative inline-flex cursor-pointer items-center">
+                <input
+                  type="checkbox"
+                  value=""
+                  className="peer sr-only"
+                  onChange={() => setShowRouteControls((prev) => !prev)}
+                  checked={showRouteControls}
+                />
+                <div className="peer h-6 w-11 rounded-full bg-gray-500 after:absolute after:left-[2px] after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:ring-4 peer-focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
+                <span className="sr-only ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  toggle route controls
+                </span>
+              </label>
+            </div>
+
+            {/* Route info */}
+            <div>
+              <h2 className="pb-2.5 text-lg font-medium md:text-2xl">
+                Route {selectedRoute?.routeShortName}:
+              </h2>
+              <p className="text-lg font-medium">{directionalRouteName}</p>
+            </div>
+
+            {/* Route controls */}
+            {showRouteControls && (
+              <>
+                <div className="flex flex-col gap-2.5 pt-2.5">
+                  <button
+                    className="md:text-md w-full rounded-md
               border border-blue-700 bg-blue-700 p-2.5 text-sm font-medium text-white hover:bg-blue-800 
               focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              onClick={() => setShowRouteModal(true)}
-            >
-              change travel route
-            </button>
-            <button
-              className="md:text-md w-full rounded-md
+                    onClick={() => setShowRouteModal(true)}
+                  >
+                    change travel route
+                  </button>
+                  <button
+                    className="md:text-md w-full rounded-md
               border border-blue-700 bg-blue-700 p-2.5 text-sm font-medium text-white hover:bg-blue-800 
               focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              onClick={handleChangeDirection}
-            >
-              Change travel direction
-            </button>
+                    onClick={handleChangeDirection}
+                  >
+                    Change travel direction
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

@@ -20,27 +20,31 @@ function TripSelect({
       </label>
       <ul
         id="trip-select"
-        className="flex max-h-96 max-w-full flex-col overflow-y-scroll"
+        className="flex max-h-96 max-w-full flex-col overflow-y-scroll text-start"
       >
+        <li
+          className="flex w-full justify-between border-b-2 border-gray-400 px-4 
+                py-2 font-medium dark:border-gray-600"
+        >
+          <span className="flex-1  cursor-default">Route & Destination</span>
+          <span className="flex-1 cursor-default"> Scheduled arrival</span>
+        </li>
         {stopStopTimes.map(({ tripId, departureTime }) => (
           <li value={tripId} key={tripId}>
             <button
               type="button"
               onClick={() => handleSelectedTrip(tripId)}
               className="flex w-full cursor-pointer justify-between border-b border-gray-200 px-4 py-2 
-                text-left font-medium hover:bg-gray-100 hover:text-blue-700 focus:text-blue-700 
+                text-start font-medium hover:bg-gray-100 hover:text-blue-700 focus:text-blue-700 
                 focus:outline-none focus:ring-2 focus:ring-blue-700 dark:border-gray-600 
                 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white dark:focus:ring-gray-500"
             >
-              <span>
-                Route <b>{route?.routeShortName}</b>
+              <span className="flex-1">
+                <b className="text-lg">{route?.routeShortName}</b>
                 {" towards "}
                 {tripsById.get(tripId)?.tripHeadsign}
               </span>
-              <span>
-                {" Scheduled arrival - "}
-                {departureTime}
-              </span>
+              <span className="flex-1">{departureTime}</span>
             </button>
           </li>
         ))}

@@ -73,9 +73,12 @@ function MapContentLayer({
                 key={stopId}
                 position={[stopLat, stopLon]}
                 {...{
-                  icon: stopMarkerIcon(
-                    !!arrivalTime && !isPastArrivalTime(arrivalTime)
-                  ),
+                  icon: stopMarkerIcon({
+                    isUpcoming:
+                      !!arrivalTime && !isPastArrivalTime(arrivalTime),
+                    isTripSelected: !!selectedTripId,
+                    isCurrent: stopId === selectedStopId,
+                  }),
                 }}
                 eventHandlers={{
                   click: () => {

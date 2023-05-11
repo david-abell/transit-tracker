@@ -10,7 +10,8 @@ import {
 } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { useLeafletContext } from "@react-leaflet/core";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useInterval } from "usehooks-ts";
 
 import type { Stop, StopTime, Trip } from "@prisma/client";
 import { markerIcon } from "./markerIcon";
@@ -49,12 +50,19 @@ function MapContentLayer({
   const context = useLeafletContext();
   const map = useMap();
   const markerGroupRef = useRef<L.FeatureGroup>(null);
+
   useEffect(() => {
     const group = markerGroupRef.current;
     if (!group || !group.getBounds().isValid()) return;
 
     map.fitBounds(group.getBounds());
   }, [context, stopTimesByStopId, map]);
+
+  // Rerender interval to update live position and marker colors
+  const [count, setCount] = useState<number>(0);
+  useInterval(() => {
+    setCount(count + 1);
+  }, 1000);
 
   return (
     <>

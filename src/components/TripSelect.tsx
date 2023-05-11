@@ -1,5 +1,4 @@
 import { Route, StopTime, Trip } from "@prisma/client";
-import { Dispatch, SetStateAction } from "react";
 
 type Props = {
   route: Route;

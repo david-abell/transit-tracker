@@ -136,7 +136,7 @@ async function handler(
   const startOfDate = startOfDay(date);
   const departureTimeInSeconds = differenceInSeconds(date, startOfDate);
   const maxDepartureTimeInSeconds = differenceInSeconds(
-    addHours(date, 1),
+    addHours(date, 3),
     startOfDate
   );
 

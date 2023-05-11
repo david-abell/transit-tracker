@@ -35,7 +35,7 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
       ref={ref}
       onCancel={onClose}
       onClick={onClose}
-      className="h-4/6 w-full max-w-3xl rounded-lg bg-slate-50 p-0"
+      className="w-full max-w-3xl overflow-visible rounded-lg bg-slate-50 p-0"
     >
       <div
         onClick={preventAutoClose}

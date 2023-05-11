@@ -19,7 +19,10 @@ function TripSelect({
       <label htmlFor="trip-select" className="sr-only">
         Pick a trip
       </label>
-      <ul id="trip-select" className="max-w-full">
+      <ul
+        id="trip-select"
+        className="flex max-h-96 max-w-full flex-col overflow-y-scroll"
+      >
         {stopStopTimes.map(({ tripId, departureTime }) => (
           <li value={tripId} key={tripId}>
             <button

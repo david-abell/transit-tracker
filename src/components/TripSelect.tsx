@@ -2,14 +2,14 @@ import { Route, StopTime, Trip } from "@prisma/client";
 
 type Props = {
   route: Route;
-  stopStopTimes: StopTime[] | undefined;
+  stopTimes: StopTime[] | undefined;
   handleSelectedTrip: (tripId: string) => void;
   tripsById: Map<string, Trip>;
 };
 
 function TripSelect({
   route,
-  stopStopTimes = [],
+  stopTimes = [],
   handleSelectedTrip,
   tripsById,
 }: Props) {
@@ -29,7 +29,7 @@ function TripSelect({
           <span className="flex-1  cursor-default">Route & Destination</span>
           <span className="flex-1 cursor-default"> Scheduled arrival</span>
         </li>
-        {stopStopTimes.map(({ tripId, departureTime }) => (
+        {stopTimes.map(({ tripId, departureTime }) => (
           <li value={tripId} key={tripId}>
             <button
               type="button"

@@ -7,6 +7,16 @@ import { fetchHelper } from "@/lib/FetchHelper";
 
 const API_URL = "/api/gtfs/realtime/";
 
+type RealtimeByRouteId = Array<[string, TripUpdate]>;
+type RealtimeByTripId = [string, TripUpdate][];
+type RealtimeTripIds = string[];
+
+type DataByRelationship = [
+  RealtimeByRouteId,
+  RealtimeTripIds,
+  RealtimeByTripId
+];
+
 function useRealtime() {
   const { data, error, isLoading } = useSWR<GTFSResponse>(API_URL, fetchHelper);
 
@@ -15,38 +25,43 @@ function useRealtime() {
   const parsedData = keyCasedData && GTFSResponseSchema.safeParse(keyCasedData);
   // console.log(JSON.stringify(err.errors, null, 2));
 
-  // const tripsByTripId =
-  //   parsedData &&
-  //   new Map(
-  //     parsedData.entity
-  //       .filter(({ tripUpdate }) => tripUpdate)
-  //       .map(({ tripUpdate }) => {
-  //         const tripId = tripUpdate?.trip.tripId;
-  //         return [tripId, tripUpdate];
-  //       })
-  //   );
+  let realtimeByTripId: DataByRelationship = [[], [], []];
 
-  // const tripsByRouteId = new Map<string, TripUpdate[]>();
+  if (parsedData?.success) {
+    realtimeByTripId = parsedData.data.entity
+      .filter(({ tripUpdate }) => tripUpdate !== undefined)
+      .reduce<DataByRelationship>(
+        (acc, { tripUpdate }) => {
+          const [added, canceled, scheduled] = acc;
+          const { scheduleRelationship, tripId, routeId } = tripUpdate!.trip;
+          switch (scheduleRelationship) {
+            case "ADDED":
+              added.push([routeId, tripUpdate!]);
+              return acc;
+            case "CANCELED":
+              canceled.push(tripId!);
+              return acc;
+            case "SCHEDULED":
+              scheduled.push([tripId!, tripUpdate!]);
+              return acc;
+            default:
+              return acc;
+          }
+        },
+        [[], [], []]
+      );
+  }
 
-  // if (parsedData?.entity) {
-  //   for (const { tripUpdate: tripUpdate } of parsedData.entity) {
-  //     if (!tripUpdate) {
-  //       continue;
-  //     }
-  //     const routeId = tripUpdate?.trip.routeId!;
+  const [added, canceled, scheduled] = realtimeByTripId || [[], [], []];
 
-  //     if (tripsByRouteId.has(routeId)) {
-  //       const newEntry = tripsByRouteId.get(routeId)!.concat(tripUpdate);
-  //       tripsByRouteId.set(routeId, newEntry);
-  //     } else {
-  //       tripsByRouteId.set(routeId, [tripUpdate]);
-  //     }
-  //   }
-  // }
+  const realtimeAddedByRouteId = new Map<string, TripUpdate>([...added]);
+  const realtimeCanceledTripIds = new Set<string>([...canceled]);
+  const realtimeScheduledByTripId = new Map<string, TripUpdate>([...scheduled]);
 
   return {
-    realtimeTripsByTripId: parsedData?.success ? parsedData.data : undefined,
-    // realtimeTripsByRouteId: tripsByRouteId,
+    realtimeAddedByRouteId,
+    realtimeCanceledTripIds,
+    realtimeScheduledByTripId,
     realtimeIsLoading: isLoading,
     realtimeIsError: error || (!isLoading && !parsedData?.success),
   };

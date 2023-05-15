@@ -22,12 +22,26 @@ const defaultRoute = {
 };
 
 export default function Home() {
+  // user input state
   const [isDirectionZero, setIsDirectionZero] = useState(true);
   const [selectedRoute, setSelectedRoute] = useState<Route>(defaultRoute);
   const [selectedStopId, setSelectedStopId] = useState<Stop["stopId"]>("");
   const [selectedTripId, setSelectedTripId] = useState<Trip["tripId"]>("");
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
-  const { tripsByRouteId, tripsByTripId } = useRealtime();
+
+  // component visibility state
+  const [showRouteControls, setShowRouteControls] = useState(true);
+  const [showRouteModal, setShowRouteModal] = useState(true);
+  const [showTripModal, setShowTripModal] = useState(false);
+
+  // realtime transit data
+  const {
+    realtimeAddedByRouteId,
+    realtimeCanceledTripIds,
+    realtimeScheduledByTripId,
+  } = useRealtime();
+
+  // static schedule data
   const {
     selectedTripStopTimesById,
     stops,
@@ -47,10 +61,7 @@ export default function Home() {
     selectedTripId,
   });
 
-  const [showRouteControls, setShowRouteControls] = useState(true);
-  const [showRouteModal, setShowRouteModal] = useState(true);
-  const [showTripModal, setShowTripModal] = useState(false);
-
+  // derived state
   const directionalRouteName =
     selectedRoute && isDirectionZero
       ? selectedRoute.routeLongName
@@ -70,6 +81,24 @@ export default function Home() {
     ? stopTimesZeroByStopId?.get(selectedStopId)
     : stopTimesOneByStopId?.get(selectedStopId);
 
+  const [directionZeroTripsById, directionOneTripsById] = trips?.length
+    ? trips.reduce<[Map<Trip["tripId"], Trip>, Map<string, Trip>]>(
+        (acc, trip) => {
+          const { directionId } = trip;
+          let [directionZero, directionOne] = acc;
+
+          if (directionId === 0) {
+            directionZero.set(trip.tripId, trip);
+          } else {
+            directionOne.set(trip.tripId, trip);
+          }
+          return acc;
+        },
+        [new Map(), new Map()]
+      )
+    : [];
+
+  // event handlers
   const handleSelectedStop = (stopId: string) => {
     if (isDirectionZero && stopTimesZeroByStopId) {
       const newTrips = stopTimesZeroByStopId.get(stopId);
@@ -100,23 +129,6 @@ export default function Home() {
     setIsDirectionZero(!isDirectionZero);
   };
 
-  const [directionZeroTripsById, directionOneTripsById] = trips?.length
-    ? trips.reduce<[Map<Trip["tripId"], Trip>, Map<string, Trip>]>(
-        (acc, trip) => {
-          const { directionId } = trip;
-          let [directionZero, directionOne] = acc;
-
-          if (directionId === 0) {
-            directionZero.set(trip.tripId, trip);
-          } else {
-            directionOne.set(trip.tripId, trip);
-          }
-          return acc;
-        },
-        [new Map(), new Map()]
-      )
-    : [];
-
   return (
     <main className="flex min-h-[100dvh] flex-col items-center justify-between">
       <div className="relative w-full">
@@ -137,7 +149,7 @@ export default function Home() {
                 />
                 <div className="peer h-6 w-11 rounded-full bg-gray-500 after:absolute after:left-[2px] after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:ring-4 peer-focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
                 <span className="sr-only ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                  toggle route controls
+                  Toggle route controls
                 </span>
               </label>
             </div>
@@ -160,7 +172,7 @@ export default function Home() {
               focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                     onClick={() => setShowRouteModal(true)}
                   >
-                    change travel details
+                    Change travel route & time
                   </button>
                   <button
                     className="md:text-md w-full rounded-md

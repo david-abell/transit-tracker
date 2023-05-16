@@ -1,5 +1,5 @@
 import { Calendar } from "@prisma/client";
-import { format, parse, getDay, compareAsc, parseISO, isValid } from "date-fns";
+import { format, parse, getDay, compareAsc, addSeconds } from "date-fns";
 
 export function stopTimeStringToDate(timeString: string) {
   return parse(timeString, "H:mm:ss", new Date());
@@ -44,4 +44,15 @@ export function isPastArrivalTime(arrivalTime: string) {
   );
 
   return comparedDate === 1;
+}
+
+export function getDelayedTime(
+  timeString: string | null,
+  delay: number | undefined
+) {
+  if (!timeString || !delay) return "";
+  const date = stopTimeStringToDate(timeString);
+  const delayedDate = addSeconds(date, delay);
+
+  return dateToStopTimeString(delayedDate);
 }

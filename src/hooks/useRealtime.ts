@@ -10,58 +10,87 @@ const API_URL = "/api/gtfs/realtime/";
 type RealtimeByRouteId = Array<[string, TripUpdate]>;
 type RealtimeByTripId = [string, TripUpdate][];
 type RealtimeTripIds = string[];
+type RealtimeRouteIds = string[];
 
 type DataByRelationship = [
   RealtimeByRouteId,
+  RealtimeByTripId,
   RealtimeTripIds,
-  RealtimeByTripId
+  RealtimeRouteIds
 ];
 
+// Api limited to 1 call per minute
+// test revalidate only at 5 minute intervals
+const revalidateOptions = {
+  focusThrottleInterval: 300000,
+  dedupingInterval: 300000,
+};
+// Api limited to 1 call per minute
+// const revalidateOptions = {
+//   focusThrottleInterval: 60000,
+//   dedupingInterval: 60000,
+// };
+
 function useRealtime() {
-  const { data, error, isLoading } = useSWR<GTFSResponse>(API_URL, fetchHelper);
+  const { data, error, isLoading } = useSWR<GTFSResponse>(
+    API_URL,
+    fetchHelper,
+    revalidateOptions
+  );
 
   const keyCasedData = data && camelcaseKeys(data, { deep: true });
 
   const parsedData = keyCasedData && GTFSResponseSchema.safeParse(keyCasedData);
   // console.log(JSON.stringify(err.errors, null, 2));
 
-  let realtimeByTripId: DataByRelationship = [[], [], []];
+  let realtimeByTripId: DataByRelationship = [[], [], [], []];
 
   if (parsedData?.success) {
     realtimeByTripId = parsedData.data.entity
       .filter(({ tripUpdate }) => tripUpdate !== undefined)
       .reduce<DataByRelationship>(
         (acc, { tripUpdate }) => {
-          const [added, canceled, scheduled] = acc;
+          const [added, scheduled, canceled, routes] = acc;
           const { scheduleRelationship, tripId, routeId } = tripUpdate!.trip;
           switch (scheduleRelationship) {
             case "ADDED":
               added.push([routeId, tripUpdate!]);
-              return acc;
             case "CANCELED":
               canceled.push(tripId!);
-              return acc;
             case "SCHEDULED":
               scheduled.push([tripId!, tripUpdate!]);
-              return acc;
             default:
+              routes.push(routeId);
               return acc;
           }
         },
-        [[], [], []]
+        [[], [], [], []]
       );
   }
 
-  const [added, canceled, scheduled] = realtimeByTripId || [[], [], []];
+  const [added, scheduled, canceled, routes] = realtimeByTripId || [
+    [],
+    [],
+    [],
+    [],
+  ];
 
   const realtimeAddedByRouteId = new Map<string, TripUpdate>([...added]);
   const realtimeCanceledTripIds = new Set<string>([...canceled]);
+  const realtimeRouteIds = new Set<string>([...routes]);
   const realtimeScheduledByTripId = new Map<string, TripUpdate>([...scheduled]);
+  console.log(
+    "realtime parsed",
+    realtimeAddedByRouteId,
+    realtimeCanceledTripIds,
+    realtimeScheduledByTripId
+  );
 
   return {
     realtimeAddedByRouteId,
     realtimeCanceledTripIds,
     realtimeScheduledByTripId,
+    realtimeRouteIds,
     realtimeIsLoading: isLoading,
     realtimeIsError: error || (!isLoading && !parsedData?.success),
   };

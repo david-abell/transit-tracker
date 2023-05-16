@@ -14,6 +14,12 @@ type Props = {
   selectedTripId: string;
 };
 
+const skipRevalidationOptions = {
+  revalidateIfStale: false,
+  revalidateOnFocus: false,
+  revalidateOnReconnect: false,
+};
+
 function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
   const { data: stops } = useSWR<StaticAPIResponse>(
     () =>
@@ -22,7 +28,8 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
             routeId,
           })}`
         : null,
-    fetchHelper
+    fetchHelper,
+    skipRevalidationOptions
   );
 
   const { data: trips } = useSWR<TripAPIResponse>(
@@ -33,7 +40,8 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
             dateTime: selectedDateTime,
           })}`
         : null,
-    fetchHelper
+    fetchHelper,
+    skipRevalidationOptions
   );
 
   const tripsById: Map<string, Trip> =
@@ -65,7 +73,8 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
             selectedDateTime,
           ]
         : null,
-    fetchHelper
+    fetchHelper,
+    skipRevalidationOptions
   );
 
   const { stopTimesZero, stopTimesOne } = stopTimes || {};
@@ -139,7 +148,8 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
       !!selectedTripId && selectedTripId
         ? [`/api/gtfs/static/stop-times/${selectedTripId}`, selectedTripId]
         : null,
-    fetchHelper
+    fetchHelper,
+    skipRevalidationOptions
   );
 
   const selectedTripStopTimesById: Map<StopTime["tripId"], StopTime> =

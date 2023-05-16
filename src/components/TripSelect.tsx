@@ -1,3 +1,4 @@
+import { getDelayedTime } from "@/lib/timeHelpers";
 import { TripUpdate } from "@/types/realtime";
 import { Route, StopTime, Trip } from "@prisma/client";
 
@@ -43,18 +44,30 @@ function TripSelect({
         >
           <span className="flex-1  cursor-default">Route & Destination</span>
           <span className="flex-1 cursor-default"> Scheduled arrival</span>
+          {hasRealtime && (
+            <>
+              <span className="w-24  cursor-default"> Arrival</span>
+              <span className="w-24 cursor-default"> Delay</span>
+            </>
+          )}
         </li>
         {!!stopTimes &&
           stopTimes.flatMap(({ tripId, departureTime }) => {
             if (realtimeCanceledTripIds.has(tripId)) return [];
             const real = realtimeScheduledByTripId.get(tripId);
-            console.log("real", tripId, real);
+            const { stopTimeUpdate } = real || {};
+            const [firstRealtime] = stopTimeUpdate || [];
+            const { arrival, departure } = firstRealtime || {};
+            const isEarly =
+              (arrival?.delay && arrival.delay <= 0) ||
+              (departure?.delay && departure?.delay <= 0);
+
             return (
               <li value={tripId} key={tripId}>
                 <button
                   type="button"
                   onClick={() => handleSelectedTrip(tripId)}
-                  className="flex w-full cursor-pointer justify-between border-b border-gray-200 px-4 py-2 
+                  className="flex w-full cursor-pointer justify-between gap-1 border-b border-gray-200 px-4 py-2 
                 text-start font-medium hover:bg-gray-100 hover:text-blue-700 focus:text-blue-700 
                 focus:outline-none focus:ring-2 focus:ring-blue-700 dark:border-gray-600 
                 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white dark:focus:ring-gray-500"
@@ -65,6 +78,32 @@ function TripSelect({
                     {tripsById.get(tripId)?.tripHeadsign}
                   </span>
                   <span className="flex-1">{departureTime}</span>
+                  {hasRealtime && (
+                    <>
+                      <span
+                        className={`w-24 ${
+                          (arrival?.delay && arrival.delay > 0) ||
+                          (departure?.delay && departure.delay > 0)
+                            ? "text-red-700"
+                            : "text-green-700"
+                        }`}
+                      >
+                        {getDelayedTime(departureTime, arrival?.delay) ||
+                          getDelayedTime(departureTime, departure?.delay) ||
+                          "on time"}
+                      </span>
+                      <span
+                        className={`w-24 ${
+                          (arrival?.delay && arrival.delay > 0) ||
+                          (departure?.delay && departure.delay > 0)
+                            ? "text-red-700"
+                            : "text-green-700"
+                        } `}
+                      >
+                        {arrival?.delay || departure?.delay || "on time"}
+                      </span>
+                    </>
+                  )}
                 </button>
               </li>
             );

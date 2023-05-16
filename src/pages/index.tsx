@@ -39,6 +39,7 @@ export default function Home() {
     realtimeAddedByRouteId,
     realtimeCanceledTripIds,
     realtimeScheduledByTripId,
+    realtimeRouteIds,
   } = useRealtime();
 
   // static schedule data
@@ -237,8 +238,12 @@ export default function Home() {
         <TripSelect
           route={selectedRoute}
           handleSelectedTrip={handleSelectedTrip}
-          stopStopTimes={tripsAtSelectedStop}
+          stopTimes={tripsAtSelectedStop}
           tripsById={tripsById}
+          realtimeAddedByRouteId={realtimeAddedByRouteId}
+          realtimeCanceledTripIds={realtimeCanceledTripIds}
+          realtimeRouteIds={realtimeRouteIds}
+          realtimeScheduledByTripId={realtimeScheduledByTripId}
         />
       </Modal>
     </main>

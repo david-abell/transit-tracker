@@ -76,15 +76,11 @@ function useRealtime() {
   ];
 
   const realtimeAddedByRouteId = new Map<string, TripUpdate>([...added]);
-  const realtimeCanceledTripIds = new Set<string>([...canceled]);
-  const realtimeRouteIds = new Set<string>([...routes]);
+  const realtimeCanceledTripIds = new Set<string>([
+    ...canceled.filter((id) => !!id),
+  ]);
+  const realtimeRouteIds = new Set<string>([...routes.filter((id) => !!id)]);
   const realtimeScheduledByTripId = new Map<string, TripUpdate>([...scheduled]);
-  console.log(
-    "realtime parsed",
-    realtimeAddedByRouteId,
-    realtimeCanceledTripIds,
-    realtimeScheduledByTripId
-  );
 
   return {
     realtimeAddedByRouteId,

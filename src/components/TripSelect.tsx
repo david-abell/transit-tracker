@@ -38,12 +38,16 @@ function TripSelect({
         id="trip-select"
         className="flex max-h-96 max-w-full flex-col overflow-y-scroll text-start"
       >
+        {/* Column headers */}
         <li
           className="flex w-full justify-between border-b-2 border-gray-400 px-4 
                 py-2 font-medium dark:border-gray-600"
         >
+          {/* schedule headers */}
           <span className="flex-1  cursor-default">Route & Destination</span>
           <span className="flex-1 cursor-default"> Scheduled arrival</span>
+
+          {/* realtime headers */}
           {hasRealtime && (
             <>
               <span className="w-24  cursor-default"> Arrival</span>
@@ -51,6 +55,8 @@ function TripSelect({
             </>
           )}
         </li>
+
+        {/* Trip list */}
         {!!stopTimes &&
           stopTimes.flatMap(({ tripId, departureTime }) => {
             if (realtimeCanceledTripIds.has(tripId)) return [];
@@ -58,9 +64,9 @@ function TripSelect({
             const { stopTimeUpdate } = real || {};
             const [firstRealtime] = stopTimeUpdate || [];
             const { arrival, departure } = firstRealtime || {};
-            const isEarly =
-              (arrival?.delay && arrival.delay <= 0) ||
-              (departure?.delay && departure?.delay <= 0);
+            const isDelayed =
+              (arrival?.delay && arrival.delay > 0) ||
+              (departure?.delay && departure.delay > 0);
 
             return (
               <li value={tripId} key={tripId}>
@@ -72,32 +78,31 @@ function TripSelect({
                 focus:outline-none focus:ring-2 focus:ring-blue-700 dark:border-gray-600 
                 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white dark:focus:ring-gray-500"
                 >
+                  {/* schedule columns */}
                   <span className="flex-1">
                     <b className="text-lg">{route?.routeShortName}</b>
                     {" towards "}
                     {tripsById.get(tripId)?.tripHeadsign}
                   </span>
                   <span className="flex-1">{departureTime}</span>
+
+                  {/* realtime columns */}
                   {hasRealtime && (
                     <>
+                      {/* Arrival */}
                       <span
                         className={`w-24 ${
-                          (arrival?.delay && arrival.delay > 0) ||
-                          (departure?.delay && departure.delay > 0)
-                            ? "text-red-700"
-                            : "text-green-700"
+                          isDelayed ? "text-red-700" : "text-green-700"
                         }`}
                       >
                         {getDelayedTime(departureTime, arrival?.delay) ||
                           getDelayedTime(departureTime, departure?.delay) ||
                           "on time"}
                       </span>
+                      {/* Delay */}
                       <span
                         className={`w-24 ${
-                          (arrival?.delay && arrival.delay > 0) ||
-                          (departure?.delay && departure.delay > 0)
-                            ? "text-red-700"
-                            : "text-green-700"
+                          isDelayed ? "text-red-700" : "text-green-700"
                         } `}
                       >
                         {arrival?.delay || departure?.delay || "on time"}

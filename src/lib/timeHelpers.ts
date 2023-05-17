@@ -47,7 +47,7 @@ export function isPastArrivalTime(arrivalTime: string) {
 }
 
 export function getDelayedTime(
-  timeString: string | null,
+  timeString: string | null | undefined,
   delay: number | undefined
 ) {
   if (!timeString || !delay) return "";

@@ -16,11 +16,16 @@ import { useEffect, useRef, useState } from "react";
 import { useInterval } from "usehooks-ts";
 
 import type { Stop, StopTime, Trip } from "@prisma/client";
-import { isPastArrivalTime } from "@/lib/timeHelpers";
+import { getDelayedTime, isPastArrivalTime } from "@/lib/timeHelpers";
 import { stopMarkerIcon } from "./stopMarkerIcon";
 import Bus from "./Bus";
+import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
 
 type Props = {
+  realtimeAddedByRouteId: Map<string, TripUpdate>;
+  realtimeCanceledTripIds: Set<string>;
+  realtimeRouteIds: Set<string>;
+  realtimeScheduledByTripId: Map<string, TripUpdate>;
   selectedDateTime: string;
   selectedStopId: Stop["stopId"] | undefined;
   selectedTripId: Trip["tripId"];
@@ -36,6 +41,10 @@ type Props = {
 };
 
 function MapContentLayer({
+  realtimeAddedByRouteId,
+  realtimeCanceledTripIds,
+  realtimeScheduledByTripId,
+  realtimeRouteIds,
   selectedDateTime,
   selectedStopId,
   selectedTripId,
@@ -63,14 +72,32 @@ function MapContentLayer({
   }, [context, stopTimesByStopId, map]);
 
   // Rerender interval to update live position and marker colors
-  const [count, setCount] = useState<number>(0);
-  useInterval(() => {
-    setCount(count + 1);
-  }, 1000);
+  // disabled for dev ease
+  // const [count, setCount] = useState<number>(0);
+  // useInterval(() => {
+  //   setCount(count + 1);
+  // }, 1000);
 
-  useInterval(() => {
-    setRotationAngle((prev) => prev + 1);
-  }, 30);
+  // useInterval(() => {
+  //   setRotationAngle((prev) => prev + 1);
+  // }, 30);
+
+  const realtimeTrip = realtimeScheduledByTripId.get(selectedTripId);
+  const { stopTimeUpdate } = realtimeTrip || {};
+  const stopIdUpdates =
+    (stopTimeUpdate &&
+      new Map<string, StopTimeUpdate>(
+        [...stopTimeUpdate]
+          .filter((update) => update.stopId != undefined)
+          .map((update) => [update.stopId!, update])
+      )) ||
+    new Map<string, StopTimeUpdate>();
+  console.log(stopIdUpdates);
+  // const [firstRealtime] = stopTimeUpdate || [];
+  // const { arrival, departure } = firstRealtime || {};
+  // const isDelayed =
+  //   (arrival?.delay && arrival.delay > 0) ||
+  //   (departure?.delay && departure.delay > 0);
 
   return (
     <>
@@ -96,8 +123,18 @@ function MapContentLayer({
                   return [];
                 }
 
-                const { arrivalTime } =
+                const { arrivalTime, departureTime } =
                   selectedTripStopTimesById.get(stopId) || {};
+
+                const stopUpdate = stopIdUpdates?.get(stopId);
+                const { arrival, departure } = stopUpdate || {};
+                const isDelayed =
+                  (arrival?.delay && arrival.delay > 0) ||
+                  (departure?.delay && departure.delay > 0);
+
+                const adjustedArrival =
+                  getDelayedTime(departureTime, arrival?.delay) ||
+                  getDelayedTime(departureTime, departure?.delay);
 
                 return (
                   <Marker
@@ -117,7 +154,7 @@ function MapContentLayer({
                       },
                     }}
                   >
-                    <Tooltip className="rounded-lg">
+                    <Tooltip>
                       <strong>Stop Name:</strong> {stopName}
                       <br />
                       {!!arrivalTime && (
@@ -125,6 +162,17 @@ function MapContentLayer({
                           <strong>Scheduled arrival</strong> @: {arrivalTime}
                         </>
                       )}
+                      {!!selectedTripId &&
+                        !!realtimeTrip &&
+                        !!adjustedArrival && (
+                          <>
+                            <br />
+                            <div className="tooltip-schedule-change">
+                              <strong>Schdule change</strong>:{" "}
+                              <span>{adjustedArrival}</span>
+                            </div>
+                          </>
+                        )}
                     </Tooltip>
                   </Marker>
                 );

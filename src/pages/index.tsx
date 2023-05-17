@@ -190,6 +190,10 @@ export default function Home() {
         </div>
 
         <MapComponent
+          realtimeAddedByRouteId={realtimeAddedByRouteId}
+          realtimeCanceledTripIds={realtimeCanceledTripIds}
+          realtimeRouteIds={realtimeRouteIds}
+          realtimeScheduledByTripId={realtimeScheduledByTripId}
           shape={shape}
           stopIds={stopIdsByDirection}
           selectedDateTime={selectedDateTime}

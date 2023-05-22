@@ -22,13 +22,14 @@ export default async function handler(
       }
     );
     if (!response.ok) {
-      throw new Error(`statusText: ${response.statusText}`);
+      throw new Error(`error in response: ${response}`);
     }
     const data = await response.json();
     res.status(200).json(data);
   } catch (err) {
     if (err instanceof Error) {
-      console.error("api error", err);
+      console.error(`Mesage: ${err.message}, ${err}`);
+      return res.status(500);
     }
   }
 }

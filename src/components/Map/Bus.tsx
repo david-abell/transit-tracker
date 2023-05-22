@@ -7,10 +7,10 @@ function Bus({
   position,
   rotationAngle,
 }: {
-  position: { lat: number; lon: number };
+  position: LatLngTuple;
   rotationAngle: number;
 }) {
-  const { lat, lon } = position;
+  const [lat, lon] = position;
   const [prevPos, setPrevPos] = useState<LatLngTuple>([lat, lon]);
 
   useEffect(() => {

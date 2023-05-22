@@ -25,7 +25,7 @@ function Bus({
             iconUrl: "/bus_teardrop.svg",
             shadowUrl: "",
             iconSize: [60, 60],
-            iconAnchor: [12, 41],
+            iconAnchor: [30, 30],
             popupAnchor: [1, -34],
             shadowSize: [41, 41],
           })
@@ -35,6 +35,7 @@ function Bus({
         duration={1000}
         rotationAngle={rotationAngle}
         rotationOrigin="center"
+        interactive={false}
       />
       <LeafletTrackingMarker
         icon={
@@ -42,7 +43,7 @@ function Bus({
             iconUrl: "/bus.svg",
             shadowUrl: "",
             iconSize: [60, 60],
-            iconAnchor: [12, 41],
+            iconAnchor: [30, 30],
             popupAnchor: [1, -34],
             shadowSize: [41, 41],
           })
@@ -51,6 +52,7 @@ function Bus({
         previousPosition={prevPos}
         duration={1000}
         rotationAngle={0}
+        interactive={false}
       />
     </>
   );

@@ -10,7 +10,7 @@ import {
   Pane,
   LayerGroup,
 } from "react-leaflet";
-import { LatLngExpression } from "leaflet";
+import { LatLngTuple } from "leaflet";
 import { useLeafletContext } from "@react-leaflet/core";
 import { useEffect, useRef, useState } from "react";
 import { useInterval } from "usehooks-ts";
@@ -20,6 +20,7 @@ import { getDelayedTime, isPastArrivalTime } from "@/lib/timeHelpers";
 import { stopMarkerIcon } from "./stopMarkerIcon";
 import Bus from "./Bus";
 import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
+import { getBearing, getVehiclePosition } from "./mapUtils";
 
 type Props = {
   realtimeAddedByRouteId: Map<string, TripUpdate>;
@@ -30,7 +31,7 @@ type Props = {
   selectedStopId: Stop["stopId"] | undefined;
   selectedTripId: Trip["tripId"];
   handleSelectedStop: (stopId: string) => void;
-  shape: LatLngExpression[] | undefined;
+  shape: LatLngTuple[] | undefined;
   stopIds: string[];
   stopsById: Map<string, Stop>;
   selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
@@ -61,8 +62,6 @@ function MapContentLayer({
   const context = useLeafletContext();
   const map = useMap();
   const markerGroupRef = useRef<L.FeatureGroup>(null);
-  const vehicleRef = useRef<L.Marker>(null);
-  const [rotationAngle, setRotationAngle] = useState(0);
 
   useEffect(() => {
     const group = markerGroupRef.current;
@@ -73,18 +72,16 @@ function MapContentLayer({
 
   // Rerender interval to update live position and marker colors
   // disabled for dev ease
-  // const [count, setCount] = useState<number>(0);
-  // useInterval(() => {
-  //   setCount(count + 1);
-  // }, 1000);
-
-  // useInterval(() => {
-  //   setRotationAngle((prev) => prev + 1);
-  // }, 30);
+  const [count, setCount] = useState<number>(0);
+  useInterval(() => {
+    setCount(count + 1);
+  }, 1000);
 
   const realtimeTrip = realtimeScheduledByTripId.get(selectedTripId);
+
   const { stopTimeUpdate } = realtimeTrip || {};
-  const stopIdUpdates =
+
+  const stopUpdates =
     (stopTimeUpdate &&
       new Map<string, StopTimeUpdate>(
         [...stopTimeUpdate]
@@ -92,9 +89,15 @@ function MapContentLayer({
           .map((update) => [update.stopId!, update])
       )) ||
     new Map<string, StopTimeUpdate>();
-  console.log(stopIdUpdates);
-  // const [firstRealtime] = stopTimeUpdate || [];
-  // const { arrival, departure } = firstRealtime || {};
+
+  const { vehiclePosition, bearing } =
+    getVehiclePosition({
+      selectedTripStopTimesById,
+      shape,
+      stopIds,
+      stopsById,
+    }) || {};
+
   // const isDelayed =
   //   (arrival?.delay && arrival.delay > 0) ||
   //   (departure?.delay && departure.delay > 0);
@@ -102,21 +105,23 @@ function MapContentLayer({
   return (
     <>
       <LayersControl>
+        {/* Vehicle marker */}
         <LayersControl.Overlay name="Vehicle Position" checked>
           <LayerGroup>
             {/* width required for icon not to be 0*0 px */}
-            <Pane name="Bus" style={{ zIndex: 1000, width: "4rem" }}>
-              <Bus
-                position={{ lat: 51.9, lon: -8.49 }}
-                rotationAngle={rotationAngle}
-              />
+            <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>
+              {!!vehiclePosition && !!bearing && (
+                <Bus position={vehiclePosition} rotationAngle={bearing} />
+              )}
             </Pane>
           </LayerGroup>
         </LayersControl.Overlay>
+
+        {/* Route stop markers */}
         <LayersControl.Overlay name="Stops" checked>
           <FeatureGroup ref={markerGroupRef}>
             {!!stopIds &&
-              stopIds.map((stopId) => {
+              stopIds.flatMap((stopId) => {
                 const { stopLat, stopLon, stopName } =
                   stopsById.get(stopId) || {};
                 if (!stopLat || !stopLon) {
@@ -126,11 +131,8 @@ function MapContentLayer({
                 const { arrivalTime, departureTime } =
                   selectedTripStopTimesById.get(stopId) || {};
 
-                const stopUpdate = stopIdUpdates?.get(stopId);
+                const stopUpdate = stopUpdates?.get(stopId);
                 const { arrival, departure } = stopUpdate || {};
-                const isDelayed =
-                  (arrival?.delay && arrival.delay > 0) ||
-                  (departure?.delay && departure.delay > 0);
 
                 const adjustedArrival =
                   getDelayedTime(departureTime, arrival?.delay) ||
@@ -179,6 +181,8 @@ function MapContentLayer({
               })}
           </FeatureGroup>
         </LayersControl.Overlay>
+
+        {/* Trip line shape */}
         {!!shape && (
           <LayersControl.Overlay name="Route Path" checked>
             <Polyline pathOptions={{ color: "firebrick" }} positions={shape} />

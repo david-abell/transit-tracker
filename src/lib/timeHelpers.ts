@@ -1,5 +1,13 @@
 import { Calendar } from "@prisma/client";
-import { format, parse, getDay, compareAsc, addSeconds } from "date-fns";
+import {
+  format,
+  parse,
+  getDay,
+  compareAsc,
+  addSeconds,
+  differenceInSeconds,
+  getSeconds,
+} from "date-fns";
 
 export function stopTimeStringToDate(timeString: string) {
   return parse(timeString, "H:mm:ss", new Date());
@@ -55,4 +63,30 @@ export function getDelayedTime(
   const delayedDate = addSeconds(date, delay);
 
   return dateToStopTimeString(delayedDate);
+}
+
+export function getDifferenceInSeconds(
+  stopTimeOne: string,
+  stopTimeTwo: string
+) {
+  const dateOne = stopTimeStringToDate(stopTimeOne);
+  const dateTwo = stopTimeStringToDate(stopTimeTwo);
+
+  return Math.abs(differenceInSeconds(dateTwo, dateOne));
+}
+
+export function getPercentageToArrival(
+  beginTime: string,
+  destinationTime: string
+) {
+  if (isPastArrivalTime(destinationTime) || !isPastArrivalTime(beginTime)) {
+    return;
+  }
+  const maxSeconds = getDifferenceInSeconds(destinationTime, beginTime);
+  const arrival = stopTimeStringToDate(destinationTime);
+  const now = new Date();
+  const secondsToArrival = differenceInSeconds(arrival, now);
+  const percentage = secondsToArrival / maxSeconds;
+
+  return percentage;
 }

@@ -3,9 +3,9 @@ import withErrorHandler from "@/lib/withErrorHandler";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import { ApiError } from "next/dist/server/api-utils";
-import { LatLngExpression } from "leaflet";
+import { LatLngTuple } from "leaflet";
 
-export type ShapeAPIResponse = LatLngExpression[];
+export type ShapeAPIResponse = LatLngTuple[];
 
 async function handler(
   req: NextApiRequest,

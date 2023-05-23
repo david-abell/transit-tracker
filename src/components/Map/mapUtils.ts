@@ -1,8 +1,13 @@
-import { getPercentageToArrival, isPastArrivalTime } from "@/lib/timeHelpers";
+import {
+  getDelayedTime,
+  getPercentageToArrival,
+  isPastArrivalTime,
+} from "@/lib/timeHelpers";
 import { Stop, StopTime } from "@prisma/client";
 import lineSlice from "@turf/line-slice";
 import lineChunk from "@turf/line-chunk";
 import { LatLngTuple } from "leaflet";
+import { StopTimeUpdate } from "@/types/realtime";
 /* 
 ‘L’ be the longitude,
 ‘θ’ be latitude,
@@ -63,11 +68,13 @@ export function getVehiclePosition({
   shape,
   selectedTripStopTimesById,
   stopsById,
+  stopUpdates,
 }: {
   stopIds: string[];
   shape: LatLngTuple[] | undefined;
   selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
   stopsById: Map<string, Stop>;
+  stopUpdates: Map<string, StopTimeUpdate>;
 }) {
   if (!shape || shape.length < 1) return undefined;
 
@@ -80,9 +87,13 @@ export function getVehiclePosition({
     if (!arrivalTime) {
       return [];
     }
+    const stopUpdate = stopUpdates?.get(stopId);
+    const { arrival: realtimeArrival } = stopUpdate || {};
 
     return {
-      arrivalTime,
+      arrivalTime: realtimeArrival?.delay
+        ? getDelayedTime(arrivalTime, realtimeArrival.delay)
+        : arrivalTime,
       coordinates: { stopLat, stopLon },
     };
   });

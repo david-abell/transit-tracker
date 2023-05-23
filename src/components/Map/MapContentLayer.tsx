@@ -96,6 +96,7 @@ function MapContentLayer({
       shape,
       stopIds,
       stopsById,
+      stopUpdates,
     }) || {};
 
   // const isDelayed =

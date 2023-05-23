@@ -1,6 +1,7 @@
 import { getPercentageToArrival, isPastArrivalTime } from "@/lib/timeHelpers";
 import { Stop, StopTime } from "@prisma/client";
 import lineSlice from "@turf/line-slice";
+import lineChunk from "@turf/line-chunk";
 import { LatLngTuple } from "leaflet";
 /* 
 ‘L’ be the longitude,
@@ -68,6 +69,8 @@ export function getVehiclePosition({
   selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
   stopsById: Map<string, Stop>;
 }) {
+  if (!shape || shape.length < 1) return undefined;
+
   const arrivals = stopIds.flatMap<Arrival>((stopId) => {
     const { stopLat, stopLon } = stopsById.get(stopId) || {};
     if (!stopLat || !stopLon) {
@@ -95,35 +98,36 @@ export function getVehiclePosition({
 
   const nextStop = arrivals[nextStopIndex];
 
+  if (!lastStop || !nextStop) return undefined;
+
   const bearing = getBearing(
     [lastStop.coordinates.stopLat, lastStop.coordinates.stopLon],
     [nextStop.coordinates.stopLat, nextStop.coordinates.stopLon]
   );
 
-  const sliced =
-    lastStop &&
-    nextStop &&
-    shape &&
-    lineSlice(
-      [nextStop.coordinates.stopLat, nextStop.coordinates.stopLon],
-      [lastStop.coordinates.stopLat, lastStop.coordinates.stopLon],
-      { type: "LineString", coordinates: shape }
-    );
+  const sliced = lineSlice(
+    [nextStop.coordinates.stopLat, nextStop.coordinates.stopLon],
+    [lastStop.coordinates.stopLat, lastStop.coordinates.stopLon],
+    { type: "LineString", coordinates: shape }
+  );
 
-  const nextShapeSlice = sliced
-    ? [...sliced?.geometry.coordinates].reverse()
-    : [];
+  const chunks = lineChunk(sliced, 20, { units: "meters" });
 
-  const slicePercentage =
-    !!lastStop?.arrivalTime &&
-    !!nextStop?.arrivalTime &&
-    getPercentageToArrival(lastStop.arrivalTime, nextStop?.arrivalTime);
+  const nextShapeSlice = chunks.features
+    .flatMap(({ geometry }) => geometry.coordinates)
+    .reverse();
+
+  const slicePercentage = getPercentageToArrival(
+    lastStop.arrivalTime,
+    nextStop?.arrivalTime
+  );
 
   const sliceIndex =
-    !!nextShapeSlice && nextShapeSlice.length > 0 && !!slicePercentage
+    nextShapeSlice.length > 0
       ? Math.floor((nextShapeSlice.length - 1) * slicePercentage)
       : 0;
 
   const vehiclePosition = nextShapeSlice[sliceIndex];
+
   return { vehiclePosition: vehiclePosition as LatLngTuple, bearing };
 }

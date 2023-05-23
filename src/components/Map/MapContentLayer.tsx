@@ -12,7 +12,7 @@ import {
 } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
 import { useLeafletContext } from "@react-leaflet/core";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useInterval } from "usehooks-ts";
 
 import type { Stop, StopTime, Trip } from "@prisma/client";
@@ -21,6 +21,8 @@ import { stopMarkerIcon } from "./stopMarkerIcon";
 import Bus from "./Bus";
 import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
 import { getBearing, getVehiclePosition } from "./mapUtils";
+import usePrevious from "@/hooks/usePrevious";
+import isEqual from "fast-deep-equal";
 
 type Props = {
   realtimeAddedByRouteId: Map<string, TripUpdate>;
@@ -59,16 +61,19 @@ function MapContentLayer({
   tripsByDirection,
   tripsById,
 }: Props) {
-  const context = useLeafletContext();
   const map = useMap();
   const markerGroupRef = useRef<L.FeatureGroup>(null);
 
+  const previousStopIds = usePrevious(stopIds);
+
   useEffect(() => {
+    if (isEqual(stopIds, previousStopIds)) return;
+
     const group = markerGroupRef.current;
     if (!group || !group.getBounds().isValid()) return;
 
     map.fitBounds(group.getBounds());
-  }, [context, stopTimesByStopId, map]);
+  }, [map, stopIds, previousStopIds]);
 
   // Rerender interval to update live position and marker colors
   // disabled for dev ease

@@ -28,8 +28,8 @@ export default async function handler(
     res.status(200).json(data);
   } catch (err) {
     if (err instanceof Error) {
-      console.error(`Mesage: ${err.message}, ${err}`);
-      return res.status(500);
+      console.error(`Mesage: ${err.message}, ${JSON.stringify(err)}`);
     }
+    res.status(500);
   }
 }

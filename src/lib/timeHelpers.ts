@@ -79,9 +79,6 @@ export function getPercentageToArrival(
   beginTime: string,
   destinationTime: string
 ) {
-  if (isPastArrivalTime(destinationTime) || !isPastArrivalTime(beginTime)) {
-    return;
-  }
   const maxSeconds = getDifferenceInSeconds(destinationTime, beginTime);
   const arrival = stopTimeStringToDate(destinationTime);
   const now = new Date();

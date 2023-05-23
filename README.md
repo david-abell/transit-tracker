@@ -1,38 +1,123 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Irish public transit tracker
 
-## Getting Started
+<!-- > A demonstration of this fancy project.
+> Live demo [_here_](live_link_here). -->
 
-First, run the development server:
+## Table of Contents
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+- [Overview](#overview)
+  - [Project description](#project-description)
+  - [Features](#features)
+  - [Screenshots](#screenshots)
+- [My process](#my-process)
+  - [Built With](#built-with)
+  - [What I learned](#what-i-learned)
+  - [Continued development](#continued-development)
+  - [Useful resources](#useful-resources)
+- [Instructions](#instructions)
+  - [Setup](#setup)
+  - [Usage](#usage)
+- [Acknowledgements](#acknowledgements)
+- [Author](#Author)
+
+## Overview
+
+### Project Description
+
+An Interactive map for public transit routes in Ireland.
+
+### Features
+
+- Search backend SQL database served by REST apis for scheduled public transit routes.
+- Leaflet map displays interactive transit stops, route paths, arrival times, and estiamted or live vehicle position.
+- Interactive features include travel date & time, departure point by stop, and scheduled trip selection.
+
+### Screenshots
+
+<!-- ![Example desktop screenshot](./img/screenshot-desktop.png)
+
+<details>
+
+  <summary>Click here to show mobile screenshot</summary>
+
+![Example mobile screenshot](./img/screenshot-mobile.png)
+
+</details>
+
+<br/><br/>
+
+Add a screenshot. The easiest way to do this is to use Firefox to view your project, right-click the page and select "Take a Screenshot". You can choose either a full-height screenshot or a cropped one based on how long the page is. If it's very long, it might be best to crop it.
+
+Alternatively, you can use a tool like [FireShot](https://getfireshot.com/) to take the screenshot. FireShot has a free option, so you don't need to purchase it.
+
+Then crop/optimize/edit your image however you like, add it to your project, and update the file path in the image above. -->
+
+## My Process
+
+### Built With
+
+- React and Next.JS
+- TypeScript
+- CSS and Tailwind
+- Leaflet
+- SQL and SQLite
+- Prisma
+- REST apis
+- git
+- National Transit Authority Realtime API
+- [Transport for Ireland public transit data](https://www.transportforireland.ie/transitData/PT_Data.html)
+
+### Continued Development
+
+<!-- - an issue that needs work -->
+
+### What I learned
+
+<!-- Include unexpected issues / bugs encountered. How were they resolved?
+
+- an issue I found
+
+Code examples
+
+```html
+<h1>Some HTML code I'm proud of</h1>
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```css
+.proud-of-this-css {
+  color: papayawhip;
+}
+```
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```js
+const proudOfThisFunc = () => {
+  console.log("🎉");
+};
+``` -->
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## Instructions
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+### Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+`npm install`
 
-## Learn More
+### Usage
 
-To learn more about Next.js, take a look at the following resources:
+- `npm run dev`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+  or
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- `npm run build` then `npm run preview`
 
-## Deploy on Vercel
+## Useful resources
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- [Transport operator schedule data](https://www.transportforireland.ie/transitData/PT_Data.html)
+- [NTA GTFS realtime api](https://developer.nationaltransport.ie/api-details#api=gtfsr&operation=gtfsr-v2)
+- [General transit feed specifications](https://gtfs.org)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Author
+
+- [see my portfolio](https://david-abell.github.io/personal-portfolio/)
+- [vist my LinkedIn](https://www.linkedin.com/in/davidabell722/)
+
+## Acknowledgements

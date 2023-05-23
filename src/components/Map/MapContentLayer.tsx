@@ -146,7 +146,8 @@ function MapContentLayer({
                     {...{
                       icon: stopMarkerIcon({
                         isUpcoming:
-                          !!arrivalTime && !isPastArrivalTime(arrivalTime),
+                          !!adjustedArrival &&
+                          !isPastArrivalTime(adjustedArrival),
                         isTripSelected: !!selectedTripId,
                         isCurrent: stopId === selectedStopId,
                       }),
@@ -167,7 +168,7 @@ function MapContentLayer({
                       )}
                       {!!selectedTripId &&
                         !!realtimeTrip &&
-                        !!adjustedArrival && (
+                        adjustedArrival !== arrivalTime && (
                           <>
                             <br />
                             <div className="tooltip-schedule-change">

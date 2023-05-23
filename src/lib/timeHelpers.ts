@@ -58,7 +58,8 @@ export function getDelayedTime(
   timeString: string | null | undefined,
   delay: number | undefined
 ) {
-  if (!timeString || !delay) return "";
+  if (!timeString) return "";
+  if (!delay) return timeString;
   const date = stopTimeStringToDate(timeString);
   const delayedDate = addSeconds(date, delay);
 

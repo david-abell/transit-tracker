@@ -1,14 +1,17 @@
 import useRoute from "@/hooks/useRoute";
 import { Route } from "@prisma/client";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState, useRef } from "react";
+import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
 
 type Props = {
   setSelectedRoute: Dispatch<SetStateAction<Route>>;
   selectedRoute: Route;
 };
+
 function SearchInput({ selectedRoute, setSelectedRoute }: Props) {
   const [routeName, setRouteName] = useState("");
   const { routes } = useRoute(routeName);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSetSelectedRoute = (
     e: React.MouseEvent<HTMLButtonElement>,
@@ -19,56 +22,26 @@ function SearchInput({ selectedRoute, setSelectedRoute }: Props) {
     setRouteName("");
   };
 
-  // Move focus to/from search input into next/previous <li><button>This child button</button></li>
+  // trap keyboard focus inside form for arrow and tab key input
   const handleSearchKeydown = (
     e: React.KeyboardEvent<HTMLButtonElement | HTMLInputElement>
   ) => {
-    e.stopPropagation();
+    if (!formRef.current) return;
+
     if (e.key === "Escape") {
       e.preventDefault();
+      setRouteName("");
+      return;
     }
-    if (e.key === "ArrowDown" && e.currentTarget instanceof HTMLInputElement) {
-      (
-        e.currentTarget.nextElementSibling?.firstChild
-          ?.firstChild as HTMLElement
-      ).focus();
-    } else if (
-      e.key === "ArrowDown" &&
-      e.currentTarget.parentElement?.nextElementSibling?.firstChild instanceof
-        HTMLButtonElement
-    ) {
-      (
-        e.currentTarget.parentElement?.nextElementSibling
-          ?.firstChild as HTMLElement
-      ).focus();
-    }
-    if (
-      e.key === "ArrowUp" &&
-      e.currentTarget.parentElement?.parentElement?.firstElementChild ===
-        e.currentTarget.parentElement
-    ) {
-      console.log(
-        e.currentTarget.parentElement?.parentElement.previousElementSibling
-      );
-      (
-        e.currentTarget.parentElement?.parentElement
-          ?.previousElementSibling as HTMLElement
-      ).focus();
-    } else if (
-      e.key === "ArrowUp" &&
-      e.currentTarget instanceof HTMLButtonElement &&
-      e.currentTarget.parentElement?.previousElementSibling?.firstChild
-    ) {
-      (
-        e.currentTarget.parentElement?.previousElementSibling
-          ?.firstChild as HTMLElement
-      ).focus();
-    }
+    trapKeyboardFocus(e, formRef.current);
   };
 
   return (
     <div className="relative">
-      <form className="flex flex-col items-center justify-center gap-4 p-4 text-center">
+      <form
+        ref={formRef}
+        className="flex flex-col items-center justify-center gap-4 p-4 text-center"
+      >
         <label htmlFor="route-search">Search for a travel route</label>
         <div className="relative flex w-full">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -124,6 +97,7 @@ function SearchInput({ selectedRoute, setSelectedRoute }: Props) {
             </ul>
           )}
           <button
+            onKeyDown={(e) => handleSearchKeydown(e)}
             type="submit"
             className="ml-2 rounded-lg border border-blue-700 bg-blue-700 p-2.5 text-sm font-medium text-white hover:bg-blue-800 
               focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"

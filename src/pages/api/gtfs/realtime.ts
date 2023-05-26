@@ -22,6 +22,7 @@ export default async function handler(
       }
     );
     if (!response.ok) {
+      console.error(response);
       throw new Error(`error in response: ${response}`);
     }
     const data = await response.json();

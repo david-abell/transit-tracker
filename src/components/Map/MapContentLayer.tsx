@@ -116,7 +116,7 @@ function MapContentLayer({
           <LayerGroup>
             {/* width required for icon not to be 0*0 px */}
             <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>
-              {!!vehiclePosition && !!bearing && (
+              {!!vehiclePosition && bearing !== undefined && (
                 <Bus position={vehiclePosition} rotationAngle={bearing} />
               )}
             </Pane>

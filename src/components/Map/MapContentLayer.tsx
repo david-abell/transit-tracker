@@ -31,7 +31,7 @@ type Props = {
   realtimeScheduledByTripId: Map<string, TripUpdate>;
   selectedDateTime: string;
   selectedStopId: Stop["stopId"] | undefined;
-  selectedTripId: Trip["tripId"];
+  tripId: Trip["tripId"];
   handleSelectedStop: (stopId: string) => void;
   shape: LatLngTuple[] | undefined;
   stopIds: string[];
@@ -50,7 +50,7 @@ function MapContentLayer({
   realtimeRouteIds,
   selectedDateTime,
   selectedStopId,
-  selectedTripId,
+  tripId,
   handleSelectedStop,
   shape,
   stopIds,
@@ -82,7 +82,7 @@ function MapContentLayer({
     setCount(count + 1);
   }, 1000);
 
-  const realtimeTrip = realtimeScheduledByTripId.get(selectedTripId);
+  const realtimeTrip = realtimeScheduledByTripId.get(tripId);
 
   const { stopTimeUpdate } = realtimeTrip || {};
 
@@ -153,7 +153,7 @@ function MapContentLayer({
                         isUpcoming:
                           !!adjustedArrival &&
                           !isPastArrivalTime(adjustedArrival),
-                        isTripSelected: !!selectedTripId,
+                        isTripSelected: !!tripId,
                         isCurrent: stopId === selectedStopId,
                       }),
                     }}
@@ -171,7 +171,7 @@ function MapContentLayer({
                           <strong>Scheduled arrival</strong> @: {arrivalTime}
                         </>
                       )}
-                      {!!selectedTripId &&
+                      {!!tripId &&
                         !!realtimeTrip &&
                         adjustedArrival !== arrivalTime && (
                           <>

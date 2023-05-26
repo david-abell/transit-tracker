@@ -1,14 +1,16 @@
 import useRoute from "@/hooks/useRoute";
 import { Route } from "@prisma/client";
-import { Dispatch, SetStateAction, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
+import { useRouter } from "next/router";
 
 type Props = {
-  setSelectedRoute: Dispatch<SetStateAction<Route>>;
-  selectedRoute: Route;
+  selectedRoute: Route | undefined;
 };
 
-function SearchInput({ selectedRoute, setSelectedRoute }: Props) {
+function SearchInput({ selectedRoute }: Props) {
+  const router = useRouter();
+  // const { routeId } = router.query;
   const [routeName, setRouteName] = useState("");
   const { routes } = useRoute(routeName);
   const formRef = useRef<HTMLFormElement>(null);
@@ -18,16 +20,17 @@ function SearchInput({ selectedRoute, setSelectedRoute }: Props) {
     route: Route
   ) => {
     e.stopPropagation();
-    setSelectedRoute(route);
+    router.push({ pathname: "/", query: { routeId: route.routeId } });
     setRouteName("");
   };
 
   // trap keyboard focus inside form for arrow and tab key input
   const handleSearchKeydown = (
-    e: React.KeyboardEvent<HTMLButtonElement | HTMLInputElement>
+    e: React.KeyboardEvent<
+      HTMLButtonElement | HTMLInputElement | HTMLAnchorElement
+    >
   ) => {
     if (!formRef.current) return;
-
     if (e.key === "Escape") {
       e.preventDefault();
       setRouteName("");
@@ -36,11 +39,22 @@ function SearchInput({ selectedRoute, setSelectedRoute }: Props) {
     trapKeyboardFocus(e, formRef.current);
   };
 
+  // onsubmit not working
+
+  // const handleOnSubmit = (
+  //   e: React.FormEvent<HTMLFormElement | HTMLButtonElement>
+  // ) => {
+  //   e.preventDefault();
+  //   router.push({ pathname: "/", query: { routeId } });
+  //   setRouteName("");
+  // };
+
   return (
     <div className="relative">
       <form
         ref={formRef}
         className="flex flex-col items-center justify-center gap-4 p-4 text-center"
+        // onSubmit={handleOnSubmit}
       >
         <label htmlFor="route-search">Search for a travel route</label>
         <div className="relative flex w-full">
@@ -66,7 +80,7 @@ function SearchInput({ selectedRoute, setSelectedRoute }: Props) {
                focus-within:rounded-b-none focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400
                dark:focus:border-blue-500 dark:focus:ring-blue-500"
             placeholder={
-              selectedRoute.routeLongName || "Search for a bus or train route"
+              selectedRoute?.routeLongName || "Search for a bus or train route"
             }
             type="search"
             value={routeName}
@@ -84,6 +98,7 @@ function SearchInput({ selectedRoute, setSelectedRoute }: Props) {
                 return (
                   <li key={routeId} className="pb-2">
                     <button
+                      type="button"
                       onClick={(e) => handleSetSelectedRoute(e, route)}
                       className="w-full text-left hover:bg-slate-200"
                       onKeyDown={(e) => handleSearchKeydown(e)}
@@ -97,6 +112,7 @@ function SearchInput({ selectedRoute, setSelectedRoute }: Props) {
             </ul>
           )}
           <button
+            // onClick={handleOnSubmit}
             onKeyDown={(e) => handleSearchKeydown(e)}
             type="submit"
             className="ml-2 rounded-lg border border-blue-700 bg-blue-700 p-2.5 text-sm font-medium text-white hover:bg-blue-800 

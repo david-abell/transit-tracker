@@ -11,16 +11,16 @@ import { StopTimesApiResponse } from "@/pages/api/gtfs/static/stop-times";
 type Props = {
   routeId: string;
   selectedDateTime: string;
-  selectedTripId: string;
+  tripId: string;
 };
 
-const skipRevalidationOptions = {
+export const skipRevalidationOptions = {
   revalidateIfStale: false,
   revalidateOnFocus: false,
   revalidateOnReconnect: false,
 };
 
-function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
+function useStatic({ routeId, selectedDateTime, tripId }: Props) {
   const { data: stops } = useSWR<StaticAPIResponse>(
     () =>
       !!routeId
@@ -127,17 +127,17 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
       return acc;
     }, new Map());
 
-  const shapeId = selectedTripId && tripsById?.get(selectedTripId)?.shapeId;
+  const shapeId = tripId && tripsById?.get(tripId)?.shapeId;
 
   const { data: shape } = useSWR<ShapeAPIResponse>(
     () =>
-      !!shapeId && selectedTripId
+      !!shapeId && tripId
         ? [
             `/api/gtfs/static/shape?${new URLSearchParams({
               shapeId,
             })}`,
             shapeId,
-            selectedTripId,
+            tripId,
           ]
         : null,
     fetchHelper
@@ -145,8 +145,8 @@ function useStatic({ routeId, selectedDateTime, selectedTripId }: Props) {
 
   const { data: selectedTripStopTimes } = useSWR<StopTime[]>(
     () =>
-      !!selectedTripId && selectedTripId
-        ? [`/api/gtfs/static/stop-times/${selectedTripId}`, selectedTripId]
+      !!tripId && tripId
+        ? [`/api/gtfs/static/stop-times/${tripId}`, tripId]
         : null,
     fetchHelper,
     skipRevalidationOptions

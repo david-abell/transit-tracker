@@ -35,7 +35,6 @@ export function trapKeyboardFocus(
     }
 
     if (event.key === "ArrowDown") {
-      event.preventDefault();
       firstFocusable.focus();
     }
   }
@@ -51,7 +50,6 @@ export function trapKeyboardFocus(
     }
 
     if (event.key === "ArrowUp") {
-      event.preventDefault();
       lastFocusable.focus();
     }
   }

@@ -3,13 +3,16 @@ import { Inter } from "next/font/google";
 import { useState } from "react";
 import useRealtime from "@/hooks/useRealtime";
 import useStatic from "@/hooks/useStatic";
-import { Route, Stop, Trip } from "@prisma/client";
+import { Trip } from "@prisma/client";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripSelect from "@/components/TripSelect";
 import DateTimeSelect from "@/components/DateTimeSelect";
 import { initDateTimeValue } from "@/lib/timeHelpers";
 import Modal from "@/components/Modal";
+import { useRouter } from "next/router";
+import useRouteId from "@/hooks/useRouteId";
+import { useSearchParams } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,16 +25,21 @@ const defaultRoute = {
 };
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // query params state
+  const routeId = searchParams.get("routeId") || defaultRoute.routeId;
+  const tripId = searchParams.get("tripId") || "";
+  const stopId = searchParams.get("stopId") || "";
+  const reverseRoute = searchParams.get("reverseRoute");
+
   // user input state
-  const [isDirectionZero, setIsDirectionZero] = useState(true);
-  const [selectedRoute, setSelectedRoute] = useState<Route>(defaultRoute);
-  const [selectedStopId, setSelectedStopId] = useState<Stop["stopId"]>("");
-  const [selectedTripId, setSelectedTripId] = useState<Trip["tripId"]>("");
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
 
   // component visibility state
   const [showRouteControls, setShowRouteControls] = useState(true);
-  const [showRouteModal, setShowRouteModal] = useState(true);
+  const [showRouteModal, setShowRouteModal] = useState(false);
   const [showTripModal, setShowTripModal] = useState(false);
 
   // realtime transit data
@@ -43,6 +51,8 @@ export default function Home() {
   } = useRealtime();
 
   // static schedule data
+  const { route: selectedRoute } = useRouteId(routeId);
+
   const {
     selectedTripStopTimesById,
     stops,
@@ -57,14 +67,14 @@ export default function Home() {
     stopTimesZeroByTripId,
     stopTimesOneByTripId,
   } = useStatic({
-    routeId: selectedRoute.routeId,
+    routeId,
     selectedDateTime,
-    selectedTripId,
+    tripId,
   });
 
   // derived state
   const directionalRouteName =
-    selectedRoute && isDirectionZero
+    selectedRoute && !reverseRoute
       ? selectedRoute.routeLongName
       : selectedRoute
       ? selectedRoute.routeLongName?.split("-").reverse().join("-")
@@ -72,15 +82,15 @@ export default function Home() {
 
   let stopIdsByDirection: string[] = [];
 
-  if (isDirectionZero && stopTimesZeroByStopId) {
+  if (!reverseRoute && stopTimesZeroByStopId) {
     stopIdsByDirection = [...stopTimesZeroByStopId.keys()];
   } else if (stopTimesOneByStopId) {
     stopIdsByDirection = [...stopTimesOneByStopId.keys()];
   }
 
-  const tripsAtSelectedStop = isDirectionZero
-    ? stopTimesZeroByStopId?.get(selectedStopId)
-    : stopTimesOneByStopId?.get(selectedStopId);
+  const tripsAtSelectedStop = !reverseRoute
+    ? stopTimesZeroByStopId?.get(stopId)
+    : stopTimesOneByStopId?.get(stopId);
 
   const [directionZeroTripsById, directionOneTripsById] = trips?.length
     ? trips.reduce<[Map<Trip["tripId"], Trip>, Map<string, Trip>]>(
@@ -99,35 +109,43 @@ export default function Home() {
       )
     : [];
 
-  // event handlers
-  const handleSelectedStop = (stopId: string) => {
-    if (isDirectionZero && stopTimesZeroByStopId) {
-      const newTrips = stopTimesZeroByStopId.get(stopId);
+  // delete Query string helper
+  const removeQueryParam = (param: string) => {
+    const updatedQuery = router.query;
+    delete updatedQuery[param];
 
-      if (newTrips?.length === 1 || (!selectedTripId && newTrips?.length)) {
-        setSelectedTripId(() => newTrips[0].tripId);
-      }
-    } else if (!isDirectionZero && stopTimesOneByStopId) {
-      const newTrips = stopTimesOneByStopId.get(stopId);
-
-      if (newTrips?.length === 1 || (!selectedTripId && newTrips?.length)) {
-        setSelectedTripId(() => newTrips[0].tripId);
-      }
-    }
-
-    setSelectedStopId(() => stopId);
-    setShowTripModal(() => !showTripModal);
+    router.push({ query: updatedQuery }, undefined, { shallow: true });
   };
 
+  // event handlers
   const handleSelectedTrip = (tripId: string) => {
     setShowTripModal(false);
-    setSelectedTripId(tripId);
+    const queries = router.query;
+    router.push({ pathname: "/", query: { ...queries, tripId } });
+  };
+
+  const handleSelectedStop = (stopId: string) => {
+    const queries = router.query;
+    router.push({
+      pathname: "/",
+      query: { ...queries, stopId: stopId },
+    });
+
+    setShowTripModal(() => true);
   };
 
   const handleChangeDirection = () => {
-    setSelectedStopId("");
-    setSelectedTripId("");
-    setIsDirectionZero(!isDirectionZero);
+    removeQueryParam("tripId");
+    removeQueryParam("stopId");
+    if (reverseRoute) {
+      removeQueryParam("reverseRoute");
+    } else {
+      const queries = router.query;
+      router.push({
+        pathname: "/",
+        query: { ...queries, reverseRoute: true },
+      });
+    }
   };
 
   return (
@@ -200,17 +218,17 @@ export default function Home() {
           selectedTripStopTimesById={selectedTripStopTimesById}
           stopsById={stopsById}
           tripsById={tripsById}
-          selectedStopId={selectedStopId}
+          selectedStopId={stopId}
           handleSelectedStop={handleSelectedStop}
-          selectedTripId={selectedTripId}
+          tripId={tripId}
           stopTimesByStopId={
-            isDirectionZero ? stopTimesZeroByStopId : stopTimesOneByStopId
+            !reverseRoute ? stopTimesZeroByStopId : stopTimesOneByStopId
           }
           stopTimesByTripId={
-            isDirectionZero ? stopTimesZeroByTripId : stopTimesOneByTripId
+            !reverseRoute ? stopTimesZeroByTripId : stopTimesOneByTripId
           }
           tripsByDirection={
-            isDirectionZero ? directionZeroTripsById : directionOneTripsById
+            !reverseRoute ? directionZeroTripsById : directionOneTripsById
           }
         />
       </div>
@@ -226,10 +244,7 @@ export default function Home() {
           setSelectedDateTime={setSelectedDateTime}
           selectedDateTime={selectedDateTime}
         />
-        <SearchInput
-          setSelectedRoute={setSelectedRoute}
-          selectedRoute={selectedRoute}
-        />
+        <SearchInput selectedRoute={selectedRoute} />
       </Modal>
 
       {/* Trip select modal */}
@@ -240,7 +255,7 @@ export default function Home() {
         onProceed={() => setShowTripModal(false)}
       >
         <TripSelect
-          route={selectedRoute}
+          route={selectedRoute || defaultRoute}
           handleSelectedTrip={handleSelectedTrip}
           stopTimes={tripsAtSelectedStop}
           tripsById={tripsById}

@@ -1,36 +1,30 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import gtfsRealtime from "@/testdata/gtfsrealtime2.json";
 import { GTFSResponse } from "@/types/realtime";
-
+import withErrorHandler from "@/lib/withErrorHandler";
+import { ApiError } from "next/dist/server/api-utils";
 const API_KEY = process.env.NTA_REALTIME_API_KEY;
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GTFSResponse>
 ) {
-  try {
-    console.log("realtime called:", new Date().toLocaleString());
-    const response = await fetch(
-      "https://api.nationaltransport.ie/gtfsr/v2/gtfsr?format=json",
-      {
-        method: "GET",
-        // Request headers
-        headers: {
-          "x-api-key": API_KEY as string,
-        },
-      }
-    );
-    if (!response.ok) {
-      console.error(response);
-      throw new Error(`error in response: ${response}`);
+  console.log("realtime called:", new Date().toLocaleString());
+  const response = await fetch(
+    "https://api.nationaltransport.ie/gtfsr/v2/gtfsr?format=json",
+    {
+      method: "GET",
+      // Request headers
+      headers: {
+        "x-api-key": API_KEY as string,
+      },
     }
-    const data = await response.json();
-    res.status(200).json(data);
-  } catch (err) {
-    if (err instanceof Error) {
-      console.error(`Mesage: ${err.message}, ${JSON.stringify(err)}`);
-    }
-    res.status(500);
+  );
+  if (!response.ok) {
+    throw new ApiError(response.status, response.statusText);
   }
+  const data = await response.json();
+  res.status(200).json(data);
 }
+
+export default withErrorHandler(handler);

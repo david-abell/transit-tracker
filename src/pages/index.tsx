@@ -13,6 +13,7 @@ import Modal from "@/components/Modal";
 import { useRouter } from "next/router";
 import useRouteId from "@/hooks/useRouteId";
 import { useSearchParams } from "next/navigation";
+import MainNav from "@/components/MainNav";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -149,12 +150,13 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-[100dvh] flex-col items-center justify-between">
+    <main className="flex min-h-[100dvh] flex-col items-center justify-between bg-gray-50 dark:bg-slate-700 dark:text-white">
+      <MainNav />
       <div className="relative w-full">
         {/* <h1>H1 Title</h1> */}
 
         {/* Floating Route info and controls */}
-        <div className="md: absolute left-1/2 top-10 z-[2000] w-64 -translate-x-1/2 transform rounded-lg border bg-gray-50 p-4 text-center md:w-96 md:p-6">
+        <div className="md: absolute left-1/2 top-10 z-[2000] w-64 -translate-x-1/2 transform rounded-lg border bg-gray-50 p-4 text-center dark:bg-slate-700 md:w-96 md:p-6">
           <div className="relative">
             {/* toggle for route controls */}
             <div className="absolute right-0 top-0">

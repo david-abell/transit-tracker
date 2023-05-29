@@ -35,15 +35,13 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
       ref={ref}
       onCancel={onClose}
       onClick={onClose}
-      className="w-full max-w-3xl overflow-visible rounded-lg bg-slate-50 p-0"
+      className="w-full max-w-3xl overflow-visible rounded-lg bg-slate-50 p-0 dark:bg-slate-700 dark:text-white"
     >
       <div
         onClick={preventAutoClose}
         className="flex h-full flex-col gap-6 p-6"
       >
-        <h3 className="text-center text-4xl font-extrabold dark:text-white">
-          {title}
-        </h3>
+        <h3 className="text-center text-4xl font-extrabold">{title}</h3>
         <div>{children}</div>
         <div className="mt-auto flex justify-between gap-3">
           <button

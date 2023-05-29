@@ -667,3 +667,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
     print-color-adjust: exact;
   }
 }
+
+/* Dark mode */
+
+:root {
+  --map-tiles-filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg)
+    saturate(0.3) brightness(0.7);
+}
+
+.dark .map-tiles {
+  filter: var(--map-tiles-filter, none);
+}
+
+/**
+  Source: https://github.com/pkrasicki/issviewer
+  Discovered via: https://github.com/openstreetmap/openstreetmap-website/issues/2332
+**/

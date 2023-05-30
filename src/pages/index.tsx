@@ -127,12 +127,12 @@ export default function Home() {
 
   const handleSelectedStop = (stopId: string) => {
     const queries = router.query;
-    router.push({
-      pathname: "/",
-      query: { ...queries, stopId: stopId },
-    });
-
-    setShowTripModal(() => true);
+    router
+      .push({
+        pathname: "/",
+        query: { ...queries, stopId: stopId },
+      })
+      .then(() => setShowTripModal(true));
   };
 
   const handleChangeDirection = () => {
@@ -151,8 +151,8 @@ export default function Home() {
 
   return (
     <main className="flex min-h-[100dvh] flex-col items-center justify-between bg-gray-50 dark:bg-slate-700 dark:text-white">
-      <MainNav />
       <div className="relative w-full">
+        <MainNav />
         {/* <h1>H1 Title</h1> */}
 
         {/* Floating Route info and controls */}
@@ -252,7 +252,9 @@ export default function Home() {
       {/* Trip select modal */}
       <Modal
         isOpen={showTripModal}
-        title="Choose a trip"
+        title={`Upcoming Trips ${
+          stopsById.has(stopId) ? "@ " + stopsById.get(stopId)?.stopName : ""
+        }`}
         onClose={() => setShowTripModal(false)}
         onProceed={() => setShowTripModal(false)}
       >

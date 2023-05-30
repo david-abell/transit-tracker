@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@prisma/client": "^4.13.0",
+    "@turf/helpers": "^6.5.0",
     "@turf/line-chunk": "^6.5.0",
     "@turf/line-slice": "^6.5.0",
+    "@turf/rhumb-distance": "^6.5.0",
     "@types/node": "18.15.11",
     "@types/react": "18.0.35",
     "@types/react-dom": "18.0.11",

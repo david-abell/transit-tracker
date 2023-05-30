@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import { useState } from "react";
 import useRealtime from "@/hooks/useRealtime";
 import useStatic from "@/hooks/useStatic";
-import { Trip } from "@prisma/client";
+import { Route, Trip } from "@prisma/client";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripSelect from "@/components/TripSelect";
@@ -14,6 +14,7 @@ import { useRouter } from "next/router";
 import useRouteId from "@/hooks/useRouteId";
 import { useSearchParams } from "next/navigation";
 import MainNav from "@/components/MainNav";
+import useUpcoming from "@/hooks/useUpcoming";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,6 +43,7 @@ export default function Home() {
   const [showRouteControls, setShowRouteControls] = useState(true);
   const [showRouteModal, setShowRouteModal] = useState(false);
   const [showTripModal, setShowTripModal] = useState(false);
+  const [showAllTrips, setShowAllTrips] = useState(false);
 
   // realtime transit data
   const {
@@ -53,6 +55,14 @@ export default function Home() {
 
   // static schedule data
   const { route: selectedRoute } = useRouteId(routeId);
+  const selectedRouteAsMap: Map<string, Route> = new Map();
+  if (selectedRoute) {
+    selectedRouteAsMap.set(selectedRoute.routeId, selectedRoute);
+  } else {
+    selectedRouteAsMap.set(defaultRoute.routeId, defaultRoute);
+  }
+
+  const upcomingAtStop = useUpcoming(stopId, selectedDateTime);
 
   const {
     selectedTripStopTimesById,
@@ -119,10 +129,18 @@ export default function Home() {
   };
 
   // event handlers
-  const handleSelectedTrip = (tripId: string) => {
+  const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
     setShowTripModal(false);
+    const currentRouteId = routeId;
     const queries = router.query;
-    router.push({ pathname: "/", query: { ...queries, tripId } });
+    if (currentRouteId !== newRouteId) {
+      router.push({
+        pathname: "/",
+        query: { ...queries, tripId, routeId: newRouteId },
+      });
+    } else {
+      router.push({ pathname: "/", query: { ...queries, tripId } });
+    }
   };
 
   const handleSelectedStop = (stopId: string) => {
@@ -259,14 +277,19 @@ export default function Home() {
         onProceed={() => setShowTripModal(false)}
       >
         <TripSelect
-          route={selectedRoute || defaultRoute}
           handleSelectedTrip={handleSelectedTrip}
-          stopTimes={tripsAtSelectedStop}
-          tripsById={tripsById}
           realtimeAddedByRouteId={realtimeAddedByRouteId}
           realtimeCanceledTripIds={realtimeCanceledTripIds}
           realtimeRouteIds={realtimeRouteIds}
           realtimeScheduledByTripId={realtimeScheduledByTripId}
+          route={selectedRoute || defaultRoute}
+          routes={showAllTrips ? upcomingAtStop.routes : selectedRouteAsMap}
+          setShowAllTrips={setShowAllTrips}
+          showAllTrips={showAllTrips}
+          stopTimes={
+            showAllTrips ? upcomingAtStop.stopTimes : tripsAtSelectedStop
+          }
+          tripsById={showAllTrips ? upcomingAtStop.trips : tripsById}
         />
       </Modal>
     </main>

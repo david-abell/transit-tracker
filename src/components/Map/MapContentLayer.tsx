@@ -166,6 +166,8 @@ function MapContentLayer({
                     <Tooltip>
                       <strong>Stop Name:</strong> {stopName}
                       <br />
+                      <strong>Stop Id:</strong> {stopId}
+                      <br />
                       {!!arrivalTime && (
                         <>
                           <strong>Scheduled arrival</strong> @: {arrivalTime}

@@ -20,7 +20,10 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
       dialog?.close();
       document.body.classList.remove("modal-open");
     }
-    return () => dialog?.close();
+    return () => {
+      dialog?.close();
+      document.body.classList.remove("modal-open");
+    };
   }, [isOpen]);
 
   const proceedAndClose = () => {

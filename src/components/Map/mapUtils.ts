@@ -80,25 +80,27 @@ export function getVehiclePosition({
 }) {
   if (!shape || shape.length < 1) return undefined;
 
-  const arrivals = stopIds.flatMap<Arrival>((stopId) => {
-    const { stopLat, stopLon } = stopsById.get(stopId) || {};
-    if (!stopLat || !stopLon) {
-      return [];
-    }
-    const { arrivalTime } = selectedTripStopTimesById.get(stopId) || {};
-    if (!arrivalTime) {
-      return [];
-    }
-    const stopUpdate = stopUpdates?.get(stopId);
-    const { arrival: realtimeArrival } = stopUpdate || {};
+  const arrivals = stopIds
+    .flatMap<Arrival>((stopId) => {
+      const { stopLat, stopLon } = stopsById.get(stopId) || {};
+      if (!stopLat || !stopLon) {
+        return [];
+      }
+      const { arrivalTime } = selectedTripStopTimesById.get(stopId) || {};
+      if (!arrivalTime) {
+        return [];
+      }
+      const stopUpdate = stopUpdates?.get(stopId);
+      const { arrival: realtimeArrival } = stopUpdate || {};
 
-    return {
-      arrivalTime: realtimeArrival?.delay
-        ? getDelayedTime(arrivalTime, realtimeArrival.delay)
-        : arrivalTime,
-      coordinates: { stopLat, stopLon },
-    };
-  });
+      return {
+        arrivalTime: realtimeArrival?.delay
+          ? getDelayedTime(arrivalTime, realtimeArrival.delay)
+          : arrivalTime,
+        coordinates: { stopLat, stopLon },
+      };
+    })
+    .sort((a, b) => a.arrivalTime.localeCompare(b.arrivalTime));
 
   if (!arrivals.length) return undefined;
 

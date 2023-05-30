@@ -8,6 +8,8 @@ import lineSlice from "@turf/line-slice";
 import lineChunk from "@turf/line-chunk";
 import { LatLngTuple } from "leaflet";
 import { StopTimeUpdate } from "@/types/realtime";
+import rhumbDistance from "@turf/rhumb-distance";
+import { point } from "@turf/helpers";
 /* 
 ‘L’ be the longitude,
 ‘θ’ be latitude,
@@ -124,9 +126,30 @@ export function getVehiclePosition({
 
   const chunks = lineChunk(sliced, 20, { units: "meters" });
 
-  const nextShapeSlice = chunks.features
-    .flatMap(({ geometry }) => geometry.coordinates)
-    .reverse();
+  let nextShapeSlice = chunks.features.flatMap(
+    ({ geometry }) => geometry.coordinates
+  );
+
+  // Check if slice is correct direction of travel
+  const nextStopPoint = point([
+    nextStop.coordinates.stopLat,
+    nextStop.coordinates.stopLon,
+  ]);
+  const sliceStart = nextShapeSlice.at(0);
+  const sliceEnd = nextShapeSlice.at(-1);
+
+  const sliceStartDistance =
+    sliceStart && rhumbDistance(sliceStart, nextStopPoint);
+  const sliceEndDistance = sliceEnd && rhumbDistance(sliceEnd, nextStopPoint);
+  if (
+    sliceStartDistance &&
+    sliceEndDistance &&
+    sliceStartDistance > sliceEndDistance
+  ) {
+    nextShapeSlice.reverse();
+  }
+
+  // const isSliceBackwards = rhumbDistance()
 
   const slicePercentage = getPercentageToArrival(
     lastStop.arrivalTime,

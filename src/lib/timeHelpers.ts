@@ -80,11 +80,11 @@ export function getPercentageToArrival(
   beginTime: string,
   destinationTime: string
 ) {
-  const maxSeconds = getDifferenceInSeconds(destinationTime, beginTime);
+  const totalSeconds = getDifferenceInSeconds(destinationTime, beginTime);
   const arrival = stopTimeStringToDate(destinationTime);
   const now = new Date();
   const secondsToArrival = differenceInSeconds(arrival, now);
-  const percentage = secondsToArrival / maxSeconds;
+  const percentage = secondsToArrival > 0 ? secondsToArrival / totalSeconds : 0;
 
   return percentage;
 }

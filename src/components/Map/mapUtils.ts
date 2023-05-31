@@ -10,6 +10,7 @@ import { LatLngTuple } from "leaflet";
 import { StopTimeUpdate } from "@/types/realtime";
 import rhumbDistance from "@turf/rhumb-distance";
 import { point } from "@turf/helpers";
+import equal from "fast-deep-equal/es6";
 /* 
 ‘L’ be the longitude,
 ‘θ’ be latitude,
@@ -63,7 +64,11 @@ type Arrival = {
     stopLat: number;
     stopLon: number;
   };
+  stopSequence: number;
 };
+
+let stopSequenceCounter: number = -1;
+let prevStopTimes: Map<StopTime["tripId"], StopTime>;
 
 export function getVehiclePosition({
   stopIds,
@@ -86,8 +91,9 @@ export function getVehiclePosition({
       if (!stopLat || !stopLon) {
         return [];
       }
-      const { arrivalTime } = selectedTripStopTimesById.get(stopId) || {};
-      if (!arrivalTime) {
+      const { arrivalTime, stopSequence } =
+        selectedTripStopTimesById.get(stopId) || {};
+      if (!arrivalTime || !stopSequence) {
         return [];
       }
       const stopUpdate = stopUpdates?.get(stopId);
@@ -98,27 +104,43 @@ export function getVehiclePosition({
           ? getDelayedTime(arrivalTime, realtimeArrival.delay)
           : arrivalTime,
         coordinates: { stopLat, stopLon },
+        stopSequence,
       };
     })
-    .sort((a, b) => a.arrivalTime.localeCompare(b.arrivalTime));
+    .sort((a, b) => a.stopSequence - b.stopSequence);
 
-  if (!arrivals.length) return undefined;
+  if (arrivals.length < 2) return undefined;
 
-  const nextStopIndex =
-    arrivals.length &&
-    arrivals.findIndex(({ arrivalTime }) => !isPastArrivalTime(arrivalTime));
+  let isNewTrip = false;
 
-  const lastStop =
-    nextStopIndex > 0 ? arrivals[nextStopIndex - 1] : arrivals[0];
+  if (!equal(prevStopTimes, selectedTripStopTimesById)) {
+    prevStopTimes = selectedTripStopTimesById;
+    isNewTrip = true;
+  }
+
+  let nextStopIndex = isNewTrip
+    ? arrivals.findIndex(({ arrivalTime }) => !isPastArrivalTime(arrivalTime))
+    : arrivals.findIndex(
+        ({ stopSequence }) => stopSequence === stopSequenceCounter
+      );
+
+  if (nextStopIndex === -1) {
+    return undefined;
+  }
+
+  if (nextStopIndex === 0) {
+    nextStopIndex = 1;
+  }
+
+  if (isNewTrip) {
+    stopSequenceCounter = nextStopIndex;
+  }
+
+  const lastStop = arrivals[nextStopIndex - 1];
 
   const nextStop = arrivals[nextStopIndex];
 
   if (!lastStop || !nextStop) return undefined;
-
-  const bearing = getBearing(
-    [lastStop.coordinates.stopLat, lastStop.coordinates.stopLon],
-    [nextStop.coordinates.stopLat, nextStop.coordinates.stopLon]
-  );
 
   const sliced = lineSlice(
     [nextStop.coordinates.stopLat, nextStop.coordinates.stopLon],
@@ -128,7 +150,7 @@ export function getVehiclePosition({
 
   const chunks = lineChunk(sliced, 20, { units: "meters" });
 
-  let nextShapeSlice = chunks.features.flatMap(
+  const nextShapeSlice = chunks.features.flatMap(
     ({ geometry }) => geometry.coordinates
   );
 
@@ -151,11 +173,9 @@ export function getVehiclePosition({
     nextShapeSlice.reverse();
   }
 
-  // const isSliceBackwards = rhumbDistance()
-
   const slicePercentage = getPercentageToArrival(
     lastStop.arrivalTime,
-    nextStop?.arrivalTime
+    nextStop.arrivalTime
   );
 
   const sliceIndex =
@@ -164,6 +184,17 @@ export function getVehiclePosition({
       : 0;
 
   const vehiclePosition = nextShapeSlice[sliceIndex];
+
+  const nextPosition = nextShapeSlice.at(-1) || vehiclePosition;
+
+  const bearing = getBearing(
+    nextPosition as LatLngTuple,
+    vehiclePosition as LatLngTuple
+  );
+
+  if (sliceIndex <= 0) {
+    stopSequenceCounter = stopSequenceCounter + 1;
+  }
 
   return { vehiclePosition: vehiclePosition as LatLngTuple, bearing };
 }

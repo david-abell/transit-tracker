@@ -12,10 +12,12 @@ function Bus({
 }) {
   const [lat, lon] = position;
   const [prevPos, setPrevPos] = useState<LatLngTuple>([lat, lon]);
+  const [prevAngle, setPrevAngle] = useState<number>(rotationAngle);
 
   useEffect(() => {
     if (prevPos[1] !== lon && prevPos[0] !== lat) setPrevPos([lat, lon]);
-  }, [lat, lon, prevPos]);
+    if (prevAngle !== rotationAngle) setPrevAngle(rotationAngle);
+  }, [lat, lon, prevPos, rotationAngle, prevAngle]);
 
   return (
     <>
@@ -33,7 +35,7 @@ function Bus({
         position={[lat, lon]}
         previousPosition={prevPos}
         duration={1000}
-        rotationAngle={rotationAngle}
+        rotationAngle={prevAngle}
         rotationOrigin="center"
         interactive={false}
       />

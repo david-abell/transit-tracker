@@ -31,30 +31,40 @@ export function trapKeyboardFocus(
   if (focused === lastFocusable) {
     if (event.key === "Tab" && !event.shiftKey) {
       event.preventDefault();
-      firstFocusable.focus();
+      firstFocusable.scrollIntoView({ block: "center" });
+      firstFocusable.focus({ preventScroll: true });
     }
 
     if (event.key === "ArrowDown") {
-      firstFocusable.focus();
+      firstFocusable.scrollIntoView({ block: "center" });
+      firstFocusable.focus({ preventScroll: true });
     }
   }
 
   if (focused !== lastFocusable && event.key === "ArrowDown") {
-    focusables[focusIndex + 1].focus();
+    focusables[focusIndex + 1].scrollIntoView({
+      block: "center",
+    });
+    focusables[focusIndex + 1].focus({ preventScroll: true });
   }
 
   if (focused === firstFocusable) {
     if (event.key === "Tab" && event.shiftKey) {
       event.preventDefault();
-      lastFocusable.focus();
+      lastFocusable.scrollIntoView({ block: "center" });
+      lastFocusable.focus({ preventScroll: true });
     }
 
     if (event.key === "ArrowUp") {
-      lastFocusable.focus();
+      lastFocusable.scrollIntoView({ block: "center" });
+      lastFocusable.focus({ preventScroll: true });
     }
   }
 
   if (focused !== firstFocusable && event.key === "ArrowUp") {
-    focusables[focusIndex - 1].focus();
+    focusables[focusIndex - 1].scrollIntoView({
+      block: "center",
+    });
+    focusables[focusIndex - 1].focus({ preventScroll: true });
   }
 }

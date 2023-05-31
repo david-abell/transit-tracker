@@ -6,7 +6,6 @@ import {
   compareAsc,
   addSeconds,
   differenceInSeconds,
-  getSeconds,
 } from "date-fns";
 
 export function stopTimeStringToDate(timeString: string) {
@@ -83,8 +82,15 @@ export function getPercentageToArrival(
   const totalSeconds = getDifferenceInSeconds(destinationTime, beginTime);
   const arrival = stopTimeStringToDate(destinationTime);
   const now = new Date();
+
   const secondsToArrival = differenceInSeconds(arrival, now);
-  const percentage = secondsToArrival > 0 ? secondsToArrival / totalSeconds : 0;
+
+  if (secondsToArrival > totalSeconds) return 0;
+
+  const percentage =
+    secondsToArrival > 0 && totalSeconds > 0
+      ? secondsToArrival / totalSeconds
+      : 0;
 
   return percentage;
 }

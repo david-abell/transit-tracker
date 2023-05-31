@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Inter } from "next/font/google";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useRealtime from "@/hooks/useRealtime";
 import useStatic from "@/hooks/useStatic";
 import { Route, Trip } from "@prisma/client";
@@ -34,7 +34,29 @@ export default function Home() {
   const routeId = searchParams.get("routeId") || defaultRoute.routeId;
   const tripId = searchParams.get("tripId") || "";
   const stopId = searchParams.get("stopId") || "";
-  const reverseRoute = searchParams.get("reverseRoute");
+  let reverseRoute = searchParams.get("reverseRoute");
+
+  // Query string helpers
+  const removeQueryParams = (param: string | string[]) => {
+    const queries = router.query;
+    if (Array.isArray(param)) {
+      param.forEach((el) => delete queries[el]);
+    } else {
+      delete queries[param];
+    }
+    return router.push({ query: queries }, undefined, { shallow: false });
+  };
+
+  const setQueryParams = (
+    queries: Record<string, string | boolean>,
+    path = "/"
+  ) => {
+    const previous = router.query;
+    return router.push({
+      pathname: path,
+      query: { ...previous, ...queries },
+    });
+  };
 
   // user input state
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
@@ -55,7 +77,9 @@ export default function Home() {
 
   // static schedule data
   const { route: selectedRoute } = useRouteId(routeId);
+
   const selectedRouteAsMap: Map<string, Route> = new Map();
+
   if (selectedRoute) {
     selectedRouteAsMap.set(selectedRoute.routeId, selectedRoute);
   } else {
@@ -93,77 +117,75 @@ export default function Home() {
 
   let stopIdsByDirection: string[] = [];
 
-  if (!reverseRoute && stopTimesZeroByStopId) {
+  // check if selected route present and sync direction to correct stops
+  if (stopTimesZeroByTripId?.has(tripId) && stopTimesZeroByStopId) {
+    stopIdsByDirection = [...stopTimesZeroByStopId.keys()];
+    if (reverseRoute) {
+      removeQueryParams("reverseRoute");
+    }
+  } else if (stopTimesOneByTripId?.has(tripId) && stopTimesOneByStopId) {
+    stopIdsByDirection = [...stopTimesOneByStopId.keys()];
+    if (!reverseRoute) {
+      setQueryParams({ reverseRoute: true });
+    }
+    // if no selected route, just display first or second stop group
+  } else if (!reverseRoute && stopTimesZeroByStopId) {
     stopIdsByDirection = [...stopTimesZeroByStopId.keys()];
   } else if (stopTimesOneByStopId) {
     stopIdsByDirection = [...stopTimesOneByStopId.keys()];
+    // if no selected direction, show all stops
+  } else {
+    stopIdsByDirection = [...stopsById.keys()];
   }
 
   const tripsAtSelectedStop = !reverseRoute
     ? stopTimesZeroByStopId?.get(stopId)
     : stopTimesOneByStopId?.get(stopId);
 
-  const [directionZeroTripsById, directionOneTripsById] = trips?.length
-    ? trips.reduce<[Map<Trip["tripId"], Trip>, Map<string, Trip>]>(
-        (acc, trip) => {
-          const { directionId } = trip;
-          let [directionZero, directionOne] = acc;
+  const [directionZeroTripsById, directionOneTripsById] = useMemo(
+    () =>
+      trips?.length
+        ? trips.reduce<[Map<Trip["tripId"], Trip>, Map<string, Trip>]>(
+            (acc, trip) => {
+              const { directionId } = trip;
+              let [directionZero, directionOne] = acc;
 
-          if (directionId === 0) {
-            directionZero.set(trip.tripId, trip);
-          } else {
-            directionOne.set(trip.tripId, trip);
-          }
-          return acc;
-        },
-        [new Map(), new Map()]
-      )
-    : [];
-
-  // delete Query string helper
-  const removeQueryParam = (param: string) => {
-    const updatedQuery = router.query;
-    delete updatedQuery[param];
-
-    router.push({ query: updatedQuery }, undefined, { shallow: true });
-  };
+              if (directionId === 0) {
+                directionZero.set(trip.tripId, trip);
+              } else {
+                directionOne.set(trip.tripId, trip);
+              }
+              return acc;
+            },
+            [new Map(), new Map()]
+          )
+        : [],
+    [trips]
+  );
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
     setShowTripModal(false);
     const currentRouteId = routeId;
-    const queries = router.query;
-    if (currentRouteId !== newRouteId) {
-      router.push({
-        pathname: "/",
-        query: { ...queries, tripId, routeId: newRouteId },
-      });
+    if (newRouteId && currentRouteId !== newRouteId) {
+      setQueryParams({ tripId, routeId: newRouteId });
     } else {
-      router.push({ pathname: "/", query: { ...queries, tripId } });
+      setQueryParams({ tripId });
     }
   };
 
   const handleSelectedStop = (stopId: string) => {
-    const queries = router.query;
-    router
-      .push({
-        pathname: "/",
-        query: { ...queries, stopId: stopId },
-      })
-      .then(() => setShowTripModal(true));
+    setQueryParams({ stopId }).then(() => setShowTripModal(true));
   };
 
   const handleChangeDirection = () => {
-    removeQueryParam("tripId");
-    removeQueryParam("stopId");
-    if (reverseRoute) {
-      removeQueryParam("reverseRoute");
+    const directionReversed = reverseRoute;
+    if (directionReversed) {
+      removeQueryParams(["tripId", "stopId", "reverseRoute"]);
     } else {
-      const queries = router.query;
-      router.push({
-        pathname: "/",
-        query: { ...queries, reverseRoute: true },
-      });
+      removeQueryParams(["tripId", "stopId"]).then(() =>
+        setQueryParams({ reverseRoute: true })
+      );
     }
   };
 

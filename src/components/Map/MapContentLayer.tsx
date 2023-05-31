@@ -76,7 +76,6 @@ function MapContentLayer({
   }, [map, stopIds, previousStopIds]);
 
   // Rerender interval to update live position and marker colors
-  // disabled for dev ease
   const [count, setCount] = useState<number>(0);
   useInterval(() => {
     setCount(count + 1);

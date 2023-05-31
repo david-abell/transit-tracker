@@ -1,7 +1,9 @@
 import { getDelayedTime } from "@/lib/timeHelpers";
+import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
 import { TripUpdate } from "@/types/realtime";
 import { Route, StopTime, Trip } from "@prisma/client";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useContext } from "react";
+import { DialogRefContext } from "./Modal";
 
 type Props = {
   route: Route;
@@ -31,12 +33,23 @@ function TripSelect({
   tripsById,
 }: Props) {
   const hasRealtime = realtimeRouteIds.has(route.routeId);
+  const { dialog } = useContext(DialogRefContext);
+
+  // trap keyboard focus inside form for arrow and tab key input
+  const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!dialog) return;
+    if (e.key !== "Escape") {
+      trapKeyboardFocus(e, dialog);
+    }
+  };
+
   return (
     <div className="flex w-full flex-col rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
       <button
         className="text-md bg-blue-700 px-5 py-2.5 text-center font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
         type="button"
         onClick={() => setShowAllTrips((prev) => !prev)}
+        onKeyDown={handleKeydown}
       >
         {!showAllTrips
           ? "Show all upcoming trips"
@@ -96,6 +109,7 @@ function TripSelect({
                 <button
                   type="button"
                   onClick={() => handleSelectedTrip(tripId, routeId)}
+                  onKeyDown={handleKeydown}
                   className={`grid w-full cursor-pointer justify-between gap-2 border-b border-gray-200 px-4 
                 py-2 text-start font-medium hover:bg-gray-100 hover:text-blue-700 
                 focus:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 

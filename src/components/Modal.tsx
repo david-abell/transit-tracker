@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, createContext } from "react";
+import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
 
 type Props = {
   title: string;
@@ -7,6 +8,14 @@ type Props = {
   onClose: () => void;
   children: React.ReactNode;
 };
+
+type DialogRefContext = {
+  dialog: HTMLDialogElement | null;
+};
+
+export const DialogRefContext = createContext<DialogRefContext>({
+  dialog: null,
+});
 
 function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -33,6 +42,14 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
 
   const preventAutoClose = (e: React.MouseEvent) => e.stopPropagation();
 
+  const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!ref.current) return;
+
+    if (e.key !== "Escape") {
+      trapKeyboardFocus(e, ref.current);
+    }
+  };
+
   return (
     <dialog
       ref={ref}
@@ -45,16 +62,22 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
         className="flex h-full flex-col gap-6 p-6"
       >
         <h3 className="text-center text-4xl font-extrabold">{title}</h3>
-        <div>{children}</div>
+        <DialogRefContext.Provider
+          value={{ dialog: ref?.current ? ref.current : null }}
+        >
+          <div>{children}</div>
+        </DialogRefContext.Provider>
         <div className="mt-auto flex justify-between gap-3">
           <button
             onClick={onClose}
+            onKeyDown={handleKeydown}
             className="rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 shadow hover:bg-gray-100"
           >
             Close
           </button>
           <button
             onClick={proceedAndClose}
+            onKeyDown={handleKeydown}
             className="rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 shadow hover:bg-gray-100"
           >
             Proceed

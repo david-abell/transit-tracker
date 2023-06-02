@@ -608,8 +608,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
   background: transparent;
   content: "";
 }
+
+/* Custom schedule change */
 .leaflet-tooltip .tooltip-schedule-change {
   background-color: red;
+  color: white;
 }
 
 /* Directions */

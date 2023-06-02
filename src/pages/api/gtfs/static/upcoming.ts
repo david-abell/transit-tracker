@@ -67,7 +67,7 @@ async function handler(
         },
       ],
     },
-    orderBy: { stopSequence: "asc" },
+    orderBy: { arrivalTime: "asc" },
   });
 
   const trips = await prisma.trip.findMany({

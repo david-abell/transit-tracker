@@ -32,8 +32,9 @@ function TripSelect({
   handleSelectedTrip,
   tripsById,
 }: Props) {
-  const hasRealtime = realtimeRouteIds.has(route.routeId);
   const { dialog } = useContext(DialogRefContext);
+
+  const hasRealtime = realtimeRouteIds.has(route.routeId);
 
   // trap keyboard focus inside form for arrow and tab key input
   const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -92,13 +93,16 @@ function TripSelect({
         {!!stopTimes && stopTimes.length ? (
           stopTimes.flatMap(({ tripId, departureTime }) => {
             if (realtimeCanceledTripIds.has(tripId)) return [];
+
             const real = realtimeScheduledByTripId.get(tripId);
             const { stopTimeUpdate } = real || {};
             const [firstRealtime] = stopTimeUpdate || [];
             const { arrival, departure } = firstRealtime || {};
             const isDelayed =
-              (arrival?.delay && arrival.delay > 0) ||
-              (departure?.delay && departure.delay > 0);
+              !!(arrival?.delay && arrival.delay > 0) ||
+              !!(departure?.delay && departure.delay > 0);
+
+            const isCanceled = realtimeCanceledTripIds.has(tripId);
 
             const { tripHeadsign = "", routeId } = tripsById.get(tripId) || {};
             const displayRoute =
@@ -131,23 +135,31 @@ function TripSelect({
                   {hasRealtime && (
                     <>
                       {/* Arrival */}
-                      <span
-                        className={`${
-                          isDelayed ? "text-red-700" : "text-green-700"
-                        }`}
-                      >
-                        {getDelayedTime(departureTime, arrival?.delay) ||
-                          getDelayedTime(departureTime, departure?.delay) ||
-                          "on time"}
-                      </span>
+                      {isCanceled ? (
+                        <span className="text-red-700">N/A</span>
+                      ) : (
+                        <span
+                          className={`${
+                            isDelayed ? "text-yellow-600" : "text-green-700"
+                          }`}
+                        >
+                          {getDelayedTime(departureTime, arrival?.delay) ||
+                            getDelayedTime(departureTime, departure?.delay) ||
+                            "on time"}
+                        </span>
+                      )}
                       {/* Delay */}
-                      <span
-                        className={`${
-                          isDelayed ? "text-red-700" : "text-green-700"
-                        } `}
-                      >
-                        {arrival?.delay || departure?.delay || "on time"}
-                      </span>
+                      {isCanceled ? (
+                        <span className="text-red-700">Canceled</span>
+                      ) : (
+                        <span
+                          className={`${
+                            isDelayed ? "text-yellow-600" : "text-green-700"
+                          } `}
+                        >
+                          {arrival?.delay || departure?.delay || "on time"}
+                        </span>
+                      )}
                     </>
                   )}
                 </button>

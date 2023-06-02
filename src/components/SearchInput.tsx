@@ -86,6 +86,7 @@ function SearchInput({ selectedRoute }: Props) {
             value={routeName}
             onChange={({ currentTarget }) => setRouteName(currentTarget.value)}
             autoComplete="off"
+            aria-autocomplete="list"
             onKeyDown={(e) => handleSearchKeydown(e)}
           />
           {!!routes && (

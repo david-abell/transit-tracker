@@ -8,12 +8,16 @@ import {
   differenceInSeconds,
 } from "date-fns";
 
+import { DateTime, Duration, Settings } from "luxon";
+
+Settings.defaultZone = "Europe/Dublin";
+
 export function stopTimeStringToDate(timeString: string) {
-  return parse(timeString, "H:mm:ss", new Date());
+  return DateTime.fromISO(timeString);
 }
 
-export function dateToStopTimeString(date: Date) {
-  return format(date, "H:mm:ss");
+export function dateToStopTimeString(dateTime: DateTime) {
+  return dateTime.toLocaleString(DateTime.TIME_24_WITH_SECONDS);
 }
 
 export type DayString = keyof Omit<
@@ -40,17 +44,15 @@ export function getCalendarDate(dateTime: Date) {
 }
 
 export function initDateTimeValue() {
-  return format(new Date(), `yyyy-MM-dd\'T\'HH:mm`);
+  // non standard format for input type="datetime"
+  // 2023-06-01T13:31
+  return DateTime.now().toFormat("kkkk'-'MM'-'dd'T'T");
 }
 
 // add trip start time instead of new Date()
 export function isPastArrivalTime(arrivalTime: string) {
-  const comparedDate = compareAsc(
-    new Date(),
-    stopTimeStringToDate(arrivalTime)
-  );
-
-  return comparedDate === 1;
+  const now = DateTime.now();
+  return now > stopTimeStringToDate(arrivalTime);
 }
 
 export function getDelayedTime(
@@ -60,8 +62,8 @@ export function getDelayedTime(
   if (!timeString) return "";
   if (!delay) return timeString;
   const date = stopTimeStringToDate(timeString);
-  const delayedDate = addSeconds(date, delay);
-
+  const delayDuration = Duration.fromObject({ seconds: delay });
+  const delayedDate = date.plus(delayDuration);
   return dateToStopTimeString(delayedDate);
 }
 
@@ -71,8 +73,9 @@ export function getDifferenceInSeconds(
 ) {
   const dateOne = stopTimeStringToDate(stopTimeOne);
   const dateTwo = stopTimeStringToDate(stopTimeTwo);
+  const { seconds } = dateTwo.diff(dateOne, "seconds").toObject();
 
-  return Math.abs(differenceInSeconds(dateTwo, dateOne));
+  return seconds ? Math.abs(seconds) : 0;
 }
 
 export function getPercentageToArrival(
@@ -80,12 +83,12 @@ export function getPercentageToArrival(
   destinationTime: string
 ) {
   const totalSeconds = getDifferenceInSeconds(destinationTime, beginTime);
+  const now = DateTime.now();
   const arrival = stopTimeStringToDate(destinationTime);
-  const now = new Date();
+  const secondsToArrival = arrival.diff(now, "seconds").toObject().seconds;
 
-  const secondsToArrival = differenceInSeconds(arrival, now);
-
-  if (secondsToArrival > totalSeconds) return 0;
+  if (!secondsToArrival || !totalSeconds) return 0;
+  if (secondsToArrival > totalSeconds) return 1;
 
   const percentage =
     secondsToArrival > 0 && totalSeconds > 0

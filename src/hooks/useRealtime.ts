@@ -32,7 +32,7 @@ const revalidateOptions = {
 // };
 
 function useRealtime() {
-  const { data, error, isLoading } = useSWR<GTFSResponse>(
+  const { data, error, isLoading, mutate } = useSWR<GTFSResponse>(
     API_URL,
     fetchHelper,
     revalidateOptions
@@ -89,6 +89,7 @@ function useRealtime() {
     realtimeRouteIds,
     realtimeIsLoading: isLoading,
     realtimeIsError: error || (!isLoading && !parsedData?.success),
+    invalidateRealtime: mutate,
   };
 }
 

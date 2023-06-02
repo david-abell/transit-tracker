@@ -73,6 +73,7 @@ export default function Home() {
     realtimeCanceledTripIds,
     realtimeScheduledByTripId,
     realtimeRouteIds,
+    invalidateRealtime,
   } = useRealtime();
 
   // static schedule data
@@ -250,6 +251,7 @@ export default function Home() {
         </div>
 
         <MapComponent
+          invalidateRealtime={invalidateRealtime}
           realtimeAddedByRouteId={realtimeAddedByRouteId}
           realtimeCanceledTripIds={realtimeCanceledTripIds}
           realtimeRouteIds={realtimeRouteIds}

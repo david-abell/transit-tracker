@@ -12,7 +12,7 @@ import lineSlice from "@turf/line-slice";
 import rhumbDistance from "@turf/rhumb-distance";
 import equal from "fast-deep-equal/es6";
 import { LatLngTuple } from "leaflet";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { KeyedMutator } from "swr";
 
 type Arrival = {
@@ -24,9 +24,6 @@ type Arrival = {
   delayedArrivalTime: string;
   stopSequence: number;
 };
-
-let stopSequenceCounter: number = -1;
-let prevStopTimes: Map<StopTime["tripId"], StopTime>;
 
 function useVehiclePosition({
   stopIds,
@@ -93,7 +90,13 @@ function useVehiclePosition({
     prevStopSequence.current = newStopSequence;
   }
 
-  if (currentStopSequence === -1 || currentStopSequence > arrivals.length - 1) {
+  // bail early if trip hasn't yet begun
+  if (currentStopSequence <= 0) {
+    return { vehiclePosition: undefined, bearing: undefined };
+  }
+  // this should never happen
+  if (currentStopSequence > arrivals.length - 1) {
+    console.error("current stop sequence wrong greater than arrivals");
     return { vehiclePosition: undefined, bearing: undefined };
   }
 

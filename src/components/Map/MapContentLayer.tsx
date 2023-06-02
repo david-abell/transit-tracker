@@ -11,20 +11,21 @@ import {
   LayerGroup,
 } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
-import { useLeafletContext } from "@react-leaflet/core";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useInterval } from "usehooks-ts";
 
 import type { Stop, StopTime, Trip } from "@prisma/client";
 import { getDelayedTime, isPastArrivalTime } from "@/lib/timeHelpers";
 import { stopMarkerIcon } from "./stopMarkerIcon";
 import Bus from "./Bus";
-import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
-import { getBearing, getVehiclePosition } from "./mapUtils";
+import { GTFSResponse, StopTimeUpdate, TripUpdate } from "@/types/realtime";
 import usePrevious from "@/hooks/usePrevious";
 import isEqual from "fast-deep-equal";
+import useVehiclePosition from "@/hooks/useVehiclePosition";
+import { KeyedMutator } from "swr";
 
 type Props = {
+  invalidateRealtime: KeyedMutator<GTFSResponse>;
   realtimeAddedByRouteId: Map<string, TripUpdate>;
   realtimeCanceledTripIds: Set<string>;
   realtimeRouteIds: Set<string>;
@@ -44,11 +45,11 @@ type Props = {
 };
 
 function MapContentLayer({
+  invalidateRealtime,
   realtimeAddedByRouteId,
   realtimeCanceledTripIds,
   realtimeScheduledByTripId,
   realtimeRouteIds,
-  selectedDateTime,
   selectedStopId,
   tripId,
   handleSelectedStop,
@@ -94,14 +95,14 @@ function MapContentLayer({
       )) ||
     new Map<string, StopTimeUpdate>();
 
-  const { vehiclePosition, bearing } =
-    getVehiclePosition({
-      selectedTripStopTimesById,
-      shape,
-      stopIds,
-      stopsById,
-      stopUpdates,
-    }) || {};
+  const { vehiclePosition, bearing } = useVehiclePosition({
+    invalidateRealtime,
+    selectedTripStopTimesById,
+    shape,
+    stopIds,
+    stopsById,
+    stopUpdates,
+  });
 
   // const isDelayed =
   //   (arrival?.delay && arrival.delay > 0) ||
@@ -139,7 +140,7 @@ function MapContentLayer({
                 const stopUpdate = stopUpdates?.get(stopId);
                 const { arrival, departure } = stopUpdate || {};
 
-                const adjustedArrival =
+                const delayedArrivalTime =
                   getDelayedTime(departureTime, arrival?.delay) ||
                   getDelayedTime(departureTime, departure?.delay);
 
@@ -150,8 +151,8 @@ function MapContentLayer({
                     {...{
                       icon: stopMarkerIcon({
                         isUpcoming:
-                          !!adjustedArrival &&
-                          !isPastArrivalTime(adjustedArrival),
+                          !!delayedArrivalTime &&
+                          !isPastArrivalTime(delayedArrivalTime),
                         isTripSelected: !!tripId,
                         isCurrent: stopId === selectedStopId,
                       }),
@@ -174,12 +175,12 @@ function MapContentLayer({
                       )}
                       {!!tripId &&
                         !!realtimeTrip &&
-                        adjustedArrival !== arrivalTime && (
+                        delayedArrivalTime !== arrivalTime && (
                           <>
                             <br />
                             <div className="tooltip-schedule-change">
                               <strong>Schdule change</strong>:{" "}
-                              <span>{adjustedArrival}</span>
+                              <span>{delayedArrivalTime}</span>
                             </div>
                           </>
                         )}

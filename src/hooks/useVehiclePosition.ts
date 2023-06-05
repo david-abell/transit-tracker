@@ -167,7 +167,8 @@ function useVehiclePosition({
   );
 
   if (sliceIndex <= 0) {
-    currentStopSequence = currentStopSequence + 1;
+    currentStopSequence =
+      currentStopSequence > arrivals.length - 1 ? -1 : currentStopSequence + 1;
   }
 
   prevStopSequence.current = currentStopSequence;

@@ -22,7 +22,7 @@ function TileLayerWrapper({ children }: { children: ReactNode }) {
     <MapContainer
       center={[51.9081690653422, -8.41944955885327]}
       zoom={13}
-      className="map-tiles relative h-screen w-[100max]"
+      className={`map-tiles relative h-full w-[100max]`}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

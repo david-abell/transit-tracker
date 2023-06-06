@@ -25,6 +25,7 @@ import useVehiclePosition from "@/hooks/useVehiclePosition";
 import { KeyedMutator } from "swr";
 
 type Props = {
+  height: number;
   invalidateRealtime: KeyedMutator<GTFSResponse>;
   realtimeAddedByRouteId: Map<string, TripUpdate>;
   realtimeCanceledTripIds: Set<string>;
@@ -45,6 +46,7 @@ type Props = {
 };
 
 function MapContentLayer({
+  height,
   invalidateRealtime,
   realtimeAddedByRouteId,
   realtimeCanceledTripIds,
@@ -75,6 +77,14 @@ function MapContentLayer({
 
     map.fitBounds(group.getBounds());
   }, [map, stopIds, previousStopIds]);
+
+  useEffect(() => {
+    if (map != null) {
+      const mapContainer = map.getContainer();
+      mapContainer.style.cssText = `height: ${height}px; width: 100%; position: relative;`;
+      map.invalidateSize();
+    }
+  }, [map, height]);
 
   // Rerender interval to update live position and marker colors
   const [count, setCount] = useState<number>(0);

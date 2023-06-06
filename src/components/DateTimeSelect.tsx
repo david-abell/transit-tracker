@@ -19,23 +19,25 @@ function DateTimeSelect({ selectedDateTime, setSelectedDateTime }: Props) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-4">
-      <label htmlFor="date-time-select">When are you traveling? </label>
-      <div className="flex w-full gap-2">
+    <div className="flex flex-1 flex-col items-center justify-center md:flex-none">
+      <label htmlFor="date-time-select" className="sr-only">
+        When are you traveling?{" "}
+      </label>
+      <div className="flex w-full">
         <input
           type="datetime-local"
           value={selectedDateTime}
           onChange={(e) => handleSetSelectedDateTime(e)}
           id="date-time-select"
-          className="flex-1 rounded-b-lg rounded-t-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 
+          className="flex-1 rounded-l-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 
          focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
         ></input>
         <button
           aria-controls="date-time-select"
           type="button"
           onClick={handleNowTime}
-          className="ml-2 rounded-lg border border-blue-700 bg-blue-700 p-2.5 text-sm font-medium text-white hover:bg-blue-800 
-          focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          className="w-16 rounded-r-lg border border-blue-700 bg-blue-700 p-2.5 text-sm font-medium text-white 
+          hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
         >
           Now!
         </button>

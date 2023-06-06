@@ -152,10 +152,8 @@ function TripSelect({
                           <span className="w-14 text-red-700 md:w-20">N/A</span>
                         ) : (
                           <span
-                            className={`${
-                              isDelayed
-                                ? "w-14 text-yellow-900 md:w-20"
-                                : "text-green-700"
+                            className={`w-14 md:w-20 ${
+                              isDelayed ? "text-yellow-900" : "text-green-700"
                             }`}
                           >
                             {getDelayedTime(departureTime, arrival?.delay) ||

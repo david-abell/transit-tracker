@@ -12,10 +12,12 @@ import { DateTime, Duration, Settings } from "luxon";
 
 Settings.defaultZone = "Europe/Dublin";
 
+// Parse timestring in format HH:MM:SS exa: 20:07:17
 export function stopTimeStringToDate(timeString: string) {
   return DateTime.fromISO(timeString);
 }
 
+// Return timestring in format HH:MM:SS exa: 20:07:17
 export function dateToStopTimeString(dateTime: DateTime) {
   return dateTime.toLocaleString(DateTime.TIME_24_WITH_SECONDS);
 }

@@ -59,9 +59,11 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
     >
       <div
         onClick={preventAutoClose}
-        className="flex h-full flex-col gap-6 p-6"
+        className="flex h-full flex-col gap-4 p-6 md:gap-6"
       >
-        <h3 className="text-center text-4xl font-extrabold">{title}</h3>
+        <h3 className="text-center text-2xl font-extrabold md:text-4xl">
+          {title}
+        </h3>
         <DialogRefContext.Provider
           value={{ dialog: ref?.current ? ref.current : null }}
         >

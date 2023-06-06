@@ -5,8 +5,8 @@ import withErrorHandler from "@/lib/withErrorHandler";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Calendar, Prisma, Trip } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";
-import { addHours, differenceInSeconds, parseISO, startOfDay } from "date-fns";
-import { DayString, getCalendarDate, getDayString } from "@/lib/timeHelpers";
+import { parseISO } from "date-fns";
+import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 import { scheduledService, serviceException } from "@/lib/api/static/consts";
 
 // create safe SQL column names for raw SQL version
@@ -52,90 +52,44 @@ async function handler(
   const dayOfWeek = getDayString(date);
   const dateOfYear = getCalendarDate(date);
 
-  const startOfDate = startOfDay(date);
-  const departureTimeInSeconds = differenceInSeconds(date, startOfDate);
-  // const maxDepartureTimeInSeconds = differenceInSeconds(
-  //   addHours(date, 1),
-  //   startOfDate
-  // );
-
   // Find all trips on Route where:
   // service is scheduled on selected dateTime
   // or service is added
   // and service is not canceled
-
-  // const trips = await prisma.trip.findMany({
-  //   // take: 6,
-  //   where: {
-  //     AND: [
-  //       { route: { routeId: routeId } },
-  //       {
-  //         NOT: {
-  //           calendar: {
-  //             [dayOfWeek]: { equals: scheduledService.isFalse },
-  //           },
-  //         },
-  //         OR: [
-  //           {
-  //             calendar: { calendarDate: { some: { date: dateOfYear } } },
-  //           },
-  //           {
-  //             calendar: { [dayOfWeek]: { equals: scheduledService.isTrue } },
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //   },
-  //   orderBy: {},
-  // });
-
-  // raw SQL version
-
-  async function findOrderedTrips(routeId: string, cursor?: string) {
-    // const limit = 15;
-    // const where = cursor
-    //   ? Prisma.sql`AND last."sentDateTime" <= ${new Date(cursor)}`
-    //   : Prisma.empty;
-    // console.log("routeId:", routeId);
-
+  async function findOrderedTrips(routeId: string) {
     const tripList = await prisma.$queryRaw<Trip[]>`
-      SELECT DISTINCT
-        t.route_id,
-        t.service_id,
-        t.trip_headsign,
-        t.trip_short_name,
-        t.direction_id,
-        t.shape_id,
-        t.trip_id
-      FROM trips as t
-      INNER JOIN (SELECT trip_id, arrival_time, departure_time, stop_sequence FROM stop_times) stop_times
-          ON stop_times.trip_id = t.trip_id
-      INNER JOIN (SELECT ${
-        calendarDayColumns[dayOfWeek]
-      }, service_id, start_date, end_date FROM calendar) calendar
-          ON calendar.service_id=t.service_id
-          AND ${calendarDayColumns[dayOfWeek]}=1
-          AND ${dateOfYear} BETWEEN start_date AND end_date
-      WHERE t.route_id = ${routeId}
-      AND (t.service_id NOT IN (
-          SELECT service_id FROM calendar_dates
-              WHERE calendar_dates.service_id=t.service_id
-                  AND calendar_dates.exception_type=${serviceException.removed}
-                  AND calendar_dates.date=${dateOfYear}
-          )
-          OR t.service_id IN (
-              SELECT service_id FROM calendar_dates
-                  WHERE calendar_dates.service_id=t.service_id
-                  AND calendar_dates.exception_type=${1}
-                  AND calendar_dates.date=${dateOfYear}
-          ))
-      ORDER BY stop_times.stop_sequence
-    `;
+      SELECT
+        trips.route_id,
+        trips.service_id,
+        trips.trip_id,
+        trips.trip_headsign,
+        trips.trip_short_name,
+        trips.direction_id,
+        trips.block_id,
+        trips.shape_id 
+      FROM
+        trips 
+          LEFT JOIN
+            calendar_dates 
+            ON trips.service_id = calendar_dates.service_id 
+            AND calendar_dates.date = ${dateOfYear} 
+          INNER JOIN
+            calendar 
+            ON trips.service_id = calendar.service_id 
+      WHERE
+        trips.route_id = ${routeId} 
+        AND 
+        (
+          exception_type IS NULL 
+          AND ${calendarDayColumns[dayOfWeek]} = ${scheduledService.isTrue} 
+          AND ${dateOfYear} BETWEEN start_date AND end_date 
+          OR exception_type =  ${serviceException.added}
+        )
+      ORDER BY
+        trip_id ASC;`;
 
     return tripList;
   }
-  // this clause excludes valid partial trips
-  // AND stop_times.departure_time >= ${departureTimeInSeconds};
 
   const trips = await findOrderedTrips(routeId);
 

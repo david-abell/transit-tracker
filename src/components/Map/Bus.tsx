@@ -1,3 +1,4 @@
+"use-client";
 import { Icon, LatLngTuple } from "leaflet";
 import { LeafletTrackingMarker } from "react-leaflet-tracking-marker";
 // import buslogo from "/public/bus_teardrop.svg";

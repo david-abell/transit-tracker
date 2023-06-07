@@ -50,7 +50,7 @@ function MainNav({ children, selectedRoute, reverseRoute }: Props) {
   return (
     <nav
       ref={navRef}
-      className="relative mx-auto flex min-h-[5rem] max-w-screen-2xl flex-wrap items-start justify-between gap-2.5 border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800 md:px-10"
+      className="relative mx-auto flex min-h-[5rem] max-w-screen-2xl flex-wrap items-start justify-between gap-2.5 border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800 md:items-center md:px-10"
     >
       {isMediumScreen || (!isMediumScreen && showMenu) ? (
         <div className="flex flex-1 flex-col dark:text-white md:block md:flex-none">

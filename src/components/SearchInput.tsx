@@ -94,7 +94,7 @@ function SearchInput({ selectedRoute }: Props) {
 
         <input
           id="route-search"
-          className={`text-md inline-block flex-1 rounded-bl-lg rounded-tl-lg border border-gray-300 bg-gray-50 p-2.5 pl-8 text-gray-900 focus-within:rounded-bl-none
+          className={`text-md inline-block flex-1 truncate rounded-bl-lg rounded-tl-lg border border-gray-300 bg-gray-50 p-2.5 pl-8 text-gray-900 focus-within:rounded-bl-none
                focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500
                dark:focus:ring-blue-500 md:pl-10 
                ${routeName ? "rounded-b-none" : ""}`}

@@ -55,11 +55,11 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
       ref={ref}
       onCancel={onClose}
       onClick={onClose}
-      className="w-full max-w-3xl overflow-visible rounded-lg bg-slate-50 p-0 dark:bg-slate-700 dark:text-white"
+      className="h-[100svh] max-h-[37.5rem] w-full max-w-3xl overflow-visible rounded-lg bg-slate-50 p-0 dark:bg-slate-700 dark:text-white"
     >
       <div
         onClick={preventAutoClose}
-        className="flex h-full flex-col gap-4 p-6 md:gap-6"
+        className="flex h-full flex-col justify-between gap-4 p-6  md:gap-6"
       >
         <h3 className="text-center text-2xl font-extrabold md:text-4xl">
           {title}
@@ -69,7 +69,7 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
         >
           <div>{children}</div>
         </DialogRefContext.Provider>
-        <div className="mt-auto flex justify-between gap-3">
+        <div className="flex justify-between gap-3">
           <button
             onClick={onClose}
             onKeyDown={handleKeydown}

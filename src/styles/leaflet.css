@@ -685,7 +685,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
     saturate(0.3) brightness(0.7);
 }
 
-.dark .map-tiles {
+.dark .map-tiles,
+.dark .leaflet-control-layers,
+.dark .leaflet-control-layers-toggle,
+.dark .leaflet-control-attribution,
+.dark .leaflet-control-zoom-in,
+.dark .leaflet-control-zoom-out {
   filter: var(--map-tiles-filter, none);
 }
 

@@ -609,12 +609,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
   content: "";
 }
 
-/* Custom schedule change */
-.leaflet-tooltip .tooltip-schedule-change {
-  background-color: red;
-  color: white;
-}
-
 /* Directions */
 
 .leaflet-tooltip-bottom {
@@ -669,6 +663,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+}
+
+/* Custom styles */
+
+/* Custom schedule change */
+.leaflet-tooltip .tooltip-schedule-change {
+  background-color: red;
+  color: white;
+}
+
+.leaflet-tooltip .tooltip-schedule-change {
+  background-color: red;
+  color: white;
 }
 
 /* Dark mode */

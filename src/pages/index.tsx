@@ -64,7 +64,6 @@ export default function Home() {
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
 
   // component visibility state
-  const [showRouteControls, setShowRouteControls] = useState(true);
   const [showRouteModal, setShowRouteModal] = useState(false);
   const [showTripModal, setShowTripModal] = useState(false);
   const [showAllTrips, setShowAllTrips] = useState(false);

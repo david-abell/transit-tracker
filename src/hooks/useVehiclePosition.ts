@@ -43,8 +43,9 @@ function useVehiclePosition({
   const prevStopSequence = useRef(0);
   const stopTimeRef = useRef(selectedTripStopTimesById);
 
-  if (!shape || shape.length < 1)
+  if (!shape || shape.length < 1) {
     return { vehiclePosition: undefined, bearing: undefined };
+  }
 
   const arrivals = stopIds
     .flatMap<Arrival>((stopId) => {
@@ -71,14 +72,15 @@ function useVehiclePosition({
     })
     .sort((a, b) => a.stopSequence - b.stopSequence);
 
-  if (arrivals.length < 2)
+  if (arrivals.length < 2) {
     return { vehiclePosition: undefined, bearing: undefined };
+  }
 
   let currentStopSequence = prevStopSequence.current;
 
   if (
     currentStopSequence === undefined ||
-    currentStopSequence === -1 ||
+    currentStopSequence < 0 ||
     !equal(stopTimeRef.current, selectedTripStopTimesById)
   ) {
     stopTimeRef.current = selectedTripStopTimesById;
@@ -96,7 +98,6 @@ function useVehiclePosition({
   }
   // this should never happen
   if (currentStopSequence > arrivals.length - 1) {
-    console.error("current stop sequence wrong greater than arrivals");
     return { vehiclePosition: undefined, bearing: undefined };
   }
 

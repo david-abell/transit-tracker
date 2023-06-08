@@ -14,12 +14,12 @@ Settings.defaultZone = "Europe/Dublin";
 
 // Parse timestring in format HH:MM:SS exa: 20:07:17
 export function stopTimeStringToDate(timeString: string) {
-  return DateTime.fromISO(timeString);
+  return DateTime.fromFormat(timeString, "H:mm:ss");
 }
 
 // Return timestring in format HH:MM:SS exa: 20:07:17
 export function dateToStopTimeString(dateTime: DateTime) {
-  return dateTime.toLocaleString(DateTime.TIME_24_WITH_SECONDS);
+  return dateTime.toFormat("H:mm:ss");
 }
 
 export type DayString = keyof Omit<

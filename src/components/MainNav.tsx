@@ -47,12 +47,18 @@ function MainNav({ children, selectedRoute, reverseRoute }: Props) {
     };
   }, [showMenu]);
 
+  useEffect(() => {
+    if (isMediumScreen) {
+      setShowMenu(false);
+    }
+  }, [isMediumScreen]);
+
   return (
     <nav
       ref={navRef}
       className="relative mx-auto flex min-h-[5rem] max-w-screen-2xl flex-wrap items-start justify-between gap-2.5 border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800 md:items-center md:px-10"
     >
-      {isMediumScreen || (!isMediumScreen && showMenu) ? (
+      {showMenu ? (
         <div className="flex flex-1 flex-col dark:text-white md:block md:flex-none">
           <h2 className="inline-block text-base font-bold md:text-2xl">
             {selectedRoute?.routeShortName}
@@ -93,7 +99,7 @@ function MainNav({ children, selectedRoute, reverseRoute }: Props) {
       <button
         onClick={() => setShowMenu((prev) => !prev)}
         type="button"
-        className="inline-flex items-center rounded-lg p-2.5 text-sm text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 md:hidden"
+        className="inline-flex items-center p-2.5 text-sm text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 md:hidden"
         aria-controls="navbar-hamburger"
         aria-expanded={showMenu}
       >

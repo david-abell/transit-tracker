@@ -9,6 +9,7 @@ import {
   LayersControl,
   Pane,
   LayerGroup,
+  Popup,
 } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
 import { useEffect, useRef, useState } from "react";
@@ -65,6 +66,7 @@ function MapContentLayer({
   tripsById,
 }: Props) {
   const map = useMap();
+
   const markerGroupRef = useRef<L.FeatureGroup>(null);
 
   const previousStopIds = usePrevious(stopIds);
@@ -75,7 +77,7 @@ function MapContentLayer({
     const group = markerGroupRef.current;
     if (!group || !group.getBounds().isValid()) return;
 
-    map.fitBounds(group.getBounds());
+    map.flyTo(group.getBounds().getCenter(), map.getZoom());
   }, [map, stopIds, previousStopIds]);
 
   useEffect(() => {
@@ -167,13 +169,11 @@ function MapContentLayer({
                         isCurrent: stopId === selectedStopId,
                       }),
                     }}
-                    eventHandlers={{
-                      click: () => {
-                        handleSelectedStop(stopId);
-                      },
-                    }}
+                    // eventHandlers={{
+                    //   click: () => handleSelectedStop(stopId),
+                    // }}
                   >
-                    <Tooltip>
+                    <Popup>
                       <strong>Stop Name:</strong> {stopName}
                       <br />
                       <strong>Stop Id:</strong> {stopId}
@@ -194,7 +194,17 @@ function MapContentLayer({
                             </div>
                           </>
                         )}
-                    </Tooltip>
+                      <br />
+                      <button
+                        type="button"
+                        onClick={() => handleSelectedStop(stopId)}
+                        className="mx-auto my-2 block rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
+                         focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700
+                          dark:focus:ring-blue-800"
+                      >
+                        View trips
+                      </button>
+                    </Popup>
                   </Marker>
                 );
               })}

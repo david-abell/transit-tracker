@@ -94,9 +94,9 @@ function SearchInput({ selectedRoute }: Props) {
 
         <input
           id="route-search"
-          className={`text-md inline-block flex-1 truncate rounded-bl-lg rounded-tl-lg border border-gray-300 bg-gray-50 p-2.5 pl-8 text-gray-900 focus-within:rounded-bl-none
-               focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500
-               dark:focus:ring-blue-500 md:pl-10 
+          className={`text-md inline-block flex-1 appearance-none truncate rounded-none rounded-bl-lg rounded-tl-lg border border-gray-300 bg-gray-50 p-2.5 pl-8
+               text-gray-900 focus-within:rounded-bl-none focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white
+               dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500 md:pl-10
                ${routeName ? "rounded-b-none" : ""}`}
           placeholder={
             selectedRoute?.routeLongName || "Search for a bus or train route"
@@ -135,9 +135,9 @@ function SearchInput({ selectedRoute }: Props) {
           // onClick={handleOnSubmit}
           onKeyDown={(e) => handleSearchKeydown(e)}
           type="submit"
-          className={`text-md flex w-12 justify-center rounded-r-lg border border-blue-700 bg-blue-700 p-2.5 font-medium text-white hover:bg-blue-800 
-              focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 
-              ${routeName ? "rounded-b-none" : ""} `}
+          className={`text-md flex w-12 justify-center rounded-br-lg rounded-tr-lg border border-blue-700 bg-blue-700 p-2.5 font-medium text-white hover:bg-blue-800 
+              focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800
+              ${routeName ? "rounded-br-none" : ""} `}
         >
           <svg
             className="h-5 w-5"

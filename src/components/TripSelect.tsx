@@ -67,7 +67,7 @@ function TripSelect({
         </label>
         <ul
           id="trip-select"
-          className="flex h-[22rem] max-w-full flex-col overflow-y-scroll text-start"
+          className="flex h-[21rem] max-w-full flex-col overflow-y-auto text-start"
         >
           {/* Column headers */}
           <li

@@ -59,14 +59,17 @@ function MainNav({ children, selectedRoute, reverseRoute }: Props) {
       className="relative mx-auto flex min-h-[5rem] max-w-screen-2xl flex-wrap items-start justify-between gap-2.5 border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800 md:items-center md:px-10"
     >
       {showMenu ? (
-        <div className="flex flex-1 flex-col dark:text-white md:block md:flex-none">
-          <h2 className="inline-block text-base font-bold md:text-2xl">
-            {selectedRoute?.routeShortName}
-          </h2>
-          <p className="inline-block text-lg font-medium md:pl-2.5">
-            {directionalRouteName}
-          </p>
-        </div>
+        <>
+          <div className="flex flex-1 flex-col dark:text-white md:block md:flex-none">
+            <h2 className="inline-block text-base font-bold md:text-2xl">
+              {selectedRoute?.routeShortName}
+            </h2>
+            <p className="inline-block text-lg font-medium md:pl-2.5">
+              {directionalRouteName}
+            </p>
+          </div>
+          <ThemeToggle />
+        </>
       ) : (
         <SearchInput selectedRoute={selectedRoute} />
       )}
@@ -93,7 +96,7 @@ function MainNav({ children, selectedRoute, reverseRoute }: Props) {
         </ul>
       </div>
 
-      <ThemeToggle />
+      {isMediumScreen && <ThemeToggle />}
 
       {/* Hamburger button */}
       <button

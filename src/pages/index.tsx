@@ -188,7 +188,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-[100svh] flex-col items-center justify-between bg-gray-50 text-slate-950 dark:bg-slate-700 dark:text-white">
+    <main className="flex min-h-[100svh] flex-col items-center justify-between bg-gray-50 text-slate-950 dark:bg-gray-800 dark:text-white">
       <div className="relative w-full">
         <div ref={NavRef}>
           <MainNav selectedRoute={selectedRoute} reverseRoute={!!reverseRoute}>

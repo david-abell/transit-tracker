@@ -96,7 +96,7 @@ function MainNav({ children, selectedRoute, reverseRoute }: Props) {
         </ul>
       </div>
 
-      {isMediumScreen && <ThemeToggle />}
+      <ThemeToggle className="hidden md:block" />
 
       {/* Hamburger button */}
       <button

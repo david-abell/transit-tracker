@@ -55,7 +55,7 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
       ref={ref}
       onCancel={onClose}
       onClick={onClose}
-      className="h-[100svh] max-h-[37.5rem] w-full max-w-3xl overflow-hidden rounded-lg bg-slate-50 p-0 dark:bg-slate-700 dark:text-white"
+      className="h-[100svh] max-h-[37.5rem] w-full max-w-3xl overflow-hidden rounded-lg bg-slate-50 p-0 dark:bg-gray-800 dark:text-white"
     >
       <div
         onClick={preventAutoClose}
@@ -73,14 +73,14 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
           <button
             onClick={onClose}
             onKeyDown={handleKeydown}
-            className="rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 shadow hover:bg-gray-100"
+            className="mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
           >
             Close
           </button>
           <button
             onClick={proceedAndClose}
             onKeyDown={handleKeydown}
-            className="rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 shadow hover:bg-gray-100"
+            className="mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
           >
             Proceed
           </button>

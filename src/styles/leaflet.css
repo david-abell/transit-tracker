@@ -689,6 +689,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
   filter: var(--map-tiles-filter, none);
 }
 
+.dark .leaflet-container {
+  /* Tailwind bg-gray-800 */
+  background-color: rgb(31 41 55);
+}
+
 /**
   Source: https://github.com/pkrasicki/issviewer
   Discovered via: https://github.com/openstreetmap/openstreetmap-website/issues/2332

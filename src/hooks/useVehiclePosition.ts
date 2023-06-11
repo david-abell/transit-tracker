@@ -6,7 +6,7 @@ import {
 } from "@/lib/timeHelpers";
 import { GTFSResponse, StopTimeUpdate } from "@/types/realtime";
 import { Stop, StopTime } from "@prisma/client";
-import { point } from "@turf/helpers";
+import { Position, point } from "@turf/helpers";
 import lineChunk from "@turf/line-chunk";
 import lineSlice from "@turf/line-slice";
 import rhumbDistance from "@turf/rhumb-distance";
@@ -25,6 +25,18 @@ type Arrival = {
   stopSequence: number;
 };
 
+type Props = {
+  stopIds: string[];
+  shape: LatLngTuple[] | undefined;
+  selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
+  stopsById: Map<string, Stop>;
+  stopUpdates: Map<string, StopTimeUpdate>;
+  invalidateRealtime: KeyedMutator<GTFSResponse>;
+  options: {
+    skip: boolean;
+  };
+};
+
 function useVehiclePosition({
   stopIds,
   shape,
@@ -32,19 +44,40 @@ function useVehiclePosition({
   stopsById,
   stopUpdates,
   invalidateRealtime,
-}: {
-  stopIds: string[];
-  shape: LatLngTuple[] | undefined;
-  selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
-  stopsById: Map<string, Stop>;
-  stopUpdates: Map<string, StopTimeUpdate>;
-  invalidateRealtime: KeyedMutator<GTFSResponse>;
-}) {
+  options,
+}: Props): {
+  vehiclePosition: LatLngTuple;
+  bearing: number;
+  vehicleError: undefined;
+};
+
+function useVehiclePosition({
+  stopIds,
+  shape,
+  selectedTripStopTimesById,
+  stopsById,
+  stopUpdates,
+  invalidateRealtime,
+  options,
+}: Props): {
+  vehicleError: true;
+};
+
+function useVehiclePosition({
+  stopIds,
+  shape,
+  selectedTripStopTimesById,
+  stopsById,
+  stopUpdates,
+  invalidateRealtime,
+  options,
+}: Props) {
   const prevStopSequence = useRef(0);
   const stopTimeRef = useRef(selectedTripStopTimesById);
+  const prevCoordinateRef = useRef<Arrival | undefined>();
 
-  if (!shape || shape.length < 1) {
-    return { vehiclePosition: undefined, bearing: undefined };
+  if (options.skip || !shape || shape.length < 1) {
+    return { vehicleError: true };
   }
 
   const arrivals = stopIds
@@ -72,18 +105,20 @@ function useVehiclePosition({
     })
     .sort((a, b) => a.stopSequence - b.stopSequence);
 
-  if (arrivals.length < 2) {
-    return { vehiclePosition: undefined, bearing: undefined };
+  if (arrivals.length < 1 && !prevCoordinateRef.current) {
+    return { vehicleError: true };
   }
 
   let currentStopSequence = prevStopSequence.current;
 
+  // Check if new trip
   if (
     currentStopSequence === undefined ||
-    currentStopSequence < 0 ||
+    (currentStopSequence <= 0 && !prevCoordinateRef.current) ||
     !equal(stopTimeRef.current, selectedTripStopTimesById)
   ) {
     stopTimeRef.current = selectedTripStopTimesById;
+    prevCoordinateRef.current = undefined;
 
     const newStopSequence = arrivals.findIndex(
       ({ arrivalTime }) => !isPastArrivalTime(arrivalTime)
@@ -92,18 +127,31 @@ function useVehiclePosition({
     prevStopSequence.current = newStopSequence;
   }
 
-  // bail early if trip hasn't yet begun
-  if (currentStopSequence <= 0) {
-    return { vehiclePosition: undefined, bearing: undefined };
+  // bail early if two coordinates not possible
+  if (
+    currentStopSequence < 0 ||
+    (currentStopSequence === 0 && !prevCoordinateRef.current)
+  ) {
+    return { vehicleError: true };
   }
   // this should never happen
   if (currentStopSequence > arrivals.length - 1) {
-    return { vehiclePosition: undefined, bearing: undefined };
+    return { vehicleError: true };
   }
 
-  const lastStop = arrivals[currentStopSequence - 1];
+  const lastStop =
+    currentStopSequence === 0 && prevCoordinateRef.current
+      ? prevCoordinateRef.current
+      : arrivals[currentStopSequence - 1];
 
-  const nextStop = arrivals[currentStopSequence];
+  // some stops in sequence have same arrival time
+  // check upcoming arrival times for stops with same arrival time and take last
+  const allNextStops = arrivals.filter(
+    ({ arrivalTime }) =>
+      arrivalTime === arrivals[currentStopSequence].arrivalTime
+  );
+
+  const nextStop = allNextStops.at(-1)!;
 
   // nextStop.delayedArrivalTime
   const slicePercentage = getPercentageToArrival(
@@ -119,7 +167,7 @@ function useVehiclePosition({
     );
     prevStopSequence.current = newStopSequence;
     // invalidateRealtime();
-    return { vehiclePosition: undefined, bearing: undefined };
+    return { vehicleError: true };
   }
 
   const sliced = lineSlice(
@@ -170,6 +218,7 @@ function useVehiclePosition({
   if (sliceIndex <= 0) {
     currentStopSequence =
       currentStopSequence > arrivals.length - 1 ? -1 : currentStopSequence + 1;
+    prevCoordinateRef.current = nextStop;
   }
 
   prevStopSequence.current = currentStopSequence;

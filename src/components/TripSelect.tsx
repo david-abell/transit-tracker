@@ -6,7 +6,7 @@ import { Dispatch, SetStateAction, useContext } from "react";
 import { DialogRefContext } from "./Modal";
 
 type Props = {
-  route: Route;
+  route: Route | undefined;
   routes: Map<string, Route>;
   stopTimes: StopTime[] | undefined;
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
@@ -34,7 +34,7 @@ function TripSelect({
 }: Props) {
   const { dialog } = useContext(DialogRefContext);
 
-  const hasRealtime = realtimeRouteIds.has(route.routeId);
+  const hasRealtime = route ? realtimeRouteIds.has(route.routeId) : false;
 
   // trap keyboard focus inside form for arrow and tab key input
   const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -60,7 +60,7 @@ function TripSelect({
         >
           {!showAllTrips
             ? "Show all upcoming trips"
-            : `show only route ${route.routeShortName}`}
+            : `show only route ${route?.routeShortName}`}
         </button>
         <label htmlFor="trip-select" className="sr-only">
           Pick a trip

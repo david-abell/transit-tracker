@@ -2,39 +2,53 @@ import { getDelayedTime } from "@/lib/timeHelpers";
 import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
 import { TripUpdate } from "@/types/realtime";
 import { Route, StopTime, Trip } from "@prisma/client";
-import { Dispatch, SetStateAction, useContext } from "react";
+import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { DialogRefContext } from "./Modal";
+import useUpcoming from "@/hooks/useUpcoming";
+import { useSearchParams } from "next/navigation";
 
 type Props = {
-  route: Route | undefined;
-  routes: Map<string, Route>;
-  stopTimes: StopTime[] | undefined;
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
-  tripsById: Map<string, Trip>;
   realtimeAddedByRouteId: Map<string, TripUpdate>;
   realtimeCanceledTripIds: Set<string>;
   realtimeRouteIds: Set<string>;
   realtimeScheduledByTripId: Map<string, TripUpdate>;
-  showAllTrips: boolean;
-  setShowAllTrips: Dispatch<SetStateAction<boolean>>;
+  selectedDateTime: string;
+  selectedRoute: Route | undefined;
+  stopTimes: StopTime[] | undefined;
+  tripsById: Map<string, Trip>;
 };
 
 function TripSelect({
-  realtimeAddedByRouteId,
+  handleSelectedTrip,
   realtimeCanceledTripIds,
   realtimeScheduledByTripId,
   realtimeRouteIds,
-  route,
-  routes,
-  showAllTrips,
-  setShowAllTrips,
+  selectedDateTime,
+  selectedRoute,
   stopTimes = [],
-  handleSelectedTrip,
   tripsById,
 }: Props) {
   const { dialog } = useContext(DialogRefContext);
+  const [showAllTrips, setShowAllTrips] = useState(false);
+  const searchParams = useSearchParams();
 
-  const hasRealtime = route ? realtimeRouteIds.has(route.routeId) : false;
+  const {
+    routes: upComingRoutes,
+    stopTimes: allStopTimes,
+    trips: allTrips,
+  } = useUpcoming(searchParams.get("stopId") || "", selectedDateTime);
+
+  const hasRealtime = selectedRoute
+    ? realtimeRouteIds.has(selectedRoute.routeId)
+    : false;
+
+  const renderStopTimes = showAllTrips ? allStopTimes : stopTimes;
+  const routes = upComingRoutes;
+
+  if (selectedRoute && !routes.has(selectedRoute.routeId)) {
+    routes.set(selectedRoute.routeId, selectedRoute);
+  }
 
   // trap keyboard focus inside form for arrow and tab key input
   const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -60,7 +74,7 @@ function TripSelect({
         >
           {!showAllTrips
             ? "Show all upcoming trips"
-            : `show only route ${route?.routeShortName}`}
+            : `show only route ${selectedRoute?.routeShortName}`}
         </button>
         <label htmlFor="trip-select" className="sr-only">
           Pick a trip
@@ -98,8 +112,8 @@ function TripSelect({
           </li>
 
           {/* Trip list */}
-          {!!stopTimes && stopTimes.length ? (
-            stopTimes.flatMap(({ tripId, departureTime }) => {
+          {!!renderStopTimes && renderStopTimes.length ? (
+            renderStopTimes.flatMap(({ tripId, departureTime }) => {
               if (realtimeCanceledTripIds.has(tripId)) return [];
 
               const real = realtimeScheduledByTripId.get(tripId);
@@ -113,9 +127,8 @@ function TripSelect({
               const isCanceled = realtimeCanceledTripIds.has(tripId);
 
               const { tripHeadsign = "", routeId } =
-                tripsById.get(tripId) || {};
-              const displayRoute =
-                routeId && routes.has(routeId) ? routes.get(routeId)! : route;
+                (showAllTrips ? allTrips : tripsById).get(tripId) || {};
+              const displayRoute = routeId ? routes.get(routeId)! : "";
 
               return (
                 <li key={tripId}>
@@ -130,7 +143,11 @@ function TripSelect({
                   >
                     {/* schedule columns */}
                     <div className="w-20 font-bold md:w-28 md:text-lg">
-                      <b>{displayRoute?.routeShortName}</b>
+                      <b>
+                        {typeof displayRoute === "object"
+                          ? displayRoute.routeShortName
+                          : ""}
+                      </b>
                     </div>
                     <span className="flex-1">
                       {/* {" towards  "} */}

@@ -15,7 +15,6 @@ import { useRouter } from "next/router";
 import useRouteId from "@/hooks/useRouteId";
 import { useSearchParams } from "next/navigation";
 import MainNav from "@/components/MainNav";
-import useUpcoming from "@/hooks/useUpcoming";
 import { useElementSize, useWindowSize } from "usehooks-ts";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -67,9 +66,7 @@ export default function Home() {
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
 
   // component visibility state
-  // const [showRouteModal, setShowRouteModal] = useState(false);
   const [showTripModal, setShowTripModal] = useState(false);
-  const [showAllTrips, setShowAllTrips] = useState(false);
 
   const { height: windowHeight } = useWindowSize();
   const [NavRef, { height: navHeight }] = useElementSize();
@@ -85,14 +82,6 @@ export default function Home() {
 
   // static schedule data
   const { route: selectedRoute } = useRouteId(routeId);
-
-  const selectedRouteAsMap: Map<string, Route> = new Map();
-
-  if (selectedRoute) {
-    selectedRouteAsMap.set(selectedRoute.routeId, selectedRoute);
-  }
-
-  const upcomingAtStop = useUpcoming(stopId, selectedDateTime);
 
   const {
     selectedTripStopTimesById,
@@ -236,14 +225,10 @@ export default function Home() {
           realtimeCanceledTripIds={realtimeCanceledTripIds}
           realtimeRouteIds={realtimeRouteIds}
           realtimeScheduledByTripId={realtimeScheduledByTripId}
-          route={selectedRoute}
-          routes={showAllTrips ? upcomingAtStop.routes : selectedRouteAsMap}
-          setShowAllTrips={setShowAllTrips}
-          showAllTrips={showAllTrips}
-          stopTimes={
-            showAllTrips ? upcomingAtStop.stopTimes : tripsAtSelectedStop
-          }
-          tripsById={showAllTrips ? upcomingAtStop.trips : tripsById}
+          selectedDateTime={selectedDateTime}
+          selectedRoute={selectedRoute}
+          stopTimes={tripsAtSelectedStop}
+          tripsById={tripsById}
         />
       </Modal>
     </main>

@@ -22,15 +22,17 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
 
   useEffect(() => {
     const dialog = ref.current;
+    if (!dialog) return;
+
     if (isOpen && dialog) {
       dialog.showModal();
       document.body.classList.add("modal-open"); // prevent bg scroll
     } else {
-      dialog?.close();
+      dialog.close();
       document.body.classList.remove("modal-open");
     }
     return () => {
-      dialog?.close();
+      dialog.close();
       document.body.classList.remove("modal-open");
     };
   }, [isOpen]);
@@ -64,9 +66,7 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
         <h3 className="text-center text-2xl font-extrabold md:text-4xl">
           {title}
         </h3>
-        <DialogRefContext.Provider
-          value={{ dialog: ref?.current ? ref.current : null }}
-        >
+        <DialogRefContext.Provider value={{ dialog: ref?.current }}>
           <div>{children}</div>
         </DialogRefContext.Provider>
         <div className="flex justify-between gap-3">

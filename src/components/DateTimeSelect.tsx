@@ -1,4 +1,5 @@
 import { initDateTimeValue } from "@/lib/timeHelpers";
+import router from "next/router";
 import { Dispatch, SetStateAction } from "react";
 
 type Props = {
@@ -11,11 +12,17 @@ function DateTimeSelect({ selectedDateTime, setSelectedDateTime }: Props) {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setSelectedDateTime(e.target.value);
+    const queries = router.query;
+    delete queries["tripId"];
+    router.push({ query: queries }, undefined, { shallow: false });
   };
 
   const handleNowTime = () => {
     const now = initDateTimeValue();
     setSelectedDateTime(now);
+    const queries = router.query;
+    delete queries["tripId"];
+    router.push({ query: queries }, undefined, { shallow: false });
   };
 
   return (

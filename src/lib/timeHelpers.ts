@@ -8,12 +8,33 @@ import {
   differenceInSeconds,
 } from "date-fns";
 
+// non standard format for input type="datetime"
+// 2023-06-01T13:31
+const LUXON_DATE_INPUT_TOKENS = "kkkk'-'LL'-'dd'T'T";
 import { DateTime, Duration, Settings } from "luxon";
 
 Settings.defaultZone = "Europe/Dublin";
 
+export function parseDatetimeLocale(timestring: string) {
+  return DateTime.fromISO(timestring);
+}
+
 // Parse timestring in format HH:MM:SS exa: 20:07:17
-export function stopTimeStringToDate(timeString: string) {
+export function stopTimeStringToDate(
+  timeString: string,
+  referenceDate: string = ""
+) {
+  const startOfReferenceDate =
+    referenceDate && parseDatetimeLocale(referenceDate).startOf("day");
+
+  if (startOfReferenceDate) {
+    const startOfDay = DateTime.now().startOf("day");
+    const timeOfDay = DateTime.fromFormat(timeString, "H:mm:ss").diff(
+      startOfDay
+    );
+    return startOfReferenceDate.plus(timeOfDay);
+  }
+
   return DateTime.fromFormat(timeString, "H:mm:ss");
 }
 
@@ -46,15 +67,21 @@ export function getCalendarDate(dateTime: Date) {
 }
 
 export function initDateTimeValue() {
-  // non standard format for input type="datetime"
-  // 2023-06-01T13:31
-  return DateTime.now().toFormat("kkkk'-'MM'-'dd'T'T");
+  return DateTime.now().toFormat(LUXON_DATE_INPUT_TOKENS);
 }
 
 // add trip start time instead of new Date()
-export function isPastArrivalTime(arrivalTime: string) {
+export function isPastArrivalTime(
+  arrivalTime: string,
+  referenceDate: string = ""
+) {
   const now = DateTime.now();
-  return now > stopTimeStringToDate(arrivalTime);
+  const arrivalDate = referenceDate
+    ? stopTimeStringToDate(arrivalTime, referenceDate)
+    : stopTimeStringToDate(arrivalTime);
+  if (!now.hasSame(arrivalDate, "day")) return false;
+
+  return now > arrivalDate;
 }
 
 export function getDelayedTime(

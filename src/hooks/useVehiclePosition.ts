@@ -26,7 +26,7 @@ type Arrival = {
 };
 
 type Props = {
-  stopIds: string[];
+  stopIds: string[] | undefined;
   shape: LatLngTuple[] | undefined;
   selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
   stopsById: Map<string, Stop>;
@@ -76,7 +76,7 @@ function useVehiclePosition({
   const stopTimeRef = useRef(selectedTripStopTimesById);
   const prevCoordinateRef = useRef<Arrival | undefined>();
 
-  if (options.skip || !shape || shape.length < 1) {
+  if (options.skip || !shape || shape.length < 1 || !stopIds) {
     return { vehicleError: true };
   }
 

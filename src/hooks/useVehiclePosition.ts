@@ -206,14 +206,14 @@ function useVehiclePosition({
       ? Math.floor((nextShapeSlice.length - 1) * slicePercentage)
       : 0;
 
-  const vehiclePosition = nextShapeSlice[sliceIndex];
+  // turf.js Position = number[] will always be a tuple...
+  // Leaflet.js LatLngTuple = [number, number]
+  const vehiclePosition = nextShapeSlice[sliceIndex] as LatLngTuple;
 
-  const nextPosition = nextShapeSlice.at(-1) || vehiclePosition;
-
-  const bearing = getBearing(
-    nextPosition as LatLngTuple,
-    vehiclePosition as LatLngTuple
-  );
+  const bearing = getBearing(vehiclePosition, [
+    nextStop.coordinates.stopLat,
+    nextStop.coordinates.stopLon,
+  ]);
 
   if (sliceIndex <= 0) {
     currentStopSequence =
@@ -223,7 +223,7 @@ function useVehiclePosition({
 
   prevStopSequence.current = currentStopSequence;
 
-  return { vehiclePosition: vehiclePosition as LatLngTuple, bearing };
+  return { vehiclePosition: vehiclePosition, bearing };
 }
 
 export default useVehiclePosition;

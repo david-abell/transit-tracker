@@ -16,7 +16,11 @@ import { useEffect, useRef, useState } from "react";
 import { useInterval } from "usehooks-ts";
 
 import type { Stop, StopTime, Trip } from "@prisma/client";
-import { getDelayedTime, isPastArrivalTime } from "@/lib/timeHelpers";
+import {
+  getDelayedTime,
+  isPastArrivalTime,
+  parseDatetimeLocale,
+} from "@/lib/timeHelpers";
 import { stopMarkerIcon } from "./stopMarkerIcon";
 import Bus from "./Bus";
 import { GTFSResponse, StopTimeUpdate, TripUpdate } from "@/types/realtime";
@@ -24,6 +28,7 @@ import usePrevious from "@/hooks/usePrevious";
 import isEqual from "fast-deep-equal";
 import useVehiclePosition from "@/hooks/useVehiclePosition";
 import { KeyedMutator } from "swr";
+import { DateTime } from "luxon";
 
 type Props = {
   height: number;
@@ -37,7 +42,7 @@ type Props = {
   tripId: Trip["tripId"];
   handleSelectedStop: (stopId: string) => void;
   shape: LatLngTuple[] | undefined;
-  stopIds: string[];
+  stopIds: string[] | undefined;
   stopsById: Map<string, Stop>;
   selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
   stopTimesByStopId: Map<string, StopTime[]> | undefined;
@@ -64,21 +69,24 @@ function MapContentLayer({
   stopTimesByTripId,
   tripsByDirection,
   tripsById,
+  selectedDateTime,
 }: Props) {
+  console.log("map content rendering");
   const map = useMap();
 
   const markerGroupRef = useRef<L.FeatureGroup>(null);
 
   const previousStopIds = usePrevious(stopIds);
-
   useEffect(() => {
-    if (isEqual(stopIds, previousStopIds)) return;
+    if (!stopIds || !stopIds.length || isEqual(stopIds, previousStopIds)) {
+      return;
+    }
 
     const group = markerGroupRef.current;
     if (!group || !group.getBounds().isValid()) return;
 
     map.flyTo(group.getBounds().getCenter(), map.getZoom());
-  }, [map, stopIds, previousStopIds]);
+  }, [map, stopIds, previousStopIds, selectedStopId]);
 
   useEffect(() => {
     if (map != null) {
@@ -107,13 +115,19 @@ function MapContentLayer({
       )) ||
     new Map<string, StopTimeUpdate>();
 
-  const { vehiclePosition, bearing } = useVehiclePosition({
+  const isToday = DateTime.now().hasSame(
+    parseDatetimeLocale(selectedDateTime),
+    "day"
+  );
+
+  const { vehiclePosition, bearing, vehicleError } = useVehiclePosition({
     invalidateRealtime,
     selectedTripStopTimesById,
     shape,
     stopIds,
     stopsById,
     stopUpdates,
+    options: { skip: !isToday },
   });
 
   // const isDelayed =
@@ -128,7 +142,7 @@ function MapContentLayer({
           <LayerGroup>
             {/* width required for icon not to be 0*0 px */}
             <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>
-              {!!vehiclePosition && bearing !== undefined && (
+              {!vehicleError && (
                 <Bus position={vehiclePosition} rotationAngle={bearing} />
               )}
             </Pane>
@@ -160,15 +174,17 @@ function MapContentLayer({
                   <Marker
                     key={stopId}
                     position={[stopLat, stopLon]}
-                    {...{
-                      icon: stopMarkerIcon({
-                        isUpcoming:
-                          !!delayedArrivalTime &&
-                          !isPastArrivalTime(delayedArrivalTime),
-                        isTripSelected: !!tripId,
-                        isCurrent: stopId === selectedStopId,
-                      }),
-                    }}
+                    icon={stopMarkerIcon({
+                      isUpcoming:
+                        !!delayedArrivalTime &&
+                        !isPastArrivalTime(
+                          delayedArrivalTime,
+                          selectedDateTime
+                        ),
+                      isTripSelected: !!tripId,
+                      isCurrent: stopId === selectedStopId,
+                    })}
+
                     // eventHandlers={{
                     //   click: () => handleSelectedStop(stopId),
                     // }}

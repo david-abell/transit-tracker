@@ -73,7 +73,7 @@ function MainNav({ children, selectedRoute, reverseRoute }: Props) {
           <ThemeToggle />
         </>
       ) : (
-        <SearchInput selectedRoute={selectedRoute} />
+        <SearchInput selectedRoute={selectedRoute} className={"md:hidden"} />
       )}
 
       {/* Menu list */}

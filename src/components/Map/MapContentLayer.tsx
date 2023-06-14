@@ -71,7 +71,6 @@ function MapContentLayer({
   tripsById,
   selectedDateTime,
 }: Props) {
-  console.log("map content rendering");
   const map = useMap();
 
   const markerGroupRef = useRef<L.FeatureGroup>(null);
@@ -205,7 +204,7 @@ function MapContentLayer({
                           <>
                             <br />
                             <div className="tooltip-schedule-change">
-                              <strong>Schdule change</strong>:{" "}
+                              <strong>Schedule change</strong>:{" "}
                               <span>{delayedArrivalTime}</span>
                             </div>
                           </>

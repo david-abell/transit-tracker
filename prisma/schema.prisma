@@ -8,30 +8,28 @@ datasource db {
 }
 
 model Agency {
-  id             Int     @id @default(autoincrement())
-  agencyId       String? @unique(map: "sqlite_autoindex_agency_1") @map("agency_id")
+  agencyId       String  @id @map("agency_id")
   agencyName     String  @map("agency_name")
   agencyUrl      String  @map("agency_url")
   agencyTimezone String  @map("agency_timezone")
-  agencyFareUrl  String? @map("agency_fare_url")
   route          Route[]
 
   @@map("agency")
 }
 
 model Calendar {
-  serviceId     String         @id @map("service_id")
-  monday        Int
-  tuesday       Int
-  wednesday     Int
-  thursday      Int
-  friday        Int
-  saturday      Int
-  sunday        Int
-  startDate     Int            @map("start_date")
-  endDate       Int            @map("end_date")
+  serviceId    String         @id @map("service_id")
+  monday       Int
+  tuesday      Int
+  wednesday    Int
+  thursday     Int
+  friday       Int
+  saturday     Int
+  sunday       Int
+  startDate    Int            @map("start_date")
+  endDate      Int            @map("end_date")
   calendarDate CalendarDate[]
-  trip          Trip[]
+  trip         Trip[]
 
   @@index([endDate], map: "idx_calendar_end_date")
   @@index([startDate], map: "idx_calendar_start_date")
@@ -39,15 +37,13 @@ model Calendar {
 }
 
 model CalendarDate {
-  id            Int      @id @default(autoincrement())
   serviceId     String   @map("service_id")
   date          Int
   exceptionType Int      @map("exception_type")
+  id            Int      @id @default(autoincrement())
   calendar      Calendar @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
 
-  @@index([serviceId], map: "idx_calendar_dates_service_id")
   @@index([exceptionType], map: "idx_calendar_dates_exception_type")
-  @@index([date], map: "idx_calendar_dates_date")
   @@map("calendar_dates")
 }
 
@@ -64,20 +60,17 @@ model Route {
 }
 
 model Shape {
-  id                Int        @id @default(autoincrement())
-  shapeId           String     @map("shape_id")
-  shapePtLat        Float      @map("shape_pt_lat")
-  shapePtLon        Float      @map("shape_pt_lon")
-  shapePtSequence   Int        @map("shape_pt_sequence")
-  shapeDistTraveled Float?     @map("shape_dist_traveled")
-  tripShape         TripShape?
+  shapeId           String @map("shape_id")
+  shapePtLat        Float  @map("shape_pt_lat")
+  shapePtLon        Float  @map("shape_pt_lon")
+  shapePtSequence   Int    @map("shape_pt_sequence")
+  shapeDistTraveled Float? @map("shape_dist_traveled")
+  id                Int    @id @default(autoincrement())
 
-  @@index([shapeId], map: "idx_shapes_shape_id")
   @@map("shapes")
 }
 
 model StopTime {
-  id                 Int     @id @default(autoincrement())
   tripId             String  @map("trip_id")
   arrivalTime        String? @map("arrival_time")
   arrivalTimestamp   Int?    @map("arrival_timestamp")
@@ -89,49 +82,40 @@ model StopTime {
   pickupType         Int?    @map("pickup_type")
   dropOffType        Int?    @map("drop_off_type")
   timepoint          Int?
+  id                 Int     @id @default(autoincrement())
   stop               Stop    @relation(fields: [stopId], references: [stopId], onDelete: NoAction, onUpdate: NoAction)
   trip               Trip    @relation(fields: [tripId], references: [tripId], onDelete: NoAction, onUpdate: NoAction)
 
-  @@index([tripId], map: "idx_stop_times_trip_id")
-  @@index([stopSequence], map: "idx_stop_times_stop_sequence")
   @@index([departureTimestamp], map: "idx_stop_times_departure_timestamp")
   @@index([arrivalTimestamp], map: "idx_stop_times_arrival_timestamp")
   @@map("stop_times")
 }
 
 model Stop {
-  stopId    String     @id @map("stop_id")
-  stopCode  String?    @map("stop_code")
-  stopName  String?    @map("stop_name")
-  stopLat   Float?     @map("stop_lat")
-  stopLon   Float?     @map("stop_lon")
-  stopTime StopTime[]
+  stopId      String     @id @map("stop_id")
+  stopCode    String?    @map("stop_code")
+  stopName    String?    @map("stop_name")
+  stopLat     Float?     @map("stop_lat")
+  stopLon     Float?     @map("stop_lon")
+  stopTime    StopTime[]
+  stops       Stop       @relation("stopsTostops", fields: [stopId], references: [stopId], onDelete: NoAction, onUpdate: NoAction)
+  other_stops Stop?      @relation("stopsTostops")
 
   @@map("stops")
 }
 
-model TripShape {
-  shapeId Int     @id @unique(map: "sqlite_autoindex_trip_shapes_1") @default(autoincrement()) @map("shape_id")
-  tripId  String? @map("trip_id")
-  shape   Shape   @relation(fields: [shapeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  trip    Trip?   @relation(fields: [tripId], references: [tripId], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("trip_shapes")
-}
-
 model Trip {
-  routeId       String      @map("route_id")
-  serviceId     String      @map("service_id")
-  tripId        String      @id @map("trip_id")
-  tripHeadsign  String?     @map("trip_headsign")
-  tripShortName String?     @map("trip_short_name")
-  directionId   Int?        @map("direction_id")
-  blockId       String?     @map("block_id")
-  shapeId       String?     @map("shape_id")
+  routeId       String     @map("route_id")
+  serviceId     String     @map("service_id")
+  tripId        String     @id @map("trip_id")
+  tripHeadsign  String?    @map("trip_headsign")
+  tripShortName String?    @map("trip_short_name")
+  directionId   Int?       @map("direction_id")
+  blockId       String?    @map("block_id")
+  shapeId       String?    @map("shape_id")
   stopTime      StopTime[]
-  tripShape     TripShape[]
-  calendar      Calendar    @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
-  route         Route       @relation(fields: [routeId], references: [routeId], onDelete: NoAction, onUpdate: NoAction)
+  calendar      Calendar   @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
+  route         Route      @relation(fields: [routeId], references: [routeId], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([shapeId], map: "idx_trips_shape_id")
   @@index([serviceId], map: "idx_trips_service_id")

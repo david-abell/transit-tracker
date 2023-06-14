@@ -29,13 +29,11 @@ export function stopTimeStringToDate(
 
   if (startOfReferenceDate) {
     const startOfDay = DateTime.now().startOf("day");
-    const timeOfDay = DateTime.fromFormat(timeString, "H:mm:ss").diff(
-      startOfDay
-    );
+    const timeOfDay = DateTime.fromSQL(timeString).diff(startOfDay);
     return startOfReferenceDate.plus(timeOfDay);
   }
 
-  return DateTime.fromFormat(timeString, "H:mm:ss");
+  return DateTime.fromSQL(timeString);
 }
 
 // Return timestring in format HH:MM:SS exa: 20:07:17

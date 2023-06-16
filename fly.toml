@@ -1,0 +1,18 @@
+# fly.toml app configuration file generated for transit-tracker on 2023-06-15T14:39:38+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "transit-tracker"
+primary_region = "cdg"
+
+[mounts]
+  source = "data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0

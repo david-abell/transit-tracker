@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider          = "sqlite"
+  url               = env("DATABASE_URL")
+  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model Agency {
@@ -44,6 +45,7 @@ model CalendarDate {
   calendar      Calendar @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([exceptionType], map: "idx_calendar_dates_exception_type")
+  @@index([serviceId], map: "idx_calendar_dates_service_id")
   @@map("calendar_dates")
 }
 
@@ -88,6 +90,8 @@ model StopTime {
 
   @@index([departureTimestamp], map: "idx_stop_times_departure_timestamp")
   @@index([arrivalTimestamp], map: "idx_stop_times_arrival_timestamp")
+  @@index([tripId], map: "idx_stop_times_trip_id")
+  @@index([stopId], map: "idx_stop_times_stop_id")
   @@map("stop_times")
 }
 

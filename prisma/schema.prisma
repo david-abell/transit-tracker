@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider          = "sqlite"
-  url               = env("DATABASE_URL")
-  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Agency {
@@ -69,6 +68,7 @@ model Shape {
   shapeDistTraveled Float? @map("shape_dist_traveled")
   id                Int    @id @default(autoincrement())
 
+  @@index([shapeId], map: "idx_shapes_shape_id")
   @@map("shapes")
 }
 
@@ -92,6 +92,7 @@ model StopTime {
   @@index([arrivalTimestamp], map: "idx_stop_times_arrival_timestamp")
   @@index([tripId], map: "idx_stop_times_trip_id")
   @@index([stopId], map: "idx_stop_times_stop_id")
+  @@index([arrivalTimestamp, stopId, tripId], map: "idx_stop_times_stop_id_arrival_timestamp_trip")
   @@map("stop_times")
 }
 

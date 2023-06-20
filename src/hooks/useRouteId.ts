@@ -2,7 +2,7 @@ import useSWR from "swr";
 import { Route } from "@prisma/client";
 
 import { fetchHelper } from "@/lib/FetchHelper";
-import { skipRevalidationOptions } from "./useStatic";
+import { skipRevalidationOptions } from "@/lib/api/static/consts";
 
 function useRouteId(routeId: string) {
   const { data } = useSWR<Route>(

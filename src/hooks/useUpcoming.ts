@@ -2,8 +2,8 @@ import useSWR from "swr";
 import { Route, Trip } from "@prisma/client";
 
 import { fetchHelper } from "@/lib/FetchHelper";
-import { skipRevalidationOptions } from "./useStatic";
 import { TripsByStopIdAPIResponse } from "@/pages/api/gtfs/static/upcoming";
+import { skipRevalidationOptions } from "@/lib/api/static/consts";
 
 function useTrips(stopId: string, selectedDateTime: string, page = 0) {
   const { data } = useSWR<TripsByStopIdAPIResponse>(

@@ -7,3 +7,9 @@ export const scheduledService = {
   isTrue: 1,
   isFalse: 0,
 };
+
+export const skipRevalidationOptions = {
+  revalidateIfStale: false,
+  revalidateOnFocus: false,
+  revalidateOnReconnect: false,
+};

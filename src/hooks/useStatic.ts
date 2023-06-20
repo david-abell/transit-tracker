@@ -7,17 +7,12 @@ import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 import { fetchHelper } from "@/lib/FetchHelper";
 import { TripAPIResponse } from "@/pages/api/gtfs/static/trips";
 import { StopTimesApiResponse } from "@/pages/api/gtfs/static/stop-times";
+import { skipRevalidationOptions } from "@/lib/api/static/consts";
 
 type Props = {
   routeId: string;
   selectedDateTime: string;
   tripId: string;
-};
-
-export const skipRevalidationOptions = {
-  revalidateIfStale: false,
-  revalidateOnFocus: false,
-  revalidateOnReconnect: false,
 };
 
 function useStatic({ routeId, selectedDateTime, tripId }: Props) {
@@ -140,7 +135,8 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
             tripId,
           ]
         : null,
-    fetchHelper
+    fetchHelper,
+    skipRevalidationOptions
   );
 
   const { data: selectedTripStopTimes } = useSWR<StopTime[]>(

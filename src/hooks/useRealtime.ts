@@ -83,9 +83,6 @@ function useRealtime() {
   const realtimeRouteIds = new Set<string>([...routes.filter((id) => !!id)]);
   const realtimeScheduledByTripId = new Map<string, TripUpdate>([...scheduled]);
 
-  console.log(realtimeAddedByRouteId);
-  console.log(realtimeByTripId);
-
   return {
     realtimeAddedByRouteId,
     realtimeCanceledTripIds,

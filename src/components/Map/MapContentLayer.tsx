@@ -155,7 +155,7 @@ function MapContentLayer({
                   return [];
                 }
 
-                const { arrivalTime, departureTime } =
+                const { arrivalTime, departureTime, stopSequence } =
                   selectedTripStopTimesById.get(stopId) || {};
 
                 if (tripId && !arrivalTime) {
@@ -169,15 +169,6 @@ function MapContentLayer({
                   departureTime,
                   arrival?.delay || departure?.delay
                 );
-                if (delayedArrivalTime) {
-                  console.log({
-                    arrivalTime,
-                    departureTime,
-                    delayedArrivalTime,
-                    arrivalDelay: arrival?.delay,
-                    departureDelay: departure?.delay,
-                  });
-                }
 
                 return (
                   <Marker
@@ -202,6 +193,8 @@ function MapContentLayer({
                       <strong>Stop Name:</strong> {stopName}
                       <br />
                       <strong>Stop Id:</strong> {stopId}
+                      <br />
+                      <strong>Stop Sequence:</strong> {stopSequence}
                       <br />
                       {!!arrivalTime && (
                         <>

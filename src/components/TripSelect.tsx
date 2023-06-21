@@ -2,7 +2,7 @@ import { getDelayedTime } from "@/lib/timeHelpers";
 import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
 import { TripUpdate } from "@/types/realtime";
 import { Route, StopTime, Trip } from "@prisma/client";
-import { Dispatch, SetStateAction, useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { DialogRefContext } from "./Modal";
 import useUpcoming from "@/hooks/useUpcoming";
 import { useSearchParams } from "next/navigation";

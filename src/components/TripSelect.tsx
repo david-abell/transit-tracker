@@ -114,7 +114,7 @@ function TripSelect({
           {/* Trip list */}
           {!!renderStopTimes && renderStopTimes.length ? (
             renderStopTimes.flatMap(({ tripId, departureTime }) => {
-              if (realtimeCanceledTripIds.has(tripId)) return [];
+              // if (realtimeCanceledTripIds.has(tripId)) return [];
 
               const real = realtimeScheduledByTripId.get(tripId);
               const { stopTimeUpdate } = real || {};
@@ -136,10 +136,15 @@ function TripSelect({
                     type="button"
                     onClick={() => handleSelectedTrip(tripId, routeId)}
                     onKeyDown={handleKeydown}
-                    className={`flex w-full cursor-pointer items-center justify-between gap-1 border-b border-gray-200 
-                py-2 pl-2 pr-4 text-start font-medium hover:bg-gray-100 hover:text-blue-700 focus:text-blue-700 focus:outline-none
-                focus:ring-2 focus:ring-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 
-                dark:hover:text-white dark:focus:text-white dark:focus:ring-gray-500 md:gap-2 md:px-4`}
+                    disabled={isCanceled}
+                    className={`flex w-full items-center justify-between gap-1 border-b border-gray-200 
+                py-2 pl-2 pr-4 text-start font-medium dark:border-gray-600 md:gap-2 md:px-4
+                ${
+                  isCanceled
+                    ? "cursor-not-allowed"
+                    : `cursor-pointer hover:bg-gray-100 hover:text-blue-700 focus:text-blue-700 focus:outline-none focus:ring-2 
+                     focus:ring-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white dark:focus:ring-gray-500`
+                }`}
                   >
                     {/* schedule columns */}
                     <div className="w-20 font-bold md:w-28 md:text-lg">

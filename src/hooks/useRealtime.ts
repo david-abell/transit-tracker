@@ -52,17 +52,18 @@ function useRealtime() {
         (acc, { tripUpdate }) => {
           const [added, scheduled, canceled, routes] = acc;
           const { scheduleRelationship, tripId, routeId } = tripUpdate!.trip;
-          switch (scheduleRelationship) {
-            case "ADDED":
-              added.push([routeId, tripUpdate!]);
-            case "CANCELED":
-              canceled.push(tripId!);
-            case "SCHEDULED":
-              scheduled.push([tripId!, tripUpdate!]);
-            default:
-              routes.push(routeId);
-              return acc;
+          if (scheduleRelationship === "ADDED") {
+            added.push([routeId, tripUpdate!]);
           }
+          if (scheduleRelationship === "CANCELED") {
+            canceled.push(tripId!);
+          }
+          if (scheduleRelationship === "SCHEDULED") {
+            scheduled.push([tripId!, tripUpdate!]);
+          }
+
+          routes.push(routeId);
+          return acc;
         },
         [[], [], [], []]
       );
@@ -81,6 +82,9 @@ function useRealtime() {
   ]);
   const realtimeRouteIds = new Set<string>([...routes.filter((id) => !!id)]);
   const realtimeScheduledByTripId = new Map<string, TripUpdate>([...scheduled]);
+
+  console.log(realtimeAddedByRouteId);
+  console.log(realtimeByTripId);
 
   return {
     realtimeAddedByRouteId,

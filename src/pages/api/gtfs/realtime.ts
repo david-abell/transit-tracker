@@ -8,8 +8,6 @@ import { createRedisInstance } from "@/lib/redis/createRedisInstance";
 
 const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/TripUpdates?format=json";
-// const GTFSR_API_URL =
-//   "https://api.nationaltransport.ie/gtfsr/v2/gtfsr?format=json";
 
 async function handler(
   req: NextApiRequest,
@@ -18,14 +16,14 @@ async function handler(
   console.log("realtime called:", new Date().toLocaleString());
 
   const redis = createRedisInstance();
-  const key = JSON.stringify(req.body);
+  const key = "realtime-trip-updates";
 
   // try fetch cached data
   const cached = redis ? await redis?.get(key) : undefined;
 
   // if cached, we're good!
   if (cached) {
-    console.log("redis cache hit");
+    console.log(`redis cache hit for: ${key}`);
     res.status(200).send(cached as unknown as GTFSResponse);
     return;
   }
@@ -44,11 +42,10 @@ async function handler(
 
   const data = await response.json();
 
-  console.log("redis cache miss, setting new data:");
+  console.log(`redis cache miss, setting new data to: ${key}`);
 
   const MAX_AGE = 60_000 * 60; // 1 hour
   const EXPIRY_MS = `PX`; // milliseconds
-
   await redis?.set(key, JSON.stringify(data), EXPIRY_MS, MAX_AGE);
 
   res.status(200).json(data);

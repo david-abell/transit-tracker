@@ -26,7 +26,6 @@ export default function Home() {
   const routeId = searchParams.get("routeId") || "";
   const tripId = searchParams.get("tripId") || "";
   const stopId = searchParams.get("stopId") || "";
-  const reverseRoute = searchParams.get("reverseRoute");
 
   // Query string helpers
   const removeQueryParams = useCallback(
@@ -107,33 +106,28 @@ export default function Home() {
     setQueryParams({ stopId }).then(() => setShowTripModal(true));
   };
 
-  const handleChangeDirection = () => {
-    if (reverseRoute) {
-      removeQueryParams(["tripId", "stopId", "reverseRoute"]);
-    } else {
-      removeQueryParams(["tripId", "stopId"]).then(() =>
-        setQueryParams({ reverseRoute: true })
-      );
-    }
+  const handleShowAllStops = () => {
+    removeQueryParams(["tripId", "stopId"]);
   };
 
   return (
     <main className="flex min-h-[100svh] flex-col items-center justify-between bg-gray-50 text-slate-950 dark:bg-gray-800 dark:text-white">
       <div className="relative w-full">
         <div ref={NavRef}>
-          <MainNav selectedRoute={selectedRoute} reverseRoute={!!reverseRoute}>
+          <MainNav selectedRoute={selectedRoute}>
             <DateTimeSelect
               selectedDateTime={selectedDateTime}
               setSelectedDateTime={setSelectedDateTime}
             />
             <SearchInput selectedRoute={selectedRoute} />
             <button
-              className="md:text-md flex-1 rounded-md border border-blue-700 bg-blue-700 
+              className={`md:text-md flex-1 rounded-md border border-blue-700 bg-blue-700 
               p-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none 
-              focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 md:flex-none"
-              onClick={handleChangeDirection}
+              focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 md:flex-none`}
+              onClick={handleShowAllStops}
+              disabled={!routeId}
             >
-              Change travel direction
+              Show all stops
             </button>
           </MainNav>
         </div>

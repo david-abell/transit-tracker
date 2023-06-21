@@ -17,20 +17,19 @@ const ThemeToggle = dynamic(() => import("./ThemeToggle"), { ssr: false });
 type Props = {
   children: ReactNode;
   selectedRoute: Route | undefined;
-  reverseRoute: boolean;
 };
 
-function MainNav({ children, selectedRoute, reverseRoute }: Props) {
+function MainNav({ children, selectedRoute }: Props) {
   const navRef = useRef<HTMLElement>(null);
   const [showMenu, setShowMenu] = useState(false);
   const isMediumScreen = useMediaQuery("(min-width: 768px)");
 
-  const directionalRouteName =
-    selectedRoute && !reverseRoute
-      ? selectedRoute.routeLongName
-      : selectedRoute
-      ? selectedRoute.routeLongName?.split("-").reverse().join("-")
-      : "Select a travel route";
+  // const directionalRouteName =
+  //   selectedRoute && !reverseRoute
+  //     ? selectedRoute.routeLongName
+  //     : selectedRoute
+  //     ? selectedRoute.routeLongName?.split("-").reverse().join("-")
+  //     : "Select a travel route";
 
   useEffect(() => {
     const ref = navRef.current;
@@ -67,7 +66,7 @@ function MainNav({ children, selectedRoute, reverseRoute }: Props) {
               {selectedRoute?.routeShortName}
             </h2>
             <p className="inline-block text-lg font-medium md:pl-2.5">
-              {directionalRouteName}
+              {selectedRoute?.routeLongName}
             </p>
           </div>
           <ThemeToggle />

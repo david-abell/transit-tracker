@@ -44,7 +44,7 @@ async function handler(
 
   console.log(`redis cache miss, setting new data to: ${key}`);
 
-  const MAX_AGE = 60_000 * 60; // 1 hour
+  const MAX_AGE = 60_000 * 8; // 8 minutes
   const EXPIRY_MS = `PX`; // milliseconds
   await redis?.set(key, JSON.stringify(data), EXPIRY_MS, MAX_AGE);
 

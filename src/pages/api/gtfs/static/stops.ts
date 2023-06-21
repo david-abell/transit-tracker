@@ -11,17 +11,17 @@ async function handler(
   req: NextApiRequest,
   res: NextApiResponse<StopsAPIResponse>
 ) {
-  const { tripId } = req.query;
+  const { routeId } = req.query;
 
-  if (!tripId || typeof tripId !== "string") {
+  if (!routeId || typeof routeId !== "string") {
     return res.end();
   }
 
   const stops = await prisma.stop.findMany({
-    where: { stopTime: { some: { tripId: tripId } } },
+    where: { stopTime: { some: { trip: { routeId: routeId } } } },
   });
 
-  if (!stops) {
+  if (!stops.length) {
     throw new ApiError(404, "No stops found");
   }
 

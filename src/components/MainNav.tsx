@@ -24,13 +24,6 @@ function MainNav({ children, selectedRoute }: Props) {
   const [showMenu, setShowMenu] = useState(false);
   const isMediumScreen = useMediaQuery("(min-width: 768px)");
 
-  // const directionalRouteName =
-  //   selectedRoute && !reverseRoute
-  //     ? selectedRoute.routeLongName
-  //     : selectedRoute
-  //     ? selectedRoute.routeLongName?.split("-").reverse().join("-")
-  //     : "Select a travel route";
-
   useEffect(() => {
     const ref = navRef.current;
     if (!ref) return;

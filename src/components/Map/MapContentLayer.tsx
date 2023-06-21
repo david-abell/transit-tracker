@@ -12,7 +12,7 @@ import {
   Popup,
 } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useInterval } from "usehooks-ts";
 
 import type { Stop, StopTime, Trip } from "@prisma/client";
@@ -33,47 +33,43 @@ import { DateTime } from "luxon";
 type Props = {
   height: number;
   invalidateRealtime: KeyedMutator<GTFSResponse>;
-  realtimeAddedByRouteId: Map<string, TripUpdate>;
-  realtimeCanceledTripIds: Set<string>;
-  realtimeRouteIds: Set<string>;
+  // realtimeAddedByRouteId: Map<string, TripUpdate>;
+  // realtimeCanceledTripIds: Set<string>;
+  // realtimeRouteIds: Set<string>;
   realtimeScheduledByTripId: Map<string, TripUpdate>;
   selectedDateTime: string;
   selectedStopId: Stop["stopId"] | undefined;
   tripId: Trip["tripId"];
   handleSelectedStop: (stopId: string) => void;
   shape: LatLngTuple[] | undefined;
-  stopIds: string[] | undefined;
   stopsById: Map<string, Stop>;
   selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
-  stopTimesByStopId: Map<string, StopTime[]> | undefined;
-  stopTimesByTripId: Map<string, StopTime[]> | undefined;
-  tripsByDirection: Map<Trip["tripId"], Trip> | undefined;
-  tripsById: Map<string, Trip>;
+  stops: Stop[] | undefined;
 };
 
 function MapContentLayer({
+  handleSelectedStop,
   height,
   invalidateRealtime,
-  realtimeAddedByRouteId,
-  realtimeCanceledTripIds,
+  // realtimeAddedByRouteId,
+  // realtimeCanceledTripIds,
   realtimeScheduledByTripId,
-  realtimeRouteIds,
-  selectedStopId,
-  tripId,
-  handleSelectedStop,
-  shape,
-  stopIds,
-  stopsById,
-  selectedTripStopTimesById,
-  stopTimesByStopId,
-  stopTimesByTripId,
-  tripsByDirection,
-  tripsById,
+  // realtimeRouteIds,
   selectedDateTime,
+  selectedStopId,
+  selectedTripStopTimesById,
+  shape,
+  stops,
+  stopsById,
+  tripId,
 }: Props) {
   const map = useMap();
 
   const markerGroupRef = useRef<L.FeatureGroup>(null);
+
+  const stopIds = useMemo(() => {
+    return stops ? stops.map(({ stopId }) => stopId) : [];
+  }, [stops]);
 
   const previousStopIds = usePrevious(stopIds);
   useEffect(() => {
@@ -151,10 +147,10 @@ function MapContentLayer({
         {/* Route stop markers */}
         <LayersControl.Overlay name="Stops" checked>
           <FeatureGroup ref={markerGroupRef}>
-            {!!stopIds &&
-              stopIds.flatMap((stopId) => {
-                const { stopLat, stopLon, stopName } =
-                  stopsById.get(stopId) || {};
+            {!!stops &&
+              stops.flatMap(({ stopLat, stopLon, stopName, stopId }) => {
+                // const { stopLat, stopLon, stopName } =
+                //   stopsById.get(stopId) || {};
                 if (!stopLat || !stopLon) {
                   return [];
                 }
@@ -162,12 +158,26 @@ function MapContentLayer({
                 const { arrivalTime, departureTime } =
                   selectedTripStopTimesById.get(stopId) || {};
 
+                if (tripId && !arrivalTime) {
+                  return [];
+                }
+
                 const stopUpdate = stopUpdates?.get(stopId);
                 const { arrival, departure } = stopUpdate || {};
 
-                const delayedArrivalTime =
-                  getDelayedTime(departureTime, arrival?.delay) ||
-                  getDelayedTime(departureTime, departure?.delay);
+                const delayedArrivalTime = getDelayedTime(
+                  departureTime,
+                  arrival?.delay || departure?.delay
+                );
+                if (delayedArrivalTime) {
+                  console.log({
+                    arrivalTime,
+                    departureTime,
+                    delayedArrivalTime,
+                    arrivalDelay: arrival?.delay,
+                    departureDelay: departure?.delay,
+                  });
+                }
 
                 return (
                   <Marker
@@ -175,9 +185,9 @@ function MapContentLayer({
                     position={[stopLat, stopLon]}
                     icon={stopMarkerIcon({
                       isUpcoming:
-                        !!delayedArrivalTime &&
+                        !!arrivalTime &&
                         !isPastArrivalTime(
-                          delayedArrivalTime,
+                          delayedArrivalTime || arrivalTime,
                           selectedDateTime
                         ),
                       isTripSelected: !!tripId,
@@ -198,17 +208,15 @@ function MapContentLayer({
                           <strong>Scheduled arrival</strong> @: {arrivalTime}
                         </>
                       )}
-                      {!!tripId &&
-                        !!realtimeTrip &&
-                        delayedArrivalTime !== arrivalTime && (
-                          <>
-                            <br />
-                            <div className="tooltip-schedule-change">
-                              <strong>Schedule change</strong>:{" "}
-                              <span>{delayedArrivalTime}</span>
-                            </div>
-                          </>
-                        )}
+                      {!!tripId && !!realtimeTrip && !!delayedArrivalTime && (
+                        <>
+                          <br />
+                          <div className="tooltip-schedule-change">
+                            <strong>Schedule change</strong>:{" "}
+                            <span>{delayedArrivalTime}</span>
+                          </div>
+                        </>
+                      )}
                       <br />
                       <button
                         type="button"

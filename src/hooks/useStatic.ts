@@ -1,13 +1,12 @@
 import useSWR from "swr";
 import { StopTime, Trip } from "@prisma/client";
 
-import { StaticAPIResponse } from "@/pages/api/gtfs/static/static";
+import { StaticAPIResponse } from "@/pages/api/gtfs/static";
 import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 
 import { fetchHelper } from "@/lib/FetchHelper";
-import { TripAPIResponse } from "@/pages/api/gtfs/static/trips";
-import { StopTimesApiResponse } from "@/pages/api/gtfs/static/stop-times";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
+import { StopsAPIResponse } from "@/pages/api/gtfs/static/stops";
 
 type Props = {
   routeId: string;
@@ -16,10 +15,10 @@ type Props = {
 };
 
 function useStatic({ routeId, selectedDateTime, tripId }: Props) {
-  const { data: stops } = useSWR<StaticAPIResponse>(
+  const { data: stops } = useSWR<StopsAPIResponse>(
     () =>
       !!routeId
-        ? `/api/gtfs/static/static?${new URLSearchParams({
+        ? `/api/gtfs/static/stops?${new URLSearchParams({
             routeId,
           })}`
         : null,
@@ -27,17 +26,23 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
     skipRevalidationOptions
   );
 
-  const { data: trips } = useSWR<TripAPIResponse>(
+  const { data: staticData } = useSWR<StaticAPIResponse>(
     () =>
-      !!routeId
-        ? `/api/gtfs/static/trips?${new URLSearchParams({
+      !!routeId && selectedDateTime
+        ? [
+            `/api/gtfs/static?${new URLSearchParams({
+              routeId,
+              dateTime: selectedDateTime,
+            })}`,
             routeId,
-            dateTime: selectedDateTime,
-          })}`
+            selectedDateTime,
+          ]
         : null,
     fetchHelper,
     skipRevalidationOptions
   );
+
+  const { trips, stopTimes } = staticData || {};
 
   const tripsById: Map<string, Trip> =
     trips && trips.length
@@ -56,27 +61,9 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
     })
   );
 
-  const { data: stopTimes } = useSWR<StopTimesApiResponse>(
-    () =>
-      !!routeId && selectedDateTime
-        ? [
-            `/api/gtfs/static/stop-times?${new URLSearchParams({
-              routeId,
-              dateTime: selectedDateTime,
-            })}`,
-            routeId,
-            selectedDateTime,
-          ]
-        : null,
-    fetchHelper,
-    skipRevalidationOptions
-  );
-
-  const { stopTimesZero, stopTimesOne } = stopTimes || {};
-
-  const stopTimesZeroByTripId: Map<string, StopTime[]> | undefined =
-    stopTimesOne &&
-    stopTimesZero?.reduce((acc, val) => {
+  const stopTimesByTripId: Map<string, StopTime[]> | undefined =
+    stopTimes &&
+    stopTimes?.reduce((acc, val) => {
       const { tripId } = val;
       if (acc.has(tripId)) {
         acc.set(tripId, acc.get(tripId).concat(val));
@@ -86,33 +73,9 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
       return acc;
     }, new Map());
 
-  const stopTimesOneByTripId: Map<string, StopTime[]> | undefined =
-    stopTimesOne &&
-    stopTimesOne?.reduce((acc, val) => {
-      const { tripId } = val;
-      if (acc.has(tripId)) {
-        acc.set(tripId, acc.get(tripId).concat(val));
-      } else {
-        acc.set(tripId, [val]);
-      }
-      return acc;
-    }, new Map());
-
-  const stopTimesZeroByStopId: Map<string, StopTime[]> | undefined =
-    stopTimesZero &&
-    stopTimesZero?.reduce((acc, val) => {
-      const { stopId } = val;
-      if (acc.has(stopId)) {
-        acc.set(stopId, acc.get(stopId).concat(val));
-      } else {
-        acc.set(stopId, [val]);
-      }
-      return acc;
-    }, new Map());
-
-  const stopTimesOneByStopId: Map<string, StopTime[]> | undefined =
-    stopTimesOne &&
-    stopTimesOne?.reduce((acc, val) => {
+  const stopTimesByStopId: Map<string, StopTime[]> | undefined =
+    stopTimes &&
+    stopTimes?.reduce((acc, val) => {
       const { stopId } = val;
       if (acc.has(stopId)) {
         acc.set(stopId, acc.get(stopId).concat(val));
@@ -164,12 +127,8 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
     stops,
     trips,
     tripsById,
-    stopTimesZero,
-    stopTimesOne,
-    stopTimesZeroByStopId,
-    stopTimesOneByStopId,
-    stopTimesZeroByTripId,
-    stopTimesOneByTripId,
+    stopTimesByStopId,
+    stopTimesByTripId,
     stopsById,
   };
 }

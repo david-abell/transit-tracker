@@ -1,10 +1,9 @@
 "use-client";
 import Image from "next/image";
 import { Inter } from "next/font/google";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useRealtime from "@/hooks/useRealtime";
 import useStatic from "@/hooks/useStatic";
-import { Route, Trip } from "@prisma/client";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripSelect from "@/components/TripSelect";
@@ -18,14 +17,6 @@ import MainNav from "@/components/MainNav";
 import { useElementSize, useWindowSize } from "usehooks-ts";
 
 const inter = Inter({ subsets: ["latin"] });
-
-// const defaultRoute = {
-//   routeId: "3249_46339",
-//   agencyId: "7778020",
-//   routeShortName: "208",
-//   routeLongName: "Lotabeg - Bishopstown - Curraheen",
-//   routeType: 3,
-// };
 
 export default function Home() {
   const router = useRouter();
@@ -88,14 +79,10 @@ export default function Home() {
     stops,
     trips,
     tripsById,
-    stopTimesZero,
-    stopTimesOne,
     shape,
     stopsById,
-    stopTimesZeroByStopId,
-    stopTimesOneByStopId,
-    stopTimesZeroByTripId,
-    stopTimesOneByTripId,
+    stopTimesByStopId,
+    stopTimesByTripId,
   } = useStatic({
     routeId,
     selectedDateTime,
@@ -103,39 +90,7 @@ export default function Home() {
   });
 
   // derived state
-  const stopIdsByDirection = useMemo(() => {
-    if (!reverseRoute && stopTimesZeroByStopId) {
-      return [...stopTimesZeroByStopId.keys()];
-    }
-    if (stopTimesOneByStopId) {
-      return [...stopTimesOneByStopId.keys()];
-    }
-  }, [reverseRoute, stopTimesOneByStopId, stopTimesZeroByStopId]);
-
-  const tripsAtSelectedStop = !reverseRoute
-    ? stopTimesZeroByStopId?.get(stopId)
-    : stopTimesOneByStopId?.get(stopId);
-
-  const [directionZeroTripsById, directionOneTripsById] = useMemo(
-    () =>
-      trips?.length
-        ? trips.reduce<[Map<Trip["tripId"], Trip>, Map<string, Trip>]>(
-            (acc, trip) => {
-              const { directionId } = trip;
-              let [directionZero, directionOne] = acc;
-
-              if (directionId === 0) {
-                directionZero.set(trip.tripId, trip);
-              } else {
-                directionOne.set(trip.tripId, trip);
-              }
-              return acc;
-            },
-            [new Map(), new Map()]
-          )
-        : [],
-    [trips]
-  );
+  const tripsAtSelectedStop = stopTimesByStopId?.get(stopId);
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
@@ -184,28 +139,18 @@ export default function Home() {
         </div>
         <MapComponent
           invalidateRealtime={invalidateRealtime}
-          realtimeAddedByRouteId={realtimeAddedByRouteId}
-          realtimeCanceledTripIds={realtimeCanceledTripIds}
-          realtimeRouteIds={realtimeRouteIds}
+          // realtimeAddedByRouteId={realtimeAddedByRouteId}
+          // realtimeCanceledTripIds={realtimeCanceledTripIds}
+          // realtimeRouteIds={realtimeRouteIds}
           realtimeScheduledByTripId={realtimeScheduledByTripId}
           shape={shape}
-          stopIds={stopIdsByDirection}
           selectedDateTime={selectedDateTime}
           selectedTripStopTimesById={selectedTripStopTimesById}
+          stops={stops}
           stopsById={stopsById}
-          tripsById={tripsById}
           selectedStopId={stopId}
           handleSelectedStop={handleSelectedStop}
           tripId={tripId}
-          stopTimesByStopId={
-            !reverseRoute ? stopTimesZeroByStopId : stopTimesOneByStopId
-          }
-          stopTimesByTripId={
-            !reverseRoute ? stopTimesZeroByTripId : stopTimesOneByTripId
-          }
-          tripsByDirection={
-            !reverseRoute ? directionZeroTripsById : directionOneTripsById
-          }
           height={windowHeight - navHeight}
         />
       </div>

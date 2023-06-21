@@ -21,15 +21,15 @@ type DataByRelationship = [
 
 // Api limited to 1 call per minute
 // test revalidate only at 5 minute intervals
-// const revalidateOptions = {
-//   focusThrottleInterval: 300000,
-//   dedupingInterval: 300000,
-// };
-// Api limited to 1 call per minute
 const revalidateOptions = {
-  focusThrottleInterval: 10000,
-  dedupingInterval: 10000,
+  focusThrottleInterval: 300000,
+  dedupingInterval: 300000,
 };
+// Api limited to 1 call per minute
+// const revalidateOptions = {
+//   focusThrottleInterval: 10000,
+//   dedupingInterval: 10000,
+// };
 
 function useRealtime() {
   const { data, error, isLoading, mutate } = useSWR<GTFSResponse>(

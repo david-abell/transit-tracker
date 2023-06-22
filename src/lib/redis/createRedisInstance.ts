@@ -27,7 +27,7 @@ export function createRedisInstance() {
   try {
     const redis = new Redis(options);
 
-    redis.on("connect", () => console.log("Redis is connect"));
+    redis.on("connect", () => console.log("Redis is connected"));
     redis.on("reconnecting", () => console.log("Redis is reconnecting"));
     redis.on("ready", () => console.log("Redis is ready"));
     redis.on("error", (error: unknown) => {

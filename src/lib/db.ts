@@ -7,13 +7,14 @@ const globalForPrisma = global as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: ["query", "info", "warn", "error"],
+    // log: ["query", "info", "warn", "error"],
+    log: ["warn", "error"],
   });
 
 // @ts-ignore
-prisma.$on("query", (e: Prisma.QueryEvent) => {
-  console.log("Query: " + e.query);
-  console.log("Duration: " + e.duration + "ms");
-});
+// prisma.$on("query", (e: Prisma.QueryEvent) => {
+//   console.log("Query: " + e.query);
+//   console.log("Duration: " + e.duration + "ms");
+// });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

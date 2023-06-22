@@ -23,20 +23,16 @@ import {
 } from "@/lib/timeHelpers";
 import { stopMarkerIcon } from "./stopMarkerIcon";
 import Bus from "./Bus";
-import { GTFSResponse, StopTimeUpdate, TripUpdate } from "@/types/realtime";
+import { StopTimeUpdate } from "@/types/realtime";
 import usePrevious from "@/hooks/usePrevious";
 import isEqual from "fast-deep-equal";
 import useVehiclePosition from "@/hooks/useVehiclePosition";
 import { KeyedMutator } from "swr";
 import { DateTime } from "luxon";
+import useRealtime from "@/hooks/useRealtime";
 
 type Props = {
   height: number;
-  invalidateRealtime: KeyedMutator<GTFSResponse>;
-  // realtimeAddedByRouteId: Map<string, TripUpdate>;
-  // realtimeCanceledTripIds: Set<string>;
-  // realtimeRouteIds: Set<string>;
-  realtimeScheduledByTripId: Map<string, TripUpdate>;
   selectedDateTime: string;
   selectedStopId: Stop["stopId"] | undefined;
   tripId: Trip["tripId"];
@@ -50,11 +46,6 @@ type Props = {
 function MapContentLayer({
   handleSelectedStop,
   height,
-  invalidateRealtime,
-  // realtimeAddedByRouteId,
-  // realtimeCanceledTripIds,
-  realtimeScheduledByTripId,
-  // realtimeRouteIds,
   selectedDateTime,
   selectedStopId,
   selectedTripStopTimesById,
@@ -64,14 +55,13 @@ function MapContentLayer({
   tripId,
 }: Props) {
   const map = useMap();
-
   const markerGroupRef = useRef<L.FeatureGroup>(null);
 
   const stopIds = useMemo(() => {
     return stops ? stops.map(({ stopId }) => stopId) : [];
   }, [stops]);
-
   const previousStopIds = usePrevious(stopIds);
+
   useEffect(() => {
     if (!stopIds || !stopIds.length || isEqual(stopIds, previousStopIds)) {
       return;
@@ -90,6 +80,8 @@ function MapContentLayer({
       map.invalidateSize();
     }
   }, [map, height]);
+
+  const { realtimeScheduledByTripId } = useRealtime(tripId);
 
   // Rerender interval to update live position and marker colors
   const [count, setCount] = useState<number>(0);
@@ -116,7 +108,6 @@ function MapContentLayer({
   );
 
   const { vehiclePosition, bearing, vehicleError } = useVehiclePosition({
-    invalidateRealtime,
     selectedTripStopTimesById,
     shape,
     stopIds,

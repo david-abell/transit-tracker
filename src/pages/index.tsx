@@ -62,13 +62,7 @@ export default function Home() {
   const [NavRef, { height: navHeight }] = useElementSize();
 
   // realtime transit data
-  const {
-    realtimeAddedByRouteId,
-    realtimeCanceledTripIds,
-    realtimeScheduledByTripId,
-    realtimeRouteIds,
-    invalidateRealtime,
-  } = useRealtime();
+  const { realtimeScheduledByTripId } = useRealtime(tripId);
 
   // static schedule data
   const { route: selectedRoute } = useRouteId(routeId);
@@ -132,11 +126,6 @@ export default function Home() {
           </MainNav>
         </div>
         <MapComponent
-          invalidateRealtime={invalidateRealtime}
-          // realtimeAddedByRouteId={realtimeAddedByRouteId}
-          // realtimeCanceledTripIds={realtimeCanceledTripIds}
-          // realtimeRouteIds={realtimeRouteIds}
-          realtimeScheduledByTripId={realtimeScheduledByTripId}
           shape={shape}
           selectedDateTime={selectedDateTime}
           selectedTripStopTimesById={selectedTripStopTimesById}
@@ -160,10 +149,6 @@ export default function Home() {
       >
         <TripSelect
           handleSelectedTrip={handleSelectedTrip}
-          realtimeAddedByRouteId={realtimeAddedByRouteId}
-          realtimeCanceledTripIds={realtimeCanceledTripIds}
-          realtimeRouteIds={realtimeRouteIds}
-          realtimeScheduledByTripId={realtimeScheduledByTripId}
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}
           stopTimes={tripsAtSelectedStop}

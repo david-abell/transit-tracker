@@ -1,87 +1,62 @@
-import { GTFSResponse, TripUpdate } from "@/types/realtime";
+import { TripUpdate } from "@/types/realtime";
 import useSWR from "swr";
 import camelcaseKeys from "camelcase-keys";
-import { GTFSResponseSchema } from "@/types/realtime.schema";
 
 import { fetchHelper } from "@/lib/FetchHelper";
+import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
 
-const API_URL = "/api/gtfs/realtime/";
-
-type RealtimeByRouteId = Array<[string, TripUpdate]>;
-type RealtimeByTripId = [string, TripUpdate][];
-type RealtimeTripIds = string[];
-type RealtimeRouteIds = string[];
-
-type DataByRelationship = [
-  RealtimeByRouteId,
-  RealtimeByTripId,
-  RealtimeTripIds,
-  RealtimeRouteIds
-];
+const API_URL = "/api/gtfs/realtime";
 
 // Api limited to 1 call per minute
 // test revalidate only at 5 minute intervals
-const revalidateOptions = {
-  focusThrottleInterval: 300000,
-  dedupingInterval: 300000,
-};
-// Api limited to 1 call per minute
 // const revalidateOptions = {
-//   focusThrottleInterval: 10000,
-//   dedupingInterval: 10000,
+//   focusThrottleInterval: 300000,
+//   dedupingInterval: 300000,
 // };
+// Api limited to 1 call per minute
+const revalidateOptions = {
+  focusThrottleInterval: 10000,
+  dedupingInterval: 10000,
+};
 
-function useRealtime() {
-  const { data, error, isLoading, mutate } = useSWR<GTFSResponse>(
-    API_URL,
+function useRealtime(tripIds: string | string[] = "") {
+  const { data, error, isLoading, mutate } = useSWR<RealtimeTripUpdateResponse>(
+    () => [
+      `${API_URL}?${new URLSearchParams({ tripIds: tripIds.toString() })}`,
+      tripIds,
+    ],
     fetchHelper,
     revalidateOptions
   );
 
-  const keyCasedData = data && camelcaseKeys(data, { deep: true });
+  const { addedTrips, tripUpdates } = data || {};
 
-  const parsedData = keyCasedData && GTFSResponseSchema.safeParse(keyCasedData);
-  // console.log(JSON.stringify(err.errors, null, 2));
+  const realtimeCanceledTripIds = new Set<string>();
+  const realtimeRouteIds = new Set<string>();
 
-  let realtimeByTripId: DataByRelationship = [[], [], [], []];
-
-  if (parsedData?.success) {
-    realtimeByTripId = parsedData.data.entity
-      .filter(({ tripUpdate }) => tripUpdate !== undefined)
-      .reduce<DataByRelationship>(
-        (acc, { tripUpdate }) => {
-          const [added, scheduled, canceled, routes] = acc;
-          const { scheduleRelationship, tripId, routeId } = tripUpdate!.trip;
-          if (scheduleRelationship === "ADDED") {
-            added.push([routeId, tripUpdate!]);
-          }
-          if (scheduleRelationship === "CANCELED") {
-            canceled.push(tripId!);
-          }
-          if (scheduleRelationship === "SCHEDULED") {
-            scheduled.push([tripId!, tripUpdate!]);
-          }
-
-          routes.push(routeId);
-          return acc;
-        },
-        [[], [], [], []]
-      );
+  if (tripUpdates) {
+    for (const [tripId, tripUpdate] of tripUpdates) {
+      const { scheduleRelationship } = tripUpdate.trip;
+      if (scheduleRelationship === "CANCELED") {
+        realtimeCanceledTripIds.add(tripId);
+      }
+      realtimeRouteIds.add(tripUpdate.trip.routeId);
+    }
   }
 
-  const [added, scheduled, canceled, routes] = realtimeByTripId || [
-    [],
-    [],
-    [],
-    [],
-  ];
+  if (addedTrips) {
+    for (const [routeId] of addedTrips) {
+      realtimeRouteIds.add(routeId);
+    }
+  }
 
-  const realtimeAddedByRouteId = new Map<string, TripUpdate>([...added]);
-  const realtimeCanceledTripIds = new Set<string>([
-    ...canceled.filter((id) => !!id),
-  ]);
-  const realtimeRouteIds = new Set<string>([...routes.filter((id) => !!id)]);
-  const realtimeScheduledByTripId = new Map<string, TripUpdate>([...scheduled]);
+  const realtimeAddedByRouteId = addedTrips
+    ? new Map<string, TripUpdate>([...addedTrips])
+    : new Map<string, TripUpdate>();
+
+  const realtimeScheduledByTripId = tripUpdates
+    ? new Map<string, TripUpdate>([...tripUpdates])
+    : new Map<string, TripUpdate>();
 
   return {
     realtimeAddedByRouteId,
@@ -89,7 +64,7 @@ function useRealtime() {
     realtimeScheduledByTripId,
     realtimeRouteIds,
     realtimeIsLoading: isLoading,
-    realtimeIsError: error || (!isLoading && !parsedData?.success),
+    realtimeIsError: error,
     invalidateRealtime: mutate,
   };
 }

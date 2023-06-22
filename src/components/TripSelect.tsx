@@ -6,13 +6,10 @@ import { useContext, useState } from "react";
 import { DialogRefContext } from "./Modal";
 import useUpcoming from "@/hooks/useUpcoming";
 import { useSearchParams } from "next/navigation";
+import useRealtime from "@/hooks/useRealtime";
 
 type Props = {
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
-  realtimeAddedByRouteId: Map<string, TripUpdate>;
-  realtimeCanceledTripIds: Set<string>;
-  realtimeRouteIds: Set<string>;
-  realtimeScheduledByTripId: Map<string, TripUpdate>;
   selectedDateTime: string;
   selectedRoute: Route | undefined;
   stopTimes: StopTime[] | undefined;
@@ -21,9 +18,6 @@ type Props = {
 
 function TripSelect({
   handleSelectedTrip,
-  realtimeCanceledTripIds,
-  realtimeScheduledByTripId,
-  realtimeRouteIds,
   selectedDateTime,
   selectedRoute,
   stopTimes = [],
@@ -39,16 +33,24 @@ function TripSelect({
     trips: allTrips,
   } = useUpcoming(searchParams.get("stopId") || "", selectedDateTime);
 
-  const hasRealtime = selectedRoute
-    ? realtimeRouteIds.has(selectedRoute.routeId)
-    : false;
-
   const renderStopTimes = showAllTrips ? allStopTimes : stopTimes;
   const routes = upComingRoutes;
+  const tripIds = renderStopTimes?.map(({ tripId }) => tripId);
+
+  const {
+    realtimeAddedByRouteId,
+    realtimeScheduledByTripId,
+    realtimeRouteIds,
+    realtimeCanceledTripIds,
+  } = useRealtime(tripIds);
 
   if (selectedRoute && !routes.has(selectedRoute.routeId)) {
     routes.set(selectedRoute.routeId, selectedRoute);
   }
+
+  const hasRealtime = selectedRoute
+    ? realtimeRouteIds.has(selectedRoute.routeId)
+    : false;
 
   // trap keyboard focus inside form for arrow and tab key input
   const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {

@@ -4,7 +4,8 @@ import {
   getPercentageToArrival,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
-import { GTFSResponse, StopTimeUpdate } from "@/types/realtime";
+import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
+import { StopTimeUpdate } from "@/types/realtime";
 import { Stop, StopTime } from "@prisma/client";
 import { Position, point } from "@turf/helpers";
 import lineChunk from "@turf/line-chunk";
@@ -31,7 +32,6 @@ type Props = {
   selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
   stopsById: Map<string, Stop>;
   stopUpdates: Map<string, StopTimeUpdate>;
-  invalidateRealtime: KeyedMutator<GTFSResponse>;
   options: {
     skip: boolean;
   };
@@ -43,7 +43,6 @@ function useVehiclePosition({
   selectedTripStopTimesById,
   stopsById,
   stopUpdates,
-  invalidateRealtime,
   options,
 }: Props): {
   vehiclePosition: LatLngTuple;
@@ -57,7 +56,6 @@ function useVehiclePosition({
   selectedTripStopTimesById,
   stopsById,
   stopUpdates,
-  invalidateRealtime,
   options,
 }: Props): {
   vehicleError: true;
@@ -69,7 +67,6 @@ function useVehiclePosition({
   selectedTripStopTimesById,
   stopsById,
   stopUpdates,
-  invalidateRealtime,
   options,
 }: Props) {
   const prevStopSequence = useRef(0);

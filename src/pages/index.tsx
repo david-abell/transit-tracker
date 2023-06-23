@@ -61,9 +61,6 @@ export default function Home() {
   const { height: windowHeight } = useWindowSize();
   const [NavRef, { height: navHeight }] = useElementSize();
 
-  // realtime transit data
-  const { realtimeScheduledByTripId } = useRealtime(tripId);
-
   // static schedule data
   const { route: selectedRoute } = useRouteId(routeId);
 

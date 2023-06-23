@@ -70,7 +70,7 @@ function MapContentLayer({
     const group = markerGroupRef.current;
     if (!group || !group.getBounds().isValid()) return;
 
-    map.flyTo(group.getBounds().getCenter(), map.getZoom());
+    map.flyToBounds(group.getBounds());
   }, [map, stopIds, previousStopIds, selectedStopId]);
 
   useEffect(() => {

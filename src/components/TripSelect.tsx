@@ -24,9 +24,11 @@ function TripSelect({
   tripsById,
 }: Props) {
   const { dialog } = useContext(DialogRefContext);
-  const [showAllTrips, setShowAllTrips] = useState(false);
+  const [isShowAllTrips, setIsShowAllTrips] = useState(false);
   const searchParams = useSearchParams();
   const selectedStopId = searchParams.get("stopId");
+
+  const showAllTrips = isShowAllTrips || !selectedRoute;
 
   const {
     routes: upComingRoutes,
@@ -68,15 +70,21 @@ function TripSelect({
       )}
       <div className="flex w-full flex-col rounded-lg border border-gray-200 bg-white text-start text-sm font-medium text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white ">
         <button
-          className="text-md bg-blue-700 px-5 py-2.5 text-center font-medium text-white hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus-visible:ring-blue-800"
+          className={`text-md px-5 py-2.5 text-center font-medium text-white ${
+            !selectedRoute
+              ? "cursor-not-allowed bg-blue-400 dark:bg-blue-500"
+              : "bg-blue-700 hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus-visible:ring-blue-800"
+          }`}
           type="button"
-          onClick={() => setShowAllTrips((prev) => !prev)}
+          onClick={() => setIsShowAllTrips((prev) => !prev)}
           onKeyDown={handleKeydown}
           disabled={!selectedRoute}
         >
-          {showAllTrips
+          {showAllTrips && !!selectedRoute
             ? `show only route ${selectedRoute?.routeShortName}`
-            : "Show all upcoming trips"}
+            : !showAllTrips
+            ? "Show all upcoming trips"
+            : "No route selected"}
         </button>
         <label htmlFor="trip-select" className="sr-only">
           Pick a trip

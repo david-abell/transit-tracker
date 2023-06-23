@@ -26,16 +26,16 @@ function TripSelect({
   const { dialog } = useContext(DialogRefContext);
   const [showAllTrips, setShowAllTrips] = useState(false);
   const searchParams = useSearchParams();
+  const selectedStopId = searchParams.get("stopId");
 
   const {
     routes: upComingRoutes,
     stopTimes: allStopTimes,
     trips: allTrips,
-  } = useUpcoming(searchParams.get("stopId") || "", selectedDateTime);
+  } = useUpcoming(selectedStopId, selectedDateTime);
 
-  const renderStopTimes = showAllTrips ? allStopTimes : stopTimes;
-  const routes = upComingRoutes;
-  const tripIds = renderStopTimes?.map(({ tripId }) => tripId);
+  const currentStopTimes = showAllTrips ? allStopTimes : stopTimes;
+  const tripIds = currentStopTimes?.map(({ tripId }) => tripId);
 
   const {
     realtimeAddedByRouteId,
@@ -44,13 +44,12 @@ function TripSelect({
     realtimeCanceledTripIds,
   } = useRealtime(tripIds);
 
-  if (selectedRoute && !routes.has(selectedRoute.routeId)) {
-    routes.set(selectedRoute.routeId, selectedRoute);
+  if (selectedRoute && !upComingRoutes.has(selectedRoute.routeId)) {
+    upComingRoutes.set(selectedRoute.routeId, selectedRoute);
   }
 
-  const hasRealtime = selectedRoute
-    ? realtimeRouteIds.has(selectedRoute.routeId)
-    : false;
+  const hasRealtime =
+    !!selectedRoute && realtimeRouteIds.has(selectedRoute.routeId);
 
   // trap keyboard focus inside form for arrow and tab key input
   const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -73,10 +72,11 @@ function TripSelect({
           type="button"
           onClick={() => setShowAllTrips((prev) => !prev)}
           onKeyDown={handleKeydown}
+          // disabled={!selectedRoute}
         >
-          {!showAllTrips
-            ? "Show all upcoming trips"
-            : `show only route ${selectedRoute?.routeShortName}`}
+          {showAllTrips
+            ? `show only route ${selectedRoute?.routeShortName}`
+            : "Show all upcoming trips"}
         </button>
         <label htmlFor="trip-select" className="sr-only">
           Pick a trip
@@ -102,35 +102,46 @@ function TripSelect({
             </span>
 
             {/* realtime headers */}
-            {hasRealtime && (
+            {(showAllTrips || hasRealtime) && (
               <>
                 <span className="w-14 cursor-default md:w-20"> Arrival</span>
                 <span className="w-14 cursor-default text-right md:w-20">
-                  {" "}
                   Delay
                 </span>
               </>
             )}
           </li>
-
           {/* Trip list */}
-          {!!renderStopTimes && renderStopTimes.length ? (
-            renderStopTimes.flatMap(({ tripId, departureTime }) => {
-              // if (realtimeCanceledTripIds.has(tripId)) return [];
+          {!!currentStopTimes &&
+            !!currentStopTimes.length &&
+            currentStopTimes.flatMap(({ tripId, departureTime }) => {
+              const { stopTimeUpdate } =
+                realtimeScheduledByTripId.get(tripId) || {};
 
-              const real = realtimeScheduledByTripId.get(tripId);
-              const { stopTimeUpdate } = real || {};
-              const [firstRealtime] = stopTimeUpdate || [];
-              const { arrival, departure } = firstRealtime || {};
-              const isDelayed =
-                !!(arrival?.delay && arrival.delay > 0) ||
-                !!(departure?.delay && departure.delay > 0);
+              const realtimeAtStop =
+                stopTimeUpdate &&
+                stopTimeUpdate.find(({ stopId }) => stopId === selectedStopId);
+
+              const { arrival, departure } = realtimeAtStop || {};
 
               const isCanceled = realtimeCanceledTripIds.has(tripId);
 
+              const isEarly =
+                !isCanceled &&
+                (!!(arrival?.delay && arrival.delay < -60) ||
+                  !!(departure?.delay && departure.delay < -60));
+
+              const isDelayed =
+                !isCanceled &&
+                (!!(arrival?.delay && arrival.delay > 60) ||
+                  !!(departure?.delay && departure.delay > 60));
+
+              const isOnTime = !isCanceled && !isEarly && !isDelayed;
+
               const { tripHeadsign = "", routeId } =
                 (showAllTrips ? allTrips : tripsById).get(tripId) || {};
-              const displayRoute = routeId ? routes.get(routeId)! : "";
+
+              const displayRoute = routeId ? upComingRoutes.get(routeId)! : "";
 
               return (
                 <li key={tripId}>
@@ -156,10 +167,9 @@ function TripSelect({
                           : ""}
                       </b>
                     </div>
-                    <span className="flex-1">
-                      {/* {" towards  "} */}
-                      {tripHeadsign}
-                    </span>
+
+                    {/* towards */}
+                    <span className="flex-1">{tripHeadsign}</span>
                     <span
                       className={`w-16 md:w-28 ${
                         hasRealtime ? "hidden md:inline-block" : ""
@@ -169,34 +179,51 @@ function TripSelect({
                     </span>
 
                     {/* realtime columns */}
-                    {hasRealtime && (
+                    {(showAllTrips || hasRealtime) && (
                       <>
                         {/* Arrival */}
-                        {isCanceled ? (
-                          <span className="w-14 text-red-700 md:w-20">N/A</span>
-                        ) : (
-                          <span
-                            className={`w-14 md:w-20 ${
-                              isDelayed ? "text-yellow-900" : "text-green-700"
-                            }`}
-                          >
+                        {isEarly && (
+                          <span className="w-14 text-green-700 md:w-20">
                             {getDelayedTime(departureTime, arrival?.delay) ||
                               getDelayedTime(departureTime, departure?.delay) ||
-                              "on time"}
+                              departureTime}
                           </span>
                         )}
+                        {isOnTime && (
+                          <span className="w-14 md:w-20">on time</span>
+                        )}
+                        {isDelayed && (
+                          <span className="w-14 text-red-700 md:w-20">
+                            {getDelayedTime(departureTime, arrival?.delay) ||
+                              getDelayedTime(departureTime, departure?.delay) ||
+                              departureTime}
+                          </span>
+                        )}
+                        {isCanceled && (
+                          <span className="w-14 text-red-700 line-through md:w-20">
+                            ${departureTime}
+                          </span>
+                        )}
+
                         {/* Delay */}
-                        {isCanceled ? (
+                        {isEarly && (
+                          <span className="w-14 text-right text-green-700 md:w-20">
+                            {arrival?.delay || departure?.delay}
+                          </span>
+                        )}
+                        {isOnTime && (
+                          <span className="w-14 text-right md:w-20">
+                            on time
+                          </span>
+                        )}
+                        {isDelayed && (
+                          <span className="w-14 text-right text-red-700 md:w-20">
+                            {arrival?.delay || departure?.delay}
+                          </span>
+                        )}
+                        {isCanceled && (
                           <span className="w-14 text-red-700 md:w-20">
                             Canceled
-                          </span>
-                        ) : (
-                          <span
-                            className={`w-14 text-right md:w-20 ${
-                              isDelayed ? "text-yellow-900" : "text-green-700"
-                            } `}
-                          >
-                            {arrival?.delay || departure?.delay || "on time"}
                           </span>
                         )}
                       </>
@@ -204,8 +231,10 @@ function TripSelect({
                   </button>
                 </li>
               );
-            })
-          ) : (
+            })}
+
+          {/* loading placeholders */}
+          {!currentStopTimes && (
             <div role="status" className="animate-pulse text-center">
               <div className="mt-2 pb-4 text-xl">Loading trips...</div>
               <div className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></div>
@@ -215,6 +244,13 @@ function TripSelect({
               <div className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></div>
               <div className="h-7 bg-gray-200 dark:bg-gray-700"></div>
             </div>
+          )}
+
+          {/* No trips found */}
+          {!!currentStopTimes && currentStopTimes.length === 0 && (
+            <p className="flex-1px-2.5 my-2.5 w-full py-0.5 text-center font-medium">
+              No upcoming trips found
+            </p>
           )}
         </ul>
       </div>

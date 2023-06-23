@@ -30,11 +30,12 @@ import useVehiclePosition from "@/hooks/useVehiclePosition";
 import { KeyedMutator } from "swr";
 import { DateTime } from "luxon";
 import useRealtime from "@/hooks/useRealtime";
+import useStop from "@/hooks/useStop";
 
 type Props = {
   height: number;
   selectedDateTime: string;
-  selectedStopId: Stop["stopId"] | undefined;
+  selectedStopId: Stop["stopId"];
   tripId: Trip["tripId"];
   handleSelectedStop: (stopId: string) => void;
   shape: LatLngTuple[] | undefined;
@@ -82,7 +83,7 @@ function MapContentLayer({
   }, [map, height]);
 
   const { realtimeScheduledByTripId } = useRealtime(tripId);
-
+  const { selectedStop } = useStop(selectedStopId);
   // Rerender interval to update live position and marker colors
   const [count, setCount] = useState<number>(0);
   useInterval(() => {
@@ -116,9 +117,11 @@ function MapContentLayer({
     options: { skip: !isToday },
   });
 
-  // const isDelayed =
-  //   (arrival?.delay && arrival.delay > 0) ||
-  //   (departure?.delay && departure.delay > 0);
+  const currentStops = stops
+    ? stops
+    : selectedStop
+    ? [selectedStop]
+    : undefined;
 
   return (
     <>
@@ -138,8 +141,8 @@ function MapContentLayer({
         {/* Route stop markers */}
         <LayersControl.Overlay name="Stops" checked>
           <FeatureGroup ref={markerGroupRef}>
-            {!!stops &&
-              stops.flatMap(({ stopLat, stopLon, stopName, stopId }) => {
+            {currentStops &&
+              currentStops.flatMap(({ stopLat, stopLon, stopName, stopId }) => {
                 // const { stopLat, stopLon, stopName } =
                 //   stopsById.get(stopId) || {};
                 if (!stopLat || !stopLon) {

@@ -70,12 +70,10 @@ export default function Home() {
   const {
     selectedTripStopTimesById,
     stops,
-    trips,
     tripsById,
     shape,
     stopsById,
     stopTimesByStopId,
-    stopTimesByTripId,
   } = useStatic({
     routeId,
     selectedDateTime,

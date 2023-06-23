@@ -61,17 +61,17 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
     })
   );
 
-  const stopTimesByTripId: Map<string, StopTime[]> | undefined =
-    stopTimes &&
-    stopTimes?.reduce((acc, val) => {
-      const { tripId } = val;
-      if (acc.has(tripId)) {
-        acc.set(tripId, acc.get(tripId).concat(val));
-      } else {
-        acc.set(tripId, [val]);
-      }
-      return acc;
-    }, new Map());
+  // const stopTimesByTripId: Map<string, StopTime[]> | undefined =
+  //   stopTimes &&
+  //   stopTimes?.reduce((acc, val) => {
+  //     const { tripId } = val;
+  //     if (acc.has(tripId)) {
+  //       acc.set(tripId, acc.get(tripId).concat(val));
+  //     } else {
+  //       acc.set(tripId, [val]);
+  //     }
+  //     return acc;
+  //   }, new Map());
 
   const stopTimesByStopId: Map<string, StopTime[]> | undefined =
     stopTimes &&
@@ -125,10 +125,8 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
     selectedTripStopTimesById,
     shape,
     stops,
-    trips,
     tripsById,
     stopTimesByStopId,
-    stopTimesByTripId,
     stopsById,
   };
 }

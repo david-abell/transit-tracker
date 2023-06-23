@@ -22,7 +22,7 @@ type Arrival = {
     stopLat: number;
     stopLon: number;
   };
-  delayedArrivalTime: string;
+  // delayedArrivalTime: string;
   stopSequence: number;
 };
 
@@ -88,14 +88,14 @@ function useVehiclePosition({
       if (!arrivalTime || !stopSequence) {
         return [];
       }
-      const stopUpdate = stopUpdates?.get(stopId);
-      const { arrival: realtimeArrival } = stopUpdate || {};
+      // const stopUpdate = stopUpdates?.get(stopId);
+      // const { arrival: realtimeArrival } = stopUpdate || {};
 
       return {
         arrivalTime: arrivalTime,
-        delayedArrivalTime: realtimeArrival?.delay
-          ? getDelayedTime(arrivalTime, realtimeArrival.delay)
-          : "",
+        // delayedArrivalTime: realtimeArrival?.delay
+        //   ? getDelayedTime(arrivalTime, realtimeArrival.delay)
+        //   : "",
         coordinates: { stopLat, stopLon },
         stopSequence,
       };

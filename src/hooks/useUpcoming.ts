@@ -5,7 +5,7 @@ import { fetchHelper } from "@/lib/FetchHelper";
 import { TripsByStopIdAPIResponse } from "@/pages/api/gtfs/static/upcoming";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 
-function useTrips(stopId: string, selectedDateTime: string, page = 0) {
+function useTrips(stopId: string | null, selectedDateTime: string, page = 0) {
   const { data } = useSWR<TripsByStopIdAPIResponse>(
     () =>
       !!stopId

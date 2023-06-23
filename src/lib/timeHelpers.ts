@@ -86,10 +86,16 @@ export function getDelayedTime(
   timeString: string | null | undefined,
   delay: number | undefined
 ) {
-  if (!timeString || !delay) return "";
+  if (!timeString || !delay) return null;
   const date = stopTimeStringToDate(timeString);
   const delayDuration = Duration.fromObject({ seconds: delay });
   const delayedDate = date.plus(delayDuration);
+  const { seconds } = delayedDate.diff(date, "seconds").toObject();
+
+  // ignore any diff less than a minute
+  if (seconds && seconds < 60 && seconds > -60) {
+    return false;
+  }
   return dateToStopTimeString(delayedDate);
 }
 

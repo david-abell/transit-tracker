@@ -87,9 +87,16 @@ export function getDelayedTime(
   delay: number | undefined
 ) {
   if (!timeString || !delay) return null;
+
+  // feed has bad data sometimes delay is number like-1687598071
+  // bail if delay is more than half a day
+  if (delay > 43200 || delay < -43200) return null;
+
   const date = stopTimeStringToDate(timeString);
-  const delayDuration = Duration.fromObject({ seconds: delay });
-  const delayedDate = date.plus(delayDuration);
+  const { seconds: delayDurationInSeconds } = Duration.fromObject({
+    seconds: delay,
+  });
+  const delayedDate = date.plus(delayDurationInSeconds);
   const { seconds } = delayedDate.diff(date, "seconds").toObject();
 
   // ignore any diff less than a minute

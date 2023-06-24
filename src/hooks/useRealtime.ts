@@ -21,10 +21,15 @@ const revalidateOptions = {
 
 function useRealtime(tripIds: string | string[] = "") {
   const { data, error, isLoading, mutate } = useSWR<RealtimeTripUpdateResponse>(
-    () => [
-      `${API_URL}?${new URLSearchParams({ tripIds: tripIds.toString() })}`,
-      tripIds,
-    ],
+    () =>
+      !!tripIds
+        ? [
+            `${API_URL}?${new URLSearchParams({
+              tripIds: tripIds.toString(),
+            })}`,
+            tripIds,
+          ]
+        : null,
     fetchHelper,
     revalidateOptions
   );

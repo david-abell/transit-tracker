@@ -23,7 +23,7 @@ async function handler(
   const { tripIds } = req.query;
   let idArray = typeof tripIds === "string" && !!tripIds && tripIds.split(",");
 
-  if (tripIds == undefined) {
+  if (!tripIds) {
     res.end();
   }
 
@@ -41,6 +41,7 @@ async function handler(
       `redis cache hit for: ${tripUpdateKey}, searching for trip ids: ${tripIds}`
     );
     const addedTripRecords = await redis.hgetall(addedTripsKey);
+    console.log(typeof addedTripRecords);
 
     const addedTrips = Object.entries(addedTripRecords).map<
       [string, TripUpdate]

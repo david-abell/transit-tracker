@@ -23,25 +23,27 @@ async function handler(
   const { tripIds } = req.query;
   let idArray = typeof tripIds === "string" && !!tripIds && tripIds.split(",");
 
-  if (!tripIds) {
-    res.end();
+  if (!tripIds?.length) {
+    return res.end();
   }
 
   console.log("realtime called:", new Date().toLocaleString());
 
   const redis = createRedisInstance();
+
   const tripUpdateKey = "tripUpdates3";
   const addedTripsKey = "addTrips";
 
   // try fetch cached data
-  const cached = redis ? await redis?.exists(tripUpdateKey) : undefined;
+  const cachedAdded = await redis.exists(addedTripsKey);
+  const cachedUpdates = await redis.exists(tripUpdateKey);
 
-  if (cached) {
+  if (cachedAdded && cachedUpdates) {
     console.log(
-      `redis cache hit for: ${tripUpdateKey}, searching for trip ids: ${tripIds}`
+      `redis cache hit:  searching for trip ids: ${JSON.stringify(tripIds)}`
     );
+
     const addedTripRecords = await redis.hgetall(addedTripsKey);
-    console.log(typeof addedTripRecords);
 
     const addedTrips = Object.entries(addedTripRecords).map<
       [string, TripUpdate]
@@ -62,10 +64,8 @@ async function handler(
       ]);
     }
 
-    res.status(200).send({ addedTrips, tripUpdates });
-    return;
+    return res.status(200).send({ addedTrips, tripUpdates });
   }
-
   const response = await fetch(API_URL, {
     method: "GET",
     // Request headers
@@ -115,7 +115,9 @@ async function handler(
   redis.pexpire(tripUpdateKey, MAX_AGE);
   redis.pexpire(addedTripsKey, MAX_AGE);
 
-  res.status(200).json({ tripUpdates: requestedTripUpdates, addedTrips });
+  return res
+    .status(200)
+    .json({ tripUpdates: requestedTripUpdates, addedTrips });
 }
 
 export default withErrorHandler(handler);

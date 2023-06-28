@@ -29,8 +29,10 @@ An Interactive map for public transit routes in Ireland.
 ### Features
 
 - Search backend SQL database served by REST apis for scheduled public transit routes.
-- Leaflet map displays interactive transit stops, route paths, arrival times, and estiamted or live vehicle position.
-- Interactive features include travel date & time, departure point by stop, and scheduled trip selection.
+- Leaflet map displays interactive transit stops, route paths, arrival times, and estimated vehicle position.
+- Interactive features include travel date/time picker, departure point by stop, and scheduled trip selection.
+- Redis realtime transit data cache provides fast trip updates by serving only user requested trips.
+- Containerized with Docker for flexible and easy deployment.
 
 ### Screenshots
 
@@ -62,6 +64,8 @@ Then crop/optimize/edit your image however you like, add it to your project, and
 - Leaflet
 - SQL and SQLite
 - Prisma
+- Docker
+- Redis
 - REST apis
 - git
 - National Transit Authority Realtime API

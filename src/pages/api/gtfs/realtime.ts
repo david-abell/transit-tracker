@@ -31,7 +31,7 @@ async function handler(
 
   const redis = createRedisInstance();
 
-  const tripUpdateKey = "tripUpdates3";
+  const tripUpdateKey = "tripUpdates";
   const addedTripsKey = "addTrips";
 
   // try fetch cached data
@@ -108,7 +108,8 @@ async function handler(
 
   console.log(`redis cache miss, setting new trip updates`);
 
-  const MAX_AGE = 60_000 * 8; // 8 minutes
+  const MAX_AGE = 60_000 * 2; // 2 minutes
+  // const MAX_AGE = 60_000 * 8; // 8 minutes
 
   await redis.hmset(tripUpdateKey, allTripUpdatesMap);
   await redis.hmset(addedTripsKey, addedTripsMap);

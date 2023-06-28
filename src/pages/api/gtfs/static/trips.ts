@@ -59,25 +59,25 @@ async function handler(
   async function findOrderedTrips(routeId: string) {
     const tripList = await prisma.$queryRaw<Trip[]>`
       SELECT
-        trips.route_id,
-        trips.service_id,
-        trips.trip_id,
-        trips.trip_headsign,
-        trips.trip_short_name,
-        trips.direction_id,
-        trips.block_id,
-        trips.shape_id 
+        trip.route_id,
+        trip.service_id,
+        trip.trip_id,
+        trip.trip_headsign,
+        trip.trip_short_name,
+        trip.direction_id,
+        trip.block_id,
+        trip.shape_id 
       FROM
-        trips 
+        trip 
           LEFT JOIN
-            calendar_dates 
-            ON trips.service_id = calendar_dates.service_id 
-            AND calendar_dates.date = ${dateOfYear} 
+            calendar_date 
+            ON trip.service_id = calendar_date.service_id 
+            AND calendar_date.date = ${dateOfYear} 
           INNER JOIN
             calendar 
-            ON trips.service_id = calendar.service_id 
+            ON trip.service_id = calendar.service_id 
       WHERE
-        trips.route_id = ${routeId} 
+        trip.route_id = ${routeId} 
         AND 
         (
           exception_type IS NULL 

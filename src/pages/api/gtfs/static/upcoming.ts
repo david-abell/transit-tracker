@@ -50,13 +50,13 @@ async function handler(
            t.drop_off_type,
            t.timepoint
     FROM
-        stop_times AS t
-            JOIN trips ON trips.trip_id = t.trip_id
-            JOIN calendar AS c ON c.service_id = trips.service_id                     
+        stop_time AS t
+            JOIN trip ON trip.trip_id = t.trip_id
+            JOIN calendar AS c ON c.service_id = trip.service_id                     
           left JOIN
-            calendar_dates 
-            ON trips.service_id = calendar_dates.service_id 
-            AND calendar_dates.date = ${dateOfYear}
+            calendar_date 
+            ON trip.service_id = calendar_date.service_id 
+            AND calendar_date.date = ${dateOfYear}
     WHERE
         t.stop_id = ${stopId} AND
         t.arrival_timestamp > ${departureTimeInSeconds}

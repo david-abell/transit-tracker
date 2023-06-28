@@ -45,7 +45,7 @@ model CalendarDate {
 
   @@index([exceptionType], map: "idx_calendar_dates_exception_type")
   @@index([serviceId], map: "idx_calendar_dates_service_id")
-  @@map("calendar_dates")
+  @@map("calendar_date")
 }
 
 model Route {
@@ -57,7 +57,7 @@ model Route {
   agency         Agency? @relation(fields: [agencyId], references: [agencyId], onDelete: NoAction, onUpdate: NoAction)
   trip           Trip[]
 
-  @@map("routes")
+  @@map("route")
 }
 
 model Shape {
@@ -69,7 +69,7 @@ model Shape {
   id                Int    @id @default(autoincrement())
 
   @@index([shapeId], map: "idx_shapes_shape_id")
-  @@map("shapes")
+  @@map("shape")
 }
 
 model StopTime {
@@ -93,7 +93,7 @@ model StopTime {
   @@index([tripId], map: "idx_stop_times_trip_id")
   @@index([stopId], map: "idx_stop_times_stop_id")
   @@index([arrivalTimestamp, stopId, tripId], map: "idx_stop_times_stop_id_arrival_timestamp_trip")
-  @@map("stop_times")
+  @@map("stop_time")
 }
 
 model Stop {
@@ -103,10 +103,10 @@ model Stop {
   stopLat     Float?     @map("stop_lat")
   stopLon     Float?     @map("stop_lon")
   stopTime    StopTime[]
-  stops       Stop       @relation("stopsTostops", fields: [stopId], references: [stopId], onDelete: NoAction, onUpdate: NoAction)
-  other_stops Stop?      @relation("stopsTostops")
+  // stops       Stop       @relation("stopsTostops", fields: [stopId], references: [stopId], onDelete: NoAction, onUpdate: NoAction)
+  // other_stops Stop?      @relation("stopsTostops")
 
-  @@map("stops")
+  @@map("stop")
 }
 
 model Trip {
@@ -127,5 +127,5 @@ model Trip {
   @@index([routeId], map: "idx_trips_route_id")
   @@index([directionId], map: "idx_trips_direction_id")
   @@index([blockId], map: "idx_trips_block_id")
-  @@map("trips")
+  @@map("trip")
 }

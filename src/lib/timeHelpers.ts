@@ -93,16 +93,15 @@ export function getDelayedTime(
   if (delay > 43200 || delay < -43200) return null;
 
   const date = stopTimeStringToDate(timeString);
-  const { seconds: delayDurationInSeconds } = Duration.fromObject({
-    seconds: delay,
-  });
-  const delayedDate = date.plus(delayDurationInSeconds);
+
+  const delayedDate = date.plus({ seconds: delay });
   const { seconds } = delayedDate.diff(date, "seconds").toObject();
 
   // ignore any diff less than a minute
   if (seconds && seconds < 60 && seconds > -60) {
     return false;
   }
+
   return dateToStopTimeString(delayedDate);
 }
 

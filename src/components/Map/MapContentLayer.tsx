@@ -123,6 +123,14 @@ function MapContentLayer({
     ? [selectedStop]
     : undefined;
 
+  const lastStoptimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
+
+  const {
+    arrival: lastArrival,
+    departure: lastDeparture,
+    stopSequence: lastStopSequence,
+  } = lastStoptimeUpdate || {};
+
   return (
     <>
       <LayersControl>
@@ -156,12 +164,39 @@ function MapContentLayer({
                   return [];
                 }
 
-                const stopUpdate = stopUpdates?.get(stopId);
-                const { arrival, departure } = stopUpdate || {};
+                // const stopUpdate = stopUpdates?.get(stopId);
+                const stopUpdate =
+                  stopTimeUpdate &&
+                  stopTimeUpdate.find(
+                    ({ stopId, stopSequence: realtimeSequence }) =>
+                      stopId === selectedStopId ||
+                      stopSequence === realtimeSequence
+                  );
+
+                // arrival delay is sometimes very wrong from realtime api exa. -1687598071
+                const {
+                  arrival,
+                  departure,
+                  stopSequence: realtimeStopSequence,
+                } = stopUpdate || {};
+
+                const arrivalDelayToCompare =
+                  lastStopSequence &&
+                  stopSequence &&
+                  lastStopSequence > stopSequence
+                    ? lastArrival?.delay
+                    : arrival?.delay;
+
+                const departureDelayToCompare =
+                  lastStopSequence &&
+                  stopSequence &&
+                  lastStopSequence < stopSequence
+                    ? lastDeparture?.delay
+                    : departure?.delay;
 
                 const delayedArrivalTime = getDelayedTime(
                   departureTime,
-                  arrival?.delay || departure?.delay
+                  arrivalDelayToCompare || departureDelayToCompare
                 );
 
                 return (

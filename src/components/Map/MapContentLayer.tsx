@@ -83,17 +83,14 @@ function MapContentLayer({
   }, [map, height]);
 
   const { realtimeScheduledByTripId } = useRealtime(tripId);
+
   const { selectedStop } = useStop(selectedStopId);
+
   // Rerender interval to update live position and marker colors
   const [count, setCount] = useState<number>(0);
   useInterval(() => {
     setCount(count + 1);
   }, 1000);
-
-  const realtimeTrip = useMemo(
-    () => realtimeScheduledByTripId.get(tripId),
-    [realtimeScheduledByTripId, tripId]
-  );
 
   const isToday = DateTime.now().hasSame(
     parseDatetimeLocale(selectedDateTime),
@@ -105,7 +102,7 @@ function MapContentLayer({
     shape,
     stopIds,
     stopsById,
-    stopTimeUpdate: realtimeTrip?.stopTimeUpdate,
+    stopTimeUpdate: realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate,
     options: { skip: !isToday },
   });
 
@@ -115,6 +112,7 @@ function MapContentLayer({
     ? [selectedStop]
     : undefined;
 
+  const realtimeTrip = realtimeScheduledByTripId.get(tripId);
   const { stopTimeUpdate } = realtimeTrip || {};
   const lastStopTimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
 

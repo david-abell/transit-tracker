@@ -22,7 +22,7 @@ type Arrival = {
     stopLat: number;
     stopLon: number;
   };
-  // delayedArrivalTime: string;
+  delayedArrivalTime: string | null;
   stopSequence: number;
 };
 
@@ -69,13 +69,9 @@ function useVehiclePosition({
   lastStoptimeUpdate,
   options,
 }: Props) {
-  const prevStopSequence = useRef(0);
   const stopTimeRef = useRef(selectedTripStopTimesById);
   const prevCoordinateRef = useRef<Arrival | undefined>();
 
-  const t0 = performance.now();
-
-  const lastStopSequence = lastStoptimeUpdate?.stopSequence;
   const lastArrivalDelay = lastStoptimeUpdate?.arrival?.delay;
   const lastDepartureDelay = lastStoptimeUpdate?.departure?.delay;
 
@@ -93,11 +89,9 @@ function useVehiclePosition({
           if (!arrivalTime || !stopSequence) {
             return [];
           }
-          // const stopUpdate = stopUpdates?.get(stopId);
-          // const { arrival: realtimeArrival } = stopUpdate || {};
 
           return {
-            arrivalTime: arrivalTime,
+            arrivalTime,
             delayedArrivalTime: getDelayedTime(
               arrivalTime,
               lastArrivalDelay || lastDepartureDelay
@@ -124,7 +118,7 @@ function useVehiclePosition({
     return { vehicleError: true };
   }
 
-  let currentStopSequence = prevStopSequence.current;
+  let currentStopSequence = prevCoordinateRef.current?.stopSequence || 0;
 
   // Check if new trip
   if (
@@ -136,10 +130,10 @@ function useVehiclePosition({
     prevCoordinateRef.current = undefined;
 
     const newStopSequence = arrivals.findIndex(
-      ({ arrivalTime }) => !isPastArrivalTime(arrivalTime)
+      ({ arrivalTime, delayedArrivalTime }) =>
+        !isPastArrivalTime(delayedArrivalTime || arrivalTime)
     );
     currentStopSequence = newStopSequence;
-    prevStopSequence.current = newStopSequence;
   }
 
   // bail early if two coordinates not possible
@@ -170,20 +164,9 @@ function useVehiclePosition({
 
   // nextStop.delayedArrivalTime
   const slicePercentage = getPercentageToArrival(
-    lastStop.arrivalTime,
-    nextStop.arrivalTime
+    lastStop.delayedArrivalTime || lastStop.arrivalTime,
+    nextStop.delayedArrivalTime || nextStop.arrivalTime
   );
-
-  // slicePercentage is 1 when arrival time is greater than total slice time,
-  // try backtracking stopSequence to reset
-  if (slicePercentage === 1) {
-    const newStopSequence = arrivals.findIndex(
-      ({ arrivalTime }) => !isPastArrivalTime(arrivalTime)
-    );
-    prevStopSequence.current = newStopSequence;
-    // invalidateRealtime();
-    return { vehicleError: true };
-  }
 
   const sliced = lineSlice(
     [nextStop.coordinates.stopLat, nextStop.coordinates.stopLon],
@@ -235,11 +218,6 @@ function useVehiclePosition({
       currentStopSequence > arrivals.length - 1 ? -1 : currentStopSequence + 1;
     prevCoordinateRef.current = nextStop;
   }
-
-  prevStopSequence.current = currentStopSequence;
-
-  const t1 = performance.now();
-  console.log(`Call to useVehicle took ${t1 - t0} milliseconds.`);
 
   return { vehiclePosition: vehiclePosition, bearing };
 }

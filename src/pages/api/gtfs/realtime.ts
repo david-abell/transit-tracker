@@ -108,7 +108,7 @@ async function handler(
 
   console.log(`redis cache miss, setting new trip updates`);
 
-  const MAX_AGE = 60_000 * 2; // 2 minutes
+  const MAX_AGE = 60_000 * 3; // 2 minutes
   // const MAX_AGE = 60_000 * 8; // 8 minutes
 
   await redis.hmset(tripUpdateKey, allTripUpdatesMap);

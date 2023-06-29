@@ -30,6 +30,7 @@ export function stopTimeStringToDate(
   if (startOfReferenceDate) {
     const startOfDay = DateTime.now().startOf("day");
     const timeOfDay = DateTime.fromSQL(timeString).diff(startOfDay);
+
     return startOfReferenceDate.plus(timeOfDay);
   }
 
@@ -38,7 +39,7 @@ export function stopTimeStringToDate(
 
 // Return timestring in format HH:MM:SS exa: 20:07:17
 export function dateToStopTimeString(dateTime: DateTime) {
-  return dateTime.toFormat("H:mm:ss");
+  return dateTime.toFormat("HH:mm:ss");
 }
 
 export type DayString = keyof Omit<

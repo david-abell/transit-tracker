@@ -108,12 +108,14 @@ function MapContentLayer({
     "day"
   );
 
+  const lastStoptimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
+
   const { vehiclePosition, bearing, vehicleError } = useVehiclePosition({
     selectedTripStopTimesById,
     shape,
     stopIds,
     stopsById,
-    stopUpdates,
+    lastStoptimeUpdate,
     options: { skip: !isToday },
   });
 
@@ -122,14 +124,6 @@ function MapContentLayer({
     : selectedStop
     ? [selectedStop]
     : undefined;
-
-  const lastStoptimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
-
-  const {
-    arrival: lastArrival,
-    departure: lastDeparture,
-    stopSequence: lastStopSequence,
-  } = lastStoptimeUpdate || {};
 
   return (
     <>
@@ -151,8 +145,6 @@ function MapContentLayer({
           <FeatureGroup ref={markerGroupRef}>
             {currentStops &&
               currentStops.flatMap(({ stopLat, stopLon, stopName, stopId }) => {
-                // const { stopLat, stopLon, stopName } =
-                //   stopsById.get(stopId) || {};
                 if (!stopLat || !stopLon) {
                   return [];
                 }
@@ -160,43 +152,24 @@ function MapContentLayer({
                 const { arrivalTime, departureTime, stopSequence } =
                   selectedTripStopTimesById.get(stopId) || {};
 
-                if (tripId && !arrivalTime) {
-                  return [];
-                }
+                // When trip selected show only stops on that trip
+                if (tripId && !arrivalTime) return [];
 
-                // const stopUpdate = stopUpdates?.get(stopId);
-                const stopUpdate =
+                const closestStopUpdate =
+                  tripId &&
                   stopTimeUpdate &&
                   stopTimeUpdate.find(
                     ({ stopId, stopSequence: realtimeSequence }) =>
                       stopId === selectedStopId ||
-                      stopSequence === realtimeSequence
+                      (stopSequence && realtimeSequence >= stopSequence)
                   );
 
                 // arrival delay is sometimes very wrong from realtime api exa. -1687598071
-                const {
-                  arrival,
-                  departure,
-                  stopSequence: realtimeStopSequence,
-                } = stopUpdate || {};
-
-                const arrivalDelayToCompare =
-                  lastStopSequence &&
-                  stopSequence &&
-                  lastStopSequence > stopSequence
-                    ? lastArrival?.delay
-                    : arrival?.delay;
-
-                const departureDelayToCompare =
-                  lastStopSequence &&
-                  stopSequence &&
-                  lastStopSequence < stopSequence
-                    ? lastDeparture?.delay
-                    : departure?.delay;
+                const { arrival, departure } = closestStopUpdate || {};
 
                 const delayedArrivalTime = getDelayedTime(
                   departureTime,
-                  arrivalDelayToCompare || departureDelayToCompare
+                  arrival?.delay || departure?.delay
                 );
 
                 return (
@@ -234,7 +207,7 @@ function MapContentLayer({
                         <>
                           <br />
                           <div className="tooltip-schedule-change">
-                            <strong>Schedule change</strong>:{" "}
+                            <strong>Estimated arrival</strong>:{" "}
                             <span>{delayedArrivalTime}</span>
                           </div>
                         </>

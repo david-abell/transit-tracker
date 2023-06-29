@@ -31,7 +31,7 @@ type Props = {
   shape: LatLngTuple[] | undefined;
   selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
   stopsById: Map<string, Stop>;
-  lastStoptimeUpdate: StopTimeUpdate | undefined;
+  stopTimeUpdate: StopTimeUpdate[] | undefined;
   options: {
     skip: boolean;
   };
@@ -42,7 +42,7 @@ function useVehiclePosition({
   shape,
   selectedTripStopTimesById,
   stopsById,
-  lastStoptimeUpdate,
+  stopTimeUpdate,
   options,
 }: Props): {
   vehiclePosition: LatLngTuple;
@@ -55,7 +55,7 @@ function useVehiclePosition({
   shape,
   selectedTripStopTimesById,
   stopsById,
-  lastStoptimeUpdate,
+  stopTimeUpdate,
   options,
 }: Props): {
   vehicleError: true;
@@ -66,14 +66,16 @@ function useVehiclePosition({
   shape,
   selectedTripStopTimesById,
   stopsById,
-  lastStoptimeUpdate,
+  stopTimeUpdate,
   options,
 }: Props) {
   const stopTimeRef = useRef(selectedTripStopTimesById);
   const prevCoordinateRef = useRef<Arrival | undefined>();
 
-  const lastArrivalDelay = lastStoptimeUpdate?.arrival?.delay;
-  const lastDepartureDelay = lastStoptimeUpdate?.departure?.delay;
+  const lastStopTimeUpdate = useMemo(
+    () => stopTimeUpdate && stopTimeUpdate.at(-1),
+    [stopTimeUpdate]
+  );
 
   const arrivals = useMemo(
     () =>
@@ -90,11 +92,21 @@ function useVehiclePosition({
             return [];
           }
 
+          const closestStopUpdate =
+            (stopTimeUpdate &&
+              stopTimeUpdate.find(
+                ({ stopSequence: realtimeSequence }) =>
+                  stopSequence && realtimeSequence >= stopSequence
+              )) ||
+            lastStopTimeUpdate;
+
+          const { arrival, departure } = closestStopUpdate || {};
+
           return {
             arrivalTime,
             delayedArrivalTime: getDelayedTime(
               arrivalTime,
-              lastArrivalDelay || lastDepartureDelay
+              arrival?.delay || departure?.delay
             ),
             coordinates: { stopLat, stopLon },
             stopSequence,
@@ -102,10 +114,10 @@ function useVehiclePosition({
         })
         .sort((a, b) => a.stopSequence - b.stopSequence),
     [
-      lastArrivalDelay,
-      lastDepartureDelay,
+      lastStopTimeUpdate,
       selectedTripStopTimesById,
       stopIds,
+      stopTimeUpdate,
       stopsById,
     ]
   );

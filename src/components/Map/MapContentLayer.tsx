@@ -90,32 +90,22 @@ function MapContentLayer({
     setCount(count + 1);
   }, 1000);
 
-  const realtimeTrip = realtimeScheduledByTripId.get(tripId);
-
-  const { stopTimeUpdate } = realtimeTrip || {};
-
-  const stopUpdates =
-    (stopTimeUpdate &&
-      new Map<string, StopTimeUpdate>(
-        [...stopTimeUpdate]
-          .filter((update) => update.stopId != undefined)
-          .map((update) => [update.stopId!, update])
-      )) ||
-    new Map<string, StopTimeUpdate>();
+  const realtimeTrip = useMemo(
+    () => realtimeScheduledByTripId.get(tripId),
+    [realtimeScheduledByTripId, tripId]
+  );
 
   const isToday = DateTime.now().hasSame(
     parseDatetimeLocale(selectedDateTime),
     "day"
   );
 
-  const lastStoptimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
-
   const { vehiclePosition, bearing, vehicleError } = useVehiclePosition({
     selectedTripStopTimesById,
     shape,
     stopIds,
     stopsById,
-    lastStoptimeUpdate,
+    stopTimeUpdate: realtimeTrip?.stopTimeUpdate,
     options: { skip: !isToday },
   });
 
@@ -124,6 +114,9 @@ function MapContentLayer({
     : selectedStop
     ? [selectedStop]
     : undefined;
+
+  const { stopTimeUpdate } = realtimeTrip || {};
+  const lastStopTimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
 
   return (
     <>
@@ -156,13 +149,13 @@ function MapContentLayer({
                 if (tripId && !arrivalTime) return [];
 
                 const closestStopUpdate =
-                  tripId &&
-                  stopTimeUpdate &&
-                  stopTimeUpdate.find(
-                    ({ stopId, stopSequence: realtimeSequence }) =>
-                      stopId === selectedStopId ||
-                      (stopSequence && realtimeSequence >= stopSequence)
-                  );
+                  (stopTimeUpdate &&
+                    stopTimeUpdate.find(
+                      ({ stopId, stopSequence: realtimeSequence }) =>
+                        stopId === selectedStopId ||
+                        (stopSequence && realtimeSequence >= stopSequence)
+                    )) ||
+                  lastStopTimeUpdate;
 
                 // arrival delay is sometimes very wrong from realtime api exa. -1687598071
                 const { arrival, departure } = closestStopUpdate || {};

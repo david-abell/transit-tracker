@@ -13,7 +13,7 @@ import lineSlice from "@turf/line-slice";
 import rhumbDistance from "@turf/rhumb-distance";
 import equal from "fast-deep-equal/es6";
 import { LatLngTuple } from "leaflet";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { KeyedMutator } from "swr";
 
 type Arrival = {
@@ -31,7 +31,7 @@ type Props = {
   shape: LatLngTuple[] | undefined;
   selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
   stopsById: Map<string, Stop>;
-  stopUpdates: Map<string, StopTimeUpdate>;
+  lastStoptimeUpdate: StopTimeUpdate | undefined;
   options: {
     skip: boolean;
   };
@@ -42,7 +42,7 @@ function useVehiclePosition({
   shape,
   selectedTripStopTimesById,
   stopsById,
-  stopUpdates,
+  lastStoptimeUpdate,
   options,
 }: Props): {
   vehiclePosition: LatLngTuple;
@@ -55,7 +55,7 @@ function useVehiclePosition({
   shape,
   selectedTripStopTimesById,
   stopsById,
-  stopUpdates,
+  lastStoptimeUpdate,
   options,
 }: Props): {
   vehicleError: true;
@@ -66,43 +66,61 @@ function useVehiclePosition({
   shape,
   selectedTripStopTimesById,
   stopsById,
-  stopUpdates,
+  lastStoptimeUpdate,
   options,
 }: Props) {
   const prevStopSequence = useRef(0);
   const stopTimeRef = useRef(selectedTripStopTimesById);
   const prevCoordinateRef = useRef<Arrival | undefined>();
 
+  const t0 = performance.now();
+
+  const lastStopSequence = lastStoptimeUpdate?.stopSequence;
+  const lastArrivalDelay = lastStoptimeUpdate?.arrival?.delay;
+  const lastDepartureDelay = lastStoptimeUpdate?.departure?.delay;
+
+  const arrivals = useMemo(
+    () =>
+      stopIds &&
+      stopIds
+        .flatMap<Arrival>((stopId) => {
+          const { stopLat, stopLon } = stopsById.get(stopId) || {};
+          if (!stopLat || !stopLon) {
+            return [];
+          }
+          const { arrivalTime, stopSequence } =
+            selectedTripStopTimesById.get(stopId) || {};
+          if (!arrivalTime || !stopSequence) {
+            return [];
+          }
+          // const stopUpdate = stopUpdates?.get(stopId);
+          // const { arrival: realtimeArrival } = stopUpdate || {};
+
+          return {
+            arrivalTime: arrivalTime,
+            delayedArrivalTime: getDelayedTime(
+              arrivalTime,
+              lastArrivalDelay || lastDepartureDelay
+            ),
+            coordinates: { stopLat, stopLon },
+            stopSequence,
+          };
+        })
+        .sort((a, b) => a.stopSequence - b.stopSequence),
+    [
+      lastArrivalDelay,
+      lastDepartureDelay,
+      selectedTripStopTimesById,
+      stopIds,
+      stopsById,
+    ]
+  );
+
   if (options.skip || !shape || shape.length < 1 || !stopIds) {
     return { vehicleError: true };
   }
 
-  const arrivals = stopIds
-    .flatMap<Arrival>((stopId) => {
-      const { stopLat, stopLon } = stopsById.get(stopId) || {};
-      if (!stopLat || !stopLon) {
-        return [];
-      }
-      const { arrivalTime, stopSequence } =
-        selectedTripStopTimesById.get(stopId) || {};
-      if (!arrivalTime || !stopSequence) {
-        return [];
-      }
-      // const stopUpdate = stopUpdates?.get(stopId);
-      // const { arrival: realtimeArrival } = stopUpdate || {};
-
-      return {
-        arrivalTime: arrivalTime,
-        // delayedArrivalTime: realtimeArrival?.delay
-        //   ? getDelayedTime(arrivalTime, realtimeArrival.delay)
-        //   : "",
-        coordinates: { stopLat, stopLon },
-        stopSequence,
-      };
-    })
-    .sort((a, b) => a.stopSequence - b.stopSequence);
-
-  if (arrivals.length < 1 && !prevCoordinateRef.current) {
+  if (!arrivals || (arrivals.length < 1 && !prevCoordinateRef.current)) {
     return { vehicleError: true };
   }
 
@@ -219,6 +237,9 @@ function useVehiclePosition({
   }
 
   prevStopSequence.current = currentStopSequence;
+
+  const t1 = performance.now();
+  console.log(`Call to useVehicle took ${t1 - t0} milliseconds.`);
 
   return { vehiclePosition: vehiclePosition, bearing };
 }

@@ -127,30 +127,35 @@ function TripSelect({
                   const { stopTimeUpdate } =
                     realtimeScheduledByTripId.get(tripId) || {};
 
-                  const lastStoptimeUpdate =
-                    stopTimeUpdate && stopTimeUpdate.at(-1);
+                  const closestStopUpdate =
+                    (stopTimeUpdate &&
+                      stopTimeUpdate.find(
+                        ({ stopId, stopSequence: realtimeSequence }) =>
+                          stopId === selectedStopId ||
+                          (stopSequence && realtimeSequence >= stopSequence)
+                      )) ||
+                    stopTimeUpdate?.at(-1);
 
-                  const { arrival: lastArrival, departure: lastDeparture } =
-                    lastStoptimeUpdate || {};
+                  const { arrival, departure } = closestStopUpdate || {};
 
                   // arrival delay is sometimes very wrong from realtime api exa. -1687598071
 
                   const delayedArrivalTime = getDelayedTime(
                     departureTime,
-                    lastArrival?.delay || lastDeparture?.delay
+                    arrival?.delay || departure?.delay
                   );
 
                   const isCanceled = realtimeCanceledTripIds.has(tripId);
 
                   const isEarly =
                     !isCanceled &&
-                    (!!(lastArrival?.delay && lastArrival.delay < -60) ||
-                      !!(lastDeparture?.delay && lastDeparture.delay < -60));
+                    (!!(arrival?.delay && arrival.delay < -60) ||
+                      !!(departure?.delay && departure.delay < -60));
 
                   const isDelayed =
                     !isCanceled &&
-                    (!!(lastArrival?.delay && lastArrival.delay > 60) ||
-                      !!(lastDeparture?.delay && lastDeparture.delay > 60));
+                    (!!(arrival?.delay && arrival.delay > 60) ||
+                      !!(departure?.delay && departure.delay > 60));
 
                   const isOnTime = !isCanceled && !isEarly && !isDelayed;
 
@@ -223,7 +228,7 @@ function TripSelect({
                             {isEarly && (
                               <span className="w-14 text-right text-green-700 md:w-20">
                                 {formatDelay(
-                                  lastArrival?.delay || lastDeparture?.delay
+                                  arrival?.delay || departure?.delay
                                 )}
                               </span>
                             )}
@@ -235,7 +240,7 @@ function TripSelect({
                             {isDelayed && (
                               <span className="w-14 text-right text-red-700 md:w-20">
                                 {formatDelay(
-                                  lastArrival?.delay || lastDeparture?.delay
+                                  arrival?.delay || departure?.delay
                                 )}
                               </span>
                             )}

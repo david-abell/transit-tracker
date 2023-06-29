@@ -100,7 +100,7 @@ export function getDelayedTime(
 
   // ignore any diff less than a minute
   if (seconds && seconds < 60 && seconds > -60) {
-    return false;
+    return null;
   }
 
   return dateToStopTimeString(delayedDate);
@@ -143,13 +143,22 @@ export function getPercentageToArrival(
   beginTime: string,
   destinationTime: string
 ) {
+  let now = DateTime.now();
+  const beginDate = stopTimeStringToDate(beginTime);
+
+  if (now < beginDate) {
+    now = stopTimeStringToDate(beginTime);
+  }
+
   const totalSeconds = getDifferenceInSeconds(destinationTime, beginTime);
-  const now = DateTime.now();
   const arrival = stopTimeStringToDate(destinationTime);
   const secondsToArrival = arrival.diff(now, "seconds").toObject().seconds;
 
   if (!secondsToArrival || !totalSeconds) return 0;
-  if (secondsToArrival > totalSeconds) return 1;
+
+  if (secondsToArrival > totalSeconds) {
+    return 1;
+  }
 
   const percentage =
     secondsToArrival > 0 && totalSeconds > 0

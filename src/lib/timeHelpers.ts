@@ -99,9 +99,9 @@ export function getDelayedTime(
   const { seconds } = delayedDate.diff(date, "seconds").toObject();
 
   // ignore any diff less than a minute
-  if (seconds && seconds < 60 && seconds > -60) {
-    return null;
-  }
+  // if (seconds && seconds < 60 && seconds > -60) {
+  //   return null;
+  // }
 
   return dateToStopTimeString(delayedDate);
 }

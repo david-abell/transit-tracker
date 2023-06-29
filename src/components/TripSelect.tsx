@@ -7,6 +7,7 @@ import { DialogRefContext } from "./Modal";
 import useUpcoming from "@/hooks/useUpcoming";
 import { useSearchParams } from "next/navigation";
 import useRealtime from "@/hooks/useRealtime";
+import { useMediaQuery } from "usehooks-ts";
 
 type Props = {
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
@@ -28,6 +29,7 @@ function TripSelect({
   const searchParams = useSearchParams();
   const selectedStopId = searchParams.get("stopId");
 
+  const matchesMedium = useMediaQuery("(min-width: 768px)");
   const showAllTrips = isShowAllTrips || !selectedRoute;
 
   const {
@@ -103,7 +105,7 @@ function TripSelect({
             <span className="flex-1 cursor-default">Destination</span>
             <span
               className={`w-16 cursor-default text-center md:w-28 ${
-                hasRealtime ? "hidden md:inline-block" : ""
+                showAllTrips || hasRealtime ? "hidden md:inline-block" : ""
               }`}
             >
               Scheduled arrival
@@ -123,7 +125,7 @@ function TripSelect({
           {!!currentStopTimes && !!currentStopTimes.length && (
             <ul className="flex h-[21rem] max-w-full flex-col overflow-y-auto text-start">
               {currentStopTimes.flatMap(
-                ({ tripId, departureTime, stopSequence }) => {
+                ({ tripId, departureTime, stopSequence, arrivalTime }) => {
                   const { stopTimeUpdate } =
                     realtimeScheduledByTripId.get(tripId) || {};
 
@@ -211,7 +213,9 @@ function TripSelect({
                               </span>
                             )}
                             {isOnTime && (
-                              <span className="w-14 md:w-20">on time</span>
+                              <span className="w-14 md:w-20">
+                                {matchesMedium ? "on time" : arrivalTime}
+                              </span>
                             )}
                             {isDelayed && (
                               <span className="w-14 text-red-700 md:w-20">

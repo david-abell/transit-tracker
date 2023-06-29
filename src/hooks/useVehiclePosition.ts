@@ -7,13 +7,12 @@ import {
 import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
 import { StopTimeUpdate } from "@/types/realtime";
 import { Stop, StopTime } from "@prisma/client";
-import { Position, point } from "@turf/helpers";
+import { point } from "@turf/helpers";
 import lineChunk from "@turf/line-chunk";
 import lineSlice from "@turf/line-slice";
 import rhumbDistance from "@turf/rhumb-distance";
-import equal from "fast-deep-equal/es6";
 import { LatLngTuple } from "leaflet";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { KeyedMutator } from "swr";
 
 type Arrival = {
@@ -69,9 +68,6 @@ function useVehiclePosition({
   stopTimeUpdate,
   options,
 }: Props) {
-  const stopTimeRef = useRef(selectedTripStopTimesById);
-  const prevCoordinateRef = useRef<Arrival | undefined>();
-
   const lastStopTimeUpdate = useMemo(
     () => stopTimeUpdate && stopTimeUpdate.at(-1),
     [stopTimeUpdate]
@@ -97,8 +93,16 @@ function useVehiclePosition({
               stopTimeUpdate.find(
                 ({ stopSequence: realtimeSequence }) =>
                   stopSequence && realtimeSequence >= stopSequence
+                // && scheduleRelationship !== "SKIPPED"
               )) ||
             lastStopTimeUpdate;
+
+          // Not sure if the below accurately reflects vehicle behaviour
+          // if (closestStopUpdate?.scheduleRelationship === "SKIPPED") {
+          //   closestStopUpdate = stopTimeUpdate!.find(
+          //     ({ arrival, departure }) => !!arrival?.delay || !!departure?.delay
+          //   );
+          // }
 
           const { arrival, departure } = closestStopUpdate || {};
 
@@ -122,48 +126,29 @@ function useVehiclePosition({
     ]
   );
 
-  if (options.skip || !shape || shape.length < 1 || !stopIds) {
-    return { vehicleError: true };
-  }
-
-  if (!arrivals || (arrivals.length < 1 && !prevCoordinateRef.current)) {
-    return { vehicleError: true };
-  }
-
-  let currentStopSequence = prevCoordinateRef.current?.stopSequence || 0;
-
-  // Check if new trip
+  // bail early if input requirements not met
   if (
-    currentStopSequence === undefined ||
-    (currentStopSequence <= 0 && !prevCoordinateRef.current) ||
-    !equal(stopTimeRef.current, selectedTripStopTimesById)
+    options.skip ||
+    !shape ||
+    shape.length < 2 ||
+    !stopIds ||
+    !arrivals ||
+    arrivals.length < 2
   ) {
-    stopTimeRef.current = selectedTripStopTimesById;
-    prevCoordinateRef.current = undefined;
-
-    const newStopSequence = arrivals.findIndex(
-      ({ arrivalTime, delayedArrivalTime }) =>
-        !isPastArrivalTime(delayedArrivalTime || arrivalTime)
-    );
-    currentStopSequence = newStopSequence;
+    return { vehicleError: true };
   }
+
+  const currentStopSequence = arrivals.findIndex(
+    ({ arrivalTime, delayedArrivalTime }) =>
+      !isPastArrivalTime(delayedArrivalTime || arrivalTime)
+  );
 
   // bail early if two coordinates not possible
-  if (
-    currentStopSequence < 0 ||
-    (currentStopSequence === 0 && !prevCoordinateRef.current)
-  ) {
-    return { vehicleError: true };
-  }
-  // this should never happen
-  if (currentStopSequence > arrivals.length - 1) {
+  if (currentStopSequence <= 0 || currentStopSequence > arrivals.length - 1) {
     return { vehicleError: true };
   }
 
-  const lastStop =
-    currentStopSequence === 0 && prevCoordinateRef.current
-      ? prevCoordinateRef.current
-      : arrivals[currentStopSequence - 1];
+  const lastStop = arrivals[currentStopSequence - 1];
 
   // some stops in sequence have same arrival time
   // check upcoming arrival times for stops with same arrival time and take last
@@ -174,7 +159,6 @@ function useVehiclePosition({
 
   const nextStop = allNextStops.at(-1)!;
 
-  // nextStop.delayedArrivalTime
   const slicePercentage = getPercentageToArrival(
     lastStop.delayedArrivalTime || lastStop.arrivalTime,
     nextStop.delayedArrivalTime || nextStop.arrivalTime
@@ -224,12 +208,6 @@ function useVehiclePosition({
     nextStop.coordinates.stopLat,
     nextStop.coordinates.stopLon,
   ]);
-
-  if (sliceIndex <= 0) {
-    currentStopSequence =
-      currentStopSequence > arrivals.length - 1 ? -1 : currentStopSequence + 1;
-    prevCoordinateRef.current = nextStop;
-  }
 
   return { vehiclePosition: vehiclePosition, bearing };
 }

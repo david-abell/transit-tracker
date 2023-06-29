@@ -106,6 +106,22 @@ export function getDelayedTime(
   return dateToStopTimeString(delayedDate);
 }
 
+export function formatDelay(delayInSeconds: number | undefined) {
+  if (!delayInSeconds) return undefined;
+  // less than a minute
+  if (delayInSeconds < 60) {
+    return `${delayInSeconds} s`;
+  }
+  // Less than an hour
+  if (delayInSeconds < 3600) {
+    const seconds = delayInSeconds % 60;
+    const minutes = (delayInSeconds - seconds) / 60;
+    return `${minutes}:${String(seconds).padStart(2, String(0))}`;
+  }
+
+  return ">1hr";
+}
+
 export function getDifferenceInSeconds(
   stopTimeOne: string,
   stopTimeTwo: string

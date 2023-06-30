@@ -50,7 +50,9 @@ function MainNav({ children, selectedRoute }: Props) {
   return (
     <nav
       ref={navRef}
-      className="relative mx-auto flex min-h-[5rem] max-w-screen-2xl flex-wrap items-start justify-between gap-2.5 border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800 md:items-center md:px-10"
+      className="relative mx-auto flex min-h-[5rem] flex-row items-start justify-between gap-2.5
+       border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800 
+       md:max-w-screen-2xl md:items-center md:px-10"
     >
       {showMenu ? (
         <>
@@ -65,23 +67,29 @@ function MainNav({ children, selectedRoute }: Props) {
           <ThemeToggle />
         </>
       ) : (
-        <SearchInput selectedRoute={selectedRoute} className={"md:hidden"} />
+        <SearchInput
+          selectedRoute={selectedRoute}
+          className={"mx-auto md:hidden md:w-auto"}
+        />
       )}
 
       {/* Menu list */}
       <div
-        className={`absolute left-0 top-full z-[1100] mx-auto w-full justify-between md:static md:flex md:w-auto ${
+        className={`absolute left-0 top-full z-[1100] mx-auto w-full justify-between md:static md:flex md:gap-2.5 ${
           showMenu ? "" : "hidden"
         }`}
       >
         <ul
           id="navbar-hamburger"
-          className="m-0 flex flex-col gap-4 bg-gray-50 p-4 font-medium dark:border-gray-700 dark:bg-gray-800 md:flex-row"
+          className="mx-auto flex flex-col flex-wrap gap-4 bg-gray-50 p-4 font-medium dark:border-gray-700 dark:bg-gray-800 md:flex-row"
         >
           {Children.map(children, (child: ReactNode) => {
             if (isValidElement(child)) {
               return (
-                <li key={child.key} className="flex w-full items-center">
+                <li
+                  key={child.key}
+                  className="mr-2 flex w-full items-center justify-center last:mr-auto md:w-auto"
+                >
                   {child}
                 </li>
               );

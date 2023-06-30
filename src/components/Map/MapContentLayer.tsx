@@ -12,8 +12,15 @@ import {
   Popup,
 } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useInterval } from "usehooks-ts";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useInterval, useLocalStorage } from "usehooks-ts";
 
 import type { Stop, StopTime, Trip } from "@prisma/client";
 import {
@@ -31,6 +38,7 @@ import { KeyedMutator } from "swr";
 import { DateTime } from "luxon";
 import useRealtime from "@/hooks/useRealtime";
 import useStop from "@/hooks/useStop";
+import { SavedStop } from "../SavedStops";
 
 type Props = {
   height: number;
@@ -41,6 +49,7 @@ type Props = {
   shape: LatLngTuple[] | undefined;
   stopsById: Map<string, Stop>;
   selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
+  setShowSavedStops: Dispatch<SetStateAction<boolean>>;
   stops: Stop[] | undefined;
 };
 
@@ -50,6 +59,7 @@ function MapContentLayer({
   selectedDateTime,
   selectedStopId,
   selectedTripStopTimesById,
+  setShowSavedStops,
   shape,
   stops,
   stopsById,
@@ -62,6 +72,22 @@ function MapContentLayer({
     return stops ? stops.map(({ stopId }) => stopId) : [];
   }, [stops]);
   const previousStopIds = usePrevious(stopIds);
+
+  const [savedStops, setSavedStops] = useLocalStorage<SavedStop>(
+    "savedSTops",
+    {}
+  );
+
+  const addStopToSaved = (stopId: string, stopName: string | null) => {
+    setSavedStops((prev) => {
+      const stops = { ...prev };
+
+      stops[stopId] = stopName || stopId;
+
+      return stops;
+    });
+    setShowSavedStops(true);
+  };
 
   useEffect(() => {
     if (!stopIds || !stopIds.length || isEqual(stopIds, previousStopIds)) {
@@ -212,6 +238,24 @@ function MapContentLayer({
                           dark:focus:ring-blue-800"
                       >
                         View trips
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => addStopToSaved(stopId, stopName)}
+                        className="mx-auto my-2 flex flex-row gap-1 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
+                         focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700
+                          dark:focus:ring-blue-800"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          className="inline-block h-5 w-5 text-yellow-400"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                        <span>Save stop</span>
                       </button>
                     </Popup>
                   </Marker>

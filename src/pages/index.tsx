@@ -15,6 +15,7 @@ import useRouteId from "@/hooks/useRouteId";
 import { useSearchParams } from "next/navigation";
 import MainNav from "@/components/MainNav";
 import { useElementSize, useWindowSize } from "usehooks-ts";
+import SavedStops from "@/components/SavedStops";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -57,6 +58,7 @@ export default function Home() {
 
   // component visibility state
   const [showTripModal, setShowTripModal] = useState(false);
+  const [showSavedStops, setShowSavedStops] = useState(false);
 
   const { height: windowHeight } = useWindowSize();
   const [NavRef, { height: navHeight }] = useElementSize();
@@ -108,15 +110,32 @@ export default function Home() {
               selectedDateTime={selectedDateTime}
               setSelectedDateTime={setSelectedDateTime}
             />
-            <SearchInput selectedRoute={selectedRoute} />
+            <SearchInput selectedRoute={selectedRoute} className="w-full" />
             <button
-              className={`md:text-md flex-1 rounded-md border border-blue-700 bg-blue-700 
-              p-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none 
-              focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 md:flex-none`}
+              className={`md:text-md w-full rounded-md  border border-blue-700 bg-blue-700 p-2.5 
+              text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 
+              focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 md:w-auto md:flex-none`}
               onClick={handleShowAllStops}
               disabled={!routeId}
             >
               Show all stops
+            </button>
+            <button
+              className={`md:text-md flex w-full  flex-row items-center justify-center gap-1 rounded-md border border-blue-700 
+              bg-blue-700 p-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4
+              focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 md:w-auto md:flex-none`}
+              onClick={() => setShowSavedStops(true)}
+            >
+              <svg
+                aria-hidden="true"
+                className="inline-block h-5 w-5 text-yellow-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+              </svg>
+              <span>Favorite stops</span>
             </button>
           </MainNav>
         </div>
@@ -124,6 +143,7 @@ export default function Home() {
           shape={shape}
           selectedDateTime={selectedDateTime}
           selectedTripStopTimesById={selectedTripStopTimesById}
+          setShowSavedStops={setShowSavedStops}
           stops={stops}
           stopsById={stopsById}
           selectedStopId={stopId}
@@ -150,6 +170,12 @@ export default function Home() {
           tripsById={tripsById}
         />
       </Modal>
+
+      <SavedStops
+        isOpen={showSavedStops}
+        setIsOpen={setShowSavedStops}
+        setShowTripModal={setShowTripModal}
+      />
     </main>
   );
 }

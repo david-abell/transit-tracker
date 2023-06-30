@@ -70,7 +70,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
     <div className={className}>
       <form
         ref={formRef}
-        className="flex w-full flex-1 flex-col items-center justify-center text-center md:min-w-[28rem]"
+        className="flex w-full flex-1 flex-col items-center justify-center text-center md:w-auto md:min-w-[28rem]"
         // onSubmit={handleOnSubmit}
       >
         <label htmlFor="route-search" className="sr-only">

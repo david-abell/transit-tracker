@@ -109,6 +109,12 @@ export function getDelayedTime(
 export function formatDelay(delayInSeconds: number | undefined) {
   if (!delayInSeconds) return undefined;
   // Less than an hour early
+  if (delayInSeconds < -3600) {
+    // const seconds = Math.abs(delayInSeconds % 60);
+    // const minutes = (delayInSeconds + seconds) / 60;
+    // return `${minutes}:${String(seconds).padStart(2, String(0))}`;
+    return undefined;
+  }
   if (delayInSeconds > -3600 && delayInSeconds < -60) {
     const seconds = Math.abs(delayInSeconds % 60);
     const minutes = (delayInSeconds + seconds) / 60;

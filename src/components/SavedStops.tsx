@@ -63,13 +63,9 @@ export default function Sidebar({
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       {/* <SheetTrigger>Open</SheetTrigger> */}
-      <SheetContent>
+      <SheetContent className="bg-gray-50 text-slate-950 dark:bg-gray-800 dark:text-white">
         <SheetHeader>
-          <SheetTitle>Saved Stops</SheetTitle>
-          {/* <SheetDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
-          </SheetDescription> */}
+          <SheetTitle>Favorite Stops</SheetTitle>
           <div>
             <ul>
               {!!savedStops &&
@@ -79,9 +75,9 @@ export default function Sidebar({
                       <button
                         type="button"
                         onClick={() => setSelectedStop(stopId)}
-                        className="flex w-full cursor-pointer items-center justify-start gap-1 border-b 
-                      border-gray-200 py-2 pl-2 pr-4 text-start font-medium hover:bg-gray-100 hover:text-blue-700 focus:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 
-                      dark:hover:text-white dark:focus:text-white dark:focus:ring-gray-500 md:gap-2 md:px-4"
+                        className="flex w-full cursor-pointer items-center justify-start border-b border-gray-200 
+                      py-2 pl-2 pr-4 text-start font-medium ring-inset hover:bg-gray-100 hover:text-blue-700 focus-visible:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 
+                      dark:hover:text-white dark:focus-visible:text-white dark:focus-visible:ring-gray-500 md:gap-2 md:px-4"
                       >
                         {/* Star svg */}
                         <svg
@@ -98,7 +94,7 @@ export default function Sidebar({
                       <button
                         type="button"
                         onClick={() => removeStop(stopId)}
-                        className="flex items-center border-b border-gray-200 bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-white"
+                        className="flex items-center border-b border-gray-200 bg-gray-50 p-1.5 text-gray-400 ring-inset hover:bg-gray-100 hover:text-red-900 focus-visible:ring-2 focus-visible:ring-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-red-600"
                       >
                         <span className="sr-only">Delete item</span>
                         <svg

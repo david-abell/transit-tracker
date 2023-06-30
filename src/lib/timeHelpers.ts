@@ -85,7 +85,8 @@ export function isPastArrivalTime(
 
 export function getDelayedTime(
   timeString: string | null | undefined,
-  delay: number | undefined
+  delay: number | undefined,
+  precise: boolean = false
 ) {
   if (!timeString || !delay) return null;
 
@@ -99,9 +100,9 @@ export function getDelayedTime(
   const { seconds } = delayedDate.diff(date, "seconds").toObject();
 
   // ignore any diff less than a minute
-  // if (seconds && seconds < 60 && seconds > -60) {
-  //   return null;
-  // }
+  if (!precise && seconds && seconds < 30 && seconds > -30) {
+    return null;
+  }
 
   return dateToStopTimeString(delayedDate);
 }

@@ -110,7 +110,8 @@ function useVehiclePosition({
             arrivalTime,
             delayedArrivalTime: getDelayedTime(
               arrivalTime,
-              arrival?.delay || departure?.delay
+              arrival?.delay || departure?.delay,
+              true
             ),
             coordinates: { stopLat, stopLon },
             stopSequence,

@@ -35,7 +35,10 @@ async function handler(
   const dayOfWeek = getDayString(date);
   const dateOfYear = getCalendarDate(date);
   const startOfDate = startOfDay(date);
-  const departureTimeInSeconds = differenceInSeconds(date, startOfDate);
+  const departureDifferenceInSeconds = differenceInSeconds(date, startOfDate);
+  // Show trips in last 5 minutes
+  const departureOffset = departureDifferenceInSeconds > 60 * 5 ? 60 * 5 : 0;
+  const departureTimeInSeconds = departureDifferenceInSeconds - departureOffset;
 
   const stopTimeResponse = await prisma.$queryRaw<StopTime[]>`
     SELECT t.trip_id,

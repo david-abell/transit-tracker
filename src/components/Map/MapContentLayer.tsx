@@ -120,7 +120,7 @@ function MapContentLayer({
     <>
       <LayersControl>
         {/* Vehicle marker */}
-        <LayersControl.Overlay name="Vehicle Position" checked>
+        <LayersControl.Overlay name="Estimated vehicle Position" checked>
           <LayerGroup>
             {/* width required for icon not to be 0*0 px */}
             <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>

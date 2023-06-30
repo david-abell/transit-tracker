@@ -156,6 +156,7 @@ function TripSelect({
 
                   const isDelayed =
                     !isCanceled &&
+                    !isEarly &&
                     (!!(arrival?.delay && arrival.delay > 60) ||
                       !!(departure?.delay && departure.delay > 60));
 

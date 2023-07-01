@@ -6,6 +6,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useCallback } from "react";
 import { useLocalStorage } from "usehooks-ts";
@@ -29,11 +30,14 @@ export default function Sidebar({
   setShowTripModal,
 }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [savedStops, setSavedStops] = useLocalStorage<SavedStop>("savedSTops", {
     "8370B2426901": "Tara Lawn",
     "8370B2145501": "Wilton SC",
   });
+
+  const selectedStopId = searchParams.get("stopId") || "";
 
   const removeStop = (stopId: string) => {
     setSavedStops((prev) => {
@@ -53,11 +57,15 @@ export default function Sidebar({
           query: { stopId },
         })
         .then(() => {
-          setShowTripModal(true);
           setIsOpen(false);
+          if (stopId && stopId === selectedStopId) {
+            setShowTripModal(true);
+          } else {
+            setTimeout(() => setShowTripModal(true), 1500);
+          }
         });
     },
-    [router, setIsOpen, setShowTripModal]
+    [router, selectedStopId, setIsOpen, setShowTripModal]
   );
 
   return (

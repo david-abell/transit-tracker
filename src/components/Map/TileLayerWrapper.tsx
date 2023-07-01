@@ -6,8 +6,8 @@ import { ReactNode } from "react";
 function TileLayerWrapper({ children }: { children: ReactNode }) {
   return (
     <MapContainer
-      center={[51.9081690653422, -8.41944955885327]}
-      zoom={13}
+      center={[53.7798, -7.3055]}
+      zoom={7}
       className={`relative h-full w-[100max]`}
     >
       <TileLayer

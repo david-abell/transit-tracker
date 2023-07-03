@@ -65,17 +65,20 @@ function TripSelect({
 
   return (
     <>
-      {!hasRealtime && !showAllTrips && (
-        <p className="my-2.5 w-full flex-1 bg-red-100 px-2.5 py-0.5 text-center font-medium text-red-900 dark:bg-red-900 dark:text-red-200">
+      {
+        <p
+          className={`mt-2 w-full flex-1 bg-red-100 px-2.5 py-0.5 text-center font-medium text-red-900 ring-2 ring-inset ring-red-900 dark:bg-red-900 dark:text-red-200
+        ${hasRealtime || showAllTrips ? "invisible" : ""}`}
+        >
           No realtime data available
         </p>
-      )}
+      }
       <div className="flex w-full flex-col rounded-lg border border-gray-200 bg-white text-start text-sm font-medium text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white ">
         <button
           className={`text-md px-5 py-2.5 text-center font-medium text-white ${
             !selectedRoute
               ? "cursor-not-allowed bg-blue-400 dark:bg-blue-500"
-              : "bg-blue-700 hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus-visible:ring-blue-800"
+              : "bg-blue-700 ring-inset hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus-visible:ring-blue-800"
           }`}
           type="button"
           onClick={() => setIsShowAllTrips((prev) => !prev)}
@@ -181,8 +184,8 @@ function TripSelect({
                   ${
                     isCanceled
                       ? "cursor-not-allowed"
-                      : `cursor-pointer hover:bg-gray-100 hover:text-blue-700 focus:text-blue-700 focus:outline-none focus:ring-2 
-                       focus:ring-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white dark:focus:ring-gray-500`
+                      : `cursor-pointer ring-inset hover:bg-gray-100 hover:text-blue-700 focus-visible:text-blue-700 focus-visible:outline-none focus-visible:ring-2
+                       focus-visible:ring-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus-visible:text-white dark:focus-visible:ring-gray-500`
                   }`}
                       >
                         {/* schedule columns */}

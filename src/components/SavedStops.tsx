@@ -32,10 +32,10 @@ export default function Sidebar({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [savedStops, setSavedStops] = useLocalStorage<SavedStop>("savedSTops", {
-    "8370B2426901": "Tara Lawn",
-    "8370B2145501": "Wilton SC",
-  });
+  const [savedStops, setSavedStops] = useLocalStorage<SavedStop>(
+    "savedSTops",
+    {}
+  );
 
   const selectedStopId = searchParams.get("stopId") || "";
 

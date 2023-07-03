@@ -1,6 +1,5 @@
 import { TripUpdate } from "@/types/realtime";
 import useSWR from "swr";
-import camelcaseKeys from "camelcase-keys";
 
 import { fetchHelper } from "@/lib/FetchHelper";
 import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";

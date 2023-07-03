@@ -29,7 +29,7 @@ function TripSelect({
   const searchParams = useSearchParams();
   const selectedStopId = searchParams.get("stopId");
 
-  const matchesMedium = useMediaQuery("(min-width: 768px)");
+  const matchesLarge = useMediaQuery("(min-width: 768px)");
   const showAllTrips = isShowAllTrips || !selectedRoute;
 
   const {
@@ -104,17 +104,17 @@ function TripSelect({
             <span className="w-20 cursor-default md:w-28">Route</span>
             <span className="flex-1 cursor-default">Destination</span>
             <span
-              className={`w-16 cursor-default text-center md:w-28 ${
+              className={`w-16 cursor-default md:w-28 ${
                 showAllTrips || hasRealtime ? "hidden md:inline-block" : ""
               }`}
             >
-              Scheduled arrival
+              Scheduled
             </span>
 
             {/* realtime headers */}
             {(showAllTrips || hasRealtime) && (
               <>
-                <span className="w-14 cursor-default md:w-20"> Arrival</span>
+                <span className="w-14 cursor-default md:w-20"> Arriving</span>
                 <span className="w-14 cursor-default text-right md:w-20">
                   Delay
                 </span>
@@ -198,7 +198,9 @@ function TripSelect({
                         <span className="flex-1">{tripHeadsign}</span>
                         <span
                           className={`w-16 md:w-28 ${
-                            hasRealtime ? "hidden md:inline-block" : ""
+                            hasRealtime || showAllTrips
+                              ? "hidden md:inline-block"
+                              : ""
                           }`}
                         >
                           {departureTime}
@@ -215,7 +217,7 @@ function TripSelect({
                             )}
                             {isOnTime && (
                               <span className="w-14 md:w-20">
-                                {matchesMedium ? "on time" : arrivalTime}
+                                {matchesLarge ? "on time" : arrivalTime}
                               </span>
                             )}
                             {isDelayed && (

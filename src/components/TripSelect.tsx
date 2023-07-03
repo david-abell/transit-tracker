@@ -220,7 +220,11 @@ function TripSelect({
                             )}
                             {isOnTime && (
                               <span className="w-14 md:w-20">
-                                {matchesLarge ? "on time" : arrivalTime}
+                                {matchesLarge && hasRealtime
+                                  ? "on time"
+                                  : matchesLarge
+                                  ? "scheduled"
+                                  : arrivalTime}
                               </span>
                             )}
                             {isDelayed && (
@@ -244,7 +248,7 @@ function TripSelect({
                             )}
                             {isOnTime && (
                               <span className="w-14 text-right md:w-20">
-                                on time
+                                {closestStopUpdate ? "on time" : "no data"}
                               </span>
                             )}
                             {isDelayed && (
@@ -255,7 +259,7 @@ function TripSelect({
                               </span>
                             )}
                             {isCanceled && (
-                              <span className="w-14 text-red-700 dark:text-red-500 md:w-20">
+                              <span className="w-14 text-right text-red-700 dark:text-red-500 md:w-20">
                                 Canceled
                               </span>
                             )}

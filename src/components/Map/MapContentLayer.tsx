@@ -39,11 +39,11 @@ import { DateTime } from "luxon";
 import useRealtime from "@/hooks/useRealtime";
 import useStop from "@/hooks/useStop";
 import { SavedStop } from "../SavedStops";
+import { useSearchParams } from "next/navigation";
 
 type Props = {
   height: number;
   selectedDateTime: string;
-  selectedStopId: Stop["stopId"];
   tripId: Trip["tripId"];
   handleSelectedStop: (stopId: string) => void;
   shape: LatLngTuple[] | undefined;
@@ -57,7 +57,6 @@ function MapContentLayer({
   handleSelectedStop,
   height,
   selectedDateTime,
-  selectedStopId,
   selectedTripStopTimesById,
   setShowSavedStops,
   shape,
@@ -67,6 +66,11 @@ function MapContentLayer({
 }: Props) {
   const map = useMap();
   const markerGroupRef = useRef<L.FeatureGroup>(null);
+
+  const searchParams = useSearchParams();
+
+  // query params state
+  const selectedStopId = searchParams.get("stopId") || "";
 
   const stopIds = useMemo(() => {
     return stops ? stops.map(({ stopId }) => stopId) : [];
@@ -89,22 +93,26 @@ function MapContentLayer({
     setShowSavedStops(true);
   };
 
+  const { selectedStop } = useStop(selectedStopId);
+
   useEffect(() => {
     if (stopIds.length && isEqual(stopIds, previousStopIds)) {
       return;
     }
-
-    const group = markerGroupRef.current;
-    if (!group || !group.getBounds().isValid()) {
-      return;
-    }
-
     if (stopIds.length) {
+      const group = markerGroupRef.current;
+
+      if (!group || !group.getBounds().isValid()) return;
+
       map.flyToBounds(group.getBounds());
     } else {
-      map.flyToBounds(group.getBounds(), { maxZoom: 14 });
+      const { stopLat, stopLon } = selectedStop || {};
+
+      if (!stopLat || !stopLon) return;
+
+      map.flyTo([stopLat, stopLon], 14);
     }
-  }, [map, stopIds, previousStopIds, selectedStopId]);
+  }, [map, stopIds, previousStopIds, selectedStop]);
 
   useEffect(() => {
     if (map != null) {
@@ -115,8 +123,6 @@ function MapContentLayer({
   }, [map, height]);
 
   const { realtimeScheduledByTripId } = useRealtime(tripId);
-
-  const { selectedStop } = useStop(selectedStopId);
 
   // Rerender interval to update live position and marker colors
   const [count, setCount] = useState<number>(0);

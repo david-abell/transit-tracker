@@ -146,7 +146,6 @@ export default function Home() {
           setShowSavedStops={setShowSavedStops}
           stops={stops}
           stopsById={stopsById}
-          selectedStopId={stopId}
           handleSelectedStop={handleSelectedStop}
           tripId={tripId}
           height={windowHeight - navHeight}

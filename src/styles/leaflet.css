@@ -698,6 +698,17 @@ svg.leaflet-image-layer.leaflet-interactive path {
   /* Tailwind bg-gray-800 */
   background-color: rgb(31 41 55);
 }
+.dark .leaflet-container {
+  /* Tailwind bg-gray-800 */
+  background-color: rgb(31 41 55);
+}
+.dark .leaflet-popup-content-wrapper,
+.dark .leaflet-popup-tip,
+.dark a.leaflet-popup-close-button {
+  /* Tailwind bg-gray-700 */
+  background: #374151;
+  color: white;
+}
 
 /**
   Source: https://github.com/pkrasicki/issviewer

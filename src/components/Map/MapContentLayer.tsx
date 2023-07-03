@@ -224,11 +224,9 @@ function MapContentLayer({
                       <strong>Stop Name:</strong> {stopName}
                       <br />
                       <strong>Stop Id:</strong> {stopId}
-                      <br />
-                      <strong>Stop Sequence:</strong> {stopSequence}
-                      <br />
                       {!!arrivalTime && (
                         <>
+                          <br />
                           <strong>Scheduled arrival</strong> @: {arrivalTime}
                         </>
                       )}
@@ -241,7 +239,6 @@ function MapContentLayer({
                           </div>
                         </>
                       )}
-                      <br />
                       <button
                         type="button"
                         onClick={() => handleSelectedStop(stopId)}

@@ -16,6 +16,7 @@ import { useSearchParams } from "next/navigation";
 import MainNav from "@/components/MainNav";
 import { useElementSize, useWindowSize } from "usehooks-ts";
 import SavedStops from "@/components/SavedStops";
+import useStop from "@/hooks/useStop";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -65,6 +66,7 @@ export default function Home() {
 
   // static schedule data
   const { route: selectedRoute } = useRouteId(routeId);
+  const { selectedStop } = useStop(stopId);
 
   const {
     selectedTripStopTimesById,
@@ -155,9 +157,7 @@ export default function Home() {
       {/* Trip select modal */}
       <Modal
         isOpen={showTripModal}
-        title={`${
-          stopsById.has(stopId) ? stopsById.get(stopId)?.stopName : ""
-        }`}
+        title={`${selectedStop ? selectedStop.stopName : ""}`}
         onClose={() => setShowTripModal(false)}
         onProceed={() => setShowTripModal(false)}
       >

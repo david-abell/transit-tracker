@@ -214,7 +214,7 @@ function TripSelect({
                           <>
                             {/* Arrival */}
                             {isEarly && (
-                              <span className="w-14 text-green-700 md:w-20">
+                              <span className="w-14 text-green-700 dark:text-green-500 md:w-20">
                                 {delayedArrivalTime || departureTime}
                               </span>
                             )}
@@ -224,19 +224,19 @@ function TripSelect({
                               </span>
                             )}
                             {isDelayed && (
-                              <span className="w-14 text-red-700 md:w-20">
+                              <span className="w-14 text-red-700 dark:text-red-500 md:w-20">
                                 {delayedArrivalTime || departureTime}
                               </span>
                             )}
                             {isCanceled && (
-                              <span className="w-14 text-red-700 line-through md:w-20">
+                              <span className="w-14 text-red-700 line-through dark:text-red-500 md:w-20">
                                 {departureTime}
                               </span>
                             )}
 
                             {/* Delay */}
                             {isEarly && (
-                              <span className="w-14 text-right text-green-700 md:w-20">
+                              <span className="w-14 text-right text-green-700 dark:text-green-500 md:w-20">
                                 {formatDelay(
                                   arrival?.delay || departure?.delay
                                 )}
@@ -248,14 +248,14 @@ function TripSelect({
                               </span>
                             )}
                             {isDelayed && (
-                              <span className="w-14 text-right text-red-700 md:w-20">
+                              <span className="w-14 text-right text-red-700 dark:text-red-500 md:w-20">
                                 {formatDelay(
                                   arrival?.delay || departure?.delay
                                 )}
                               </span>
                             )}
                             {isCanceled && (
-                              <span className="w-14 text-red-700 md:w-20">
+                              <span className="w-14 text-red-700 dark:text-red-500 md:w-20">
                                 Canceled
                               </span>
                             )}

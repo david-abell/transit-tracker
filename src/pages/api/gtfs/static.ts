@@ -205,6 +205,6 @@ async function getStoptimes(
         },
       ],
     },
-    orderBy: { stopSequence: "asc" },
+    orderBy: [{ arrivalTimestamp: "asc" }, { stopSequence: "asc" }],
   });
 }

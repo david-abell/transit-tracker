@@ -1,17 +1,10 @@
 import { Calendar } from "@prisma/client";
-import {
-  format,
-  parse,
-  getDay,
-  compareAsc,
-  addSeconds,
-  differenceInSeconds,
-} from "date-fns";
+import { format, getDay } from "date-fns";
 
 // non standard format for input type="datetime"
 // 2023-06-01T13:31
 const LUXON_DATE_INPUT_TOKENS = "kkkk'-'LL'-'dd'T'T";
-import { DateTime, Duration, Settings } from "luxon";
+import { DateTime, Settings } from "luxon";
 
 Settings.defaultZone = "Europe/Dublin";
 
@@ -40,6 +33,19 @@ export function stopTimeStringToDate(
 // Return timestring in format HH:MM:SS exa: 20:07:17
 export function dateToStopTimeString(dateTime: DateTime) {
   return dateTime.toFormat("HH:mm:ss");
+}
+
+export function timeInSecondsToDate(time: string) {
+  const startOfDay = DateTime.now().startOf("day");
+
+  return startOfDay.plus({ millisecond: Number(time) * 1000 });
+}
+
+export function formatSecondsAsTimeString(time: number | undefined) {
+  if (!time) return null;
+
+  const date = DateTime.fromMillis(Number(time) * 1000);
+  return dateToStopTimeString(date);
 }
 
 export type DayString = keyof Omit<

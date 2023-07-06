@@ -42,7 +42,7 @@ function TripSelect({
   const tripIds = currentStopTimes?.map(({ tripId }) => tripId);
 
   const {
-    realtimeAddedByRouteId,
+    realtimeAddedTrips,
     realtimeScheduledByTripId,
     realtimeRouteIds,
     realtimeCanceledTripIds,

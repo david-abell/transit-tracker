@@ -1,8 +1,10 @@
-import { TripUpdate } from "@/types/realtime";
+import { Time, TripUpdate } from "@/types/realtime";
 import useSWR from "swr";
 
 import { fetchHelper } from "@/lib/FetchHelper";
 import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
+import { formatSecondsAsTimeString } from "@/lib/timeHelpers";
+import { StopTime } from "@prisma/client";
 
 const API_URL = "/api/gtfs/realtime";
 
@@ -18,13 +20,18 @@ const revalidateOptions = {
   dedupingInterval: 10000,
 };
 
-function useRealtime(tripIds: string | string[] = "") {
+type AddedStopTime = Pick<
+  StopTime,
+  "arrivalTime" | "departureTime" | "stopSequence"
+>;
+
+function useRealtime(tripIds: string | string[] | undefined) {
   const { data, error, isLoading, mutate } = useSWR<RealtimeTripUpdateResponse>(
     () =>
       !!tripIds
         ? [
             `${API_URL}?${new URLSearchParams({
-              tripIds: tripIds.toString(),
+              tripIds: encodeURI(tripIds.toString()),
             })}`,
             tripIds,
           ]
@@ -49,12 +56,13 @@ function useRealtime(tripIds: string | string[] = "") {
   }
 
   if (addedTrips) {
-    for (const [routeId] of addedTrips) {
+    for (const [key, addedTrip] of addedTrips) {
+      const { routeId } = addedTrip.trip;
       realtimeRouteIds.add(routeId);
     }
   }
 
-  const realtimeAddedByRouteId = addedTrips
+  const realtimeAddedTrips = addedTrips
     ? new Map<string, TripUpdate>([...addedTrips])
     : new Map<string, TripUpdate>();
 
@@ -62,8 +70,25 @@ function useRealtime(tripIds: string | string[] = "") {
     ? new Map<string, TripUpdate>([...tripUpdates])
     : new Map<string, TripUpdate>();
 
+  const isRequestedTripAdded =
+    typeof tripIds === "string" && !!tripIds && tripIds.split(",").length === 1;
+
+  const addedTripStopTimes: Map<string, AddedStopTime> = isRequestedTripAdded
+    ? new Map(
+        realtimeScheduledByTripId
+          .get(tripIds)
+          ?.stopTimeUpdate?.map(
+            ({ arrival, departure, stopId, stopSequence }) => [
+              stopId,
+              createAddedStopTime(arrival, departure, stopSequence),
+            ]
+          )
+      )
+    : new Map();
+
   return {
-    realtimeAddedByRouteId,
+    addedTripStopTimes,
+    realtimeAddedTrips,
     realtimeCanceledTripIds,
     realtimeScheduledByTripId,
     realtimeRouteIds,
@@ -74,3 +99,18 @@ function useRealtime(tripIds: string | string[] = "") {
 }
 
 export default useRealtime;
+
+function createAddedStopTime(
+  arrival: Time | undefined,
+  departure: Time | undefined,
+  stopSequence: number
+): AddedStopTime {
+  const arrivalTime = formatSecondsAsTimeString(arrival?.time);
+  const departureTime = formatSecondsAsTimeString(departure?.time);
+
+  return {
+    arrivalTime,
+    departureTime,
+    stopSequence,
+  };
+}

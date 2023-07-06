@@ -30,7 +30,6 @@ import {
 } from "@/lib/timeHelpers";
 import { stopMarkerIcon } from "./stopMarkerIcon";
 import Bus from "./Bus";
-import { StopTimeUpdate } from "@/types/realtime";
 import usePrevious from "@/hooks/usePrevious";
 import isEqual from "fast-deep-equal";
 import useVehiclePosition from "@/hooks/useVehiclePosition";
@@ -44,7 +43,7 @@ import { useSearchParams } from "next/navigation";
 type Props = {
   height: number;
   selectedDateTime: string;
-  tripId: Trip["tripId"];
+  tripId: string;
   handleSelectedStop: (stopId: string) => void;
   shape: LatLngTuple[] | undefined;
   stopsById: Map<string, Stop>;
@@ -122,7 +121,19 @@ function MapContentLayer({
     }
   }, [map, height]);
 
-  const { realtimeScheduledByTripId } = useRealtime(tripId);
+  // Realtime state
+  const { realtimeScheduledByTripId, addedTripStopTimes, realtimeAddedTrips } =
+    useRealtime(tripId);
+
+  const realtimeTrip = realtimeScheduledByTripId.get(tripId);
+  const { stopTimeUpdate } = realtimeTrip || {};
+  const lastStopTimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
+
+  const isAddedTrip = realtimeTrip?.trip.scheduleRelationship === "ADDED";
+
+  // const addedTripStops =
+  //   isAddedTrip &&
+  //   stopTimeUpdate?.flatMap(({ stopId }) => stopsById.get(stopId || "") || []);
 
   // Rerender interval to update live position and marker colors
   const [count, setCount] = useState<number>(0);
@@ -141,7 +152,7 @@ function MapContentLayer({
     stopIds,
     stopsById,
     stopTimeUpdate: realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate,
-    options: { skip: !isToday },
+    options: { skip: !isToday || isAddedTrip },
   });
 
   const currentStops = stops
@@ -149,10 +160,6 @@ function MapContentLayer({
     : selectedStop
     ? [selectedStop]
     : undefined;
-
-  const realtimeTrip = realtimeScheduledByTripId.get(tripId);
-  const { stopTimeUpdate } = realtimeTrip || {};
-  const lastStopTimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
 
   return (
     <>
@@ -179,7 +186,9 @@ function MapContentLayer({
                 }
 
                 const { arrivalTime, departureTime, stopSequence } =
-                  selectedTripStopTimesById.get(stopId) || {};
+                  selectedTripStopTimesById.get(stopId) ||
+                  addedTripStopTimes.get(stopId) ||
+                  {};
 
                 // When trip selected show only stops on that trip
                 if (tripId && !arrivalTime) return [];

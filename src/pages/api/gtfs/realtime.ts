@@ -34,7 +34,7 @@ async function handler(
   const redis = createRedisInstance();
 
   try {
-    const tripUpdateKey = "tripUpdates2";
+    const tripUpdateKey = "tripUpdates";
     const addedTripsKey = "addTrips";
 
     // try fetch cached data
@@ -79,6 +79,9 @@ async function handler(
     });
 
     if (!response.ok) {
+      console.warn(
+        `Realtime response error: Status: ${response.status}, StatusText: ${response.statusText}`
+      );
       throw new ApiError(response.status, response.statusText);
     }
 
@@ -130,8 +133,6 @@ async function handler(
     if (err instanceof Error) {
       throw new ApiError(500, "Server error while getting realtime data");
     }
-  } finally {
-    await redis.quit();
   }
 }
 

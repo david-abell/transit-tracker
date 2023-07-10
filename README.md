@@ -17,6 +17,7 @@
 - [Instructions](#instructions)
   - [Setup](#setup)
   - [Usage](#usage)
+  - [Deployment](#deployment)
 - [Acknowledgements](#acknowledgements)
 - [Author](#Author)
 
@@ -24,7 +25,12 @@
 
 ### Project Description
 
-An Interactive map for public transit routes in Ireland.
+This is an easy to use alternative to the TFI Live transit App.
+
+- Search public bus and train schedules across Ireland for their favorite travel routes.
+- Save favorite transit stops for quick future access.
+- View scheduled and real arrival estimates for upcoming trains and buses. No more wondering when your bus is actually supposed to arrive.
+- Select trips to display current or estimated train or bus positions.
 
 ### Features
 
@@ -112,6 +118,21 @@ const proudOfThisFunc = () => {
   or
 
 - `npm run build` then `npm run preview`
+
+### Deployment
+
+- Build and import new SQLite database from [https://www.transportforireland.ie/transitData/Data/GTFS_All.zip](https://www.transportforireland.ie/transitData/Data/GTFS_All.zip)
+- Ensure required table columns match schema.prisma
+- place database file as `gtfs.db` @ `prisma/gtfs.db`
+- run `npx prisma db push` to set database indexes
+
+#### deploy to Fly.io
+
+- install flyctl available from [fly.io](fly.io)
+- first time deployment run `fly launch`
+- run `npm run deploy`
+- run `fly secrets set DATABASE_URL=file:gtfs.db`
+- run `fly secrets set NTA_REALTIME_API_KEY=api key from NTA GTFS realtime api below`
 
 ## Useful resources
 

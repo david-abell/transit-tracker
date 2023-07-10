@@ -26,7 +26,7 @@ function DateTimeSelect({ selectedDateTime, setSelectedDateTime }: Props) {
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center md:flex-none">
+    <div className="flex flex-1 flex-col items-center justify-center lg:flex-none">
       <label htmlFor="date-time-select" className="sr-only">
         When are you traveling?{" "}
       </label>

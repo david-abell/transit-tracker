@@ -67,10 +67,10 @@ function TripSelect({
     <>
       {
         <p
-          className={`mt-2 w-full flex-1 bg-red-100 px-2.5 py-0.5 text-center font-medium text-red-900 ring-2 ring-inset ring-red-900 dark:bg-red-900 dark:text-red-200
+          className={`mt-2 w-full flex-1 bg-yellow-200 px-2.5 py-0.5 text-center font-medium dark:bg-yellow-700 dark:text-white
         ${hasRealtime || showAllTrips ? "invisible" : ""}`}
         >
-          No realtime data available
+          {`Live data for ${selectedRoute?.routeShortName} not found`}
         </p>
       }
       <div className="flex w-full flex-col rounded-lg border border-gray-200 bg-white text-start text-sm font-medium text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white ">

@@ -28,7 +28,7 @@ type AddedStopTime = Pick<
 function useRealtime(tripIds: string | string[] | undefined) {
   const { data, error, isLoading, mutate } = useSWR<RealtimeTripUpdateResponse>(
     () =>
-      !!tripIds
+      !!tripIds && tripIds.length
         ? [
             `${API_URL}?${new URLSearchParams({
               tripIds: encodeURI(tripIds.toString()),

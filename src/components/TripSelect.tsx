@@ -1,4 +1,8 @@
-import { formatDelay, getDelayedTime } from "@/lib/timeHelpers";
+import {
+  formatDelay,
+  getDelayedTime,
+  parseDatetimeLocale,
+} from "@/lib/timeHelpers";
 import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
 import { TripUpdate } from "@/types/realtime";
 import { Route, StopTime, Trip } from "@prisma/client";
@@ -8,6 +12,7 @@ import useUpcoming from "@/hooks/useUpcoming";
 import { useSearchParams } from "next/navigation";
 import useRealtime from "@/hooks/useRealtime";
 import { useMediaQuery } from "usehooks-ts";
+import { DateTime } from "luxon";
 
 type Props = {
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
@@ -52,8 +57,13 @@ function TripSelect({
     upComingRoutes.set(selectedRoute.routeId, selectedRoute);
   }
 
+  const isToday = DateTime.now().hasSame(
+    parseDatetimeLocale(selectedDateTime),
+    "day"
+  );
+
   const hasRealtime =
-    !!selectedRoute && realtimeRouteIds.has(selectedRoute.routeId);
+    isToday && !!selectedRoute && realtimeRouteIds.has(selectedRoute.routeId);
 
   // trap keyboard focus inside form for arrow and tab key input
   const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {

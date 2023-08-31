@@ -8,9 +8,14 @@ on:
       - main
       - db-import-script
 
+env:
+  PREV_LAST_MODIFIED: ${{ secrets.GTFS_LAST_MODIFIED }}
+
 jobs:
-  deployment:
+  get_header:
     runs-on: ubuntu-latest
+    outputs:
+      output1: ${{ steps.setlastModified.outputs.lastModified }}
     steps:
       - name: Make get request
         id: getRequest
@@ -18,6 +23,16 @@ jobs:
         with:
           url: "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip"
           method: "GET"
-      - name: Show Response
+      - name: Set last modified
+        id: setlastModified
         run: |
-          echo ${{ fromJson(steps.getRequest.outputs.headers).last-modified }}
+          echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
+      - name: test
+        run: echo $lastModified
+
+  # call_deploy:
+  #   needs:
+  #     get_header
+  #   env: ${{needs.get_header.outputs.output1}}
+
+  # uses: ./.github/workflows/deploy.yml

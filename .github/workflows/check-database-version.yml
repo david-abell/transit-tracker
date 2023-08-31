@@ -1,0 +1,19 @@
+name: Check database last modified headers
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Make get request
+        id: getRequest
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip"
+          method: "GET"
+      - name: Show Response
+        run: |
+          echo ${{ steps.getRequest.outputs.headers }}

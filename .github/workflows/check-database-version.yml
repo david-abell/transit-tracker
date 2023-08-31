@@ -15,7 +15,7 @@ jobs:
   get_header:
     runs-on: ubuntu-latest
     outputs:
-      output1: ${{ steps.setlastModified.outputs.lastModified }}
+      lastModified: ${{ steps.setlastModified.outputs.lastModified }}
     steps:
       - name: Make get request
         id: getRequest

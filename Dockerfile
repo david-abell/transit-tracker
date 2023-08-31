@@ -39,14 +39,14 @@ RUN npx prisma generate
 # Copy application code
 COPY --link . .
 
-# Build application
-RUN npm run build
-
 # Invalidate database cache when stale
 ARG LAST_MODIFIED_HEADER=placeholder_date
 
 # Build database
 RUN npm run db-import
+
+# Build application
+RUN npm run build
 
 # Remove development dependencies
 RUN npm prune --omit=dev

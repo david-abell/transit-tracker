@@ -9,7 +9,7 @@ on:
       - db-import-script
 
 env:
-  PREV_LAST_MODIFIED: ${{ secrets.GTFS_LAST_MODIFIED }}
+  PREV_LAST_MODIFIED: ${{ vars.GTFS_LAST_MODIFIED }}
 
 jobs:
   get_header:
@@ -36,7 +36,7 @@ jobs:
     steps:
       - env:
           output1: ${{needs.get_header.outputs.lastModified}}
-        run: echo "$output1"
+        run: echo $output1 $PREV_LAST_MODIFIED
 
   # call_deploy:
   #   needs:

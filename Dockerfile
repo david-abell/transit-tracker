@@ -42,6 +42,12 @@ COPY --link . .
 # Build application
 RUN npm run build
 
+# Invalidate database cache when stale
+ARG LAST_MODIFIED_HEADER=placeholder_date
+
+# Build database
+RUN npm run db-import
+
 # Remove development dependencies
 RUN npm prune --omit=dev
 
@@ -53,7 +59,7 @@ FROM base
 COPY --from=build /app /app
 
 # Entrypoint prepares the database.
-ENTRYPOINT [ "/app/docker-entrypoint.js" ]
+ENTRYPOINT [ "/app/docker-entrypoint.cjs", "npm", "run", "start"  ]
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000

@@ -39,3 +39,4 @@ next-env.d.ts
 prisma/*.db
 prisma/*.tgz
 prisma/backup/*
+last_modified_log.txt

@@ -20,4 +20,4 @@ jobs:
           method: "GET"
       - name: Show Response
         run: |
-          echo ${{ steps.getRequest.outputs.headers }}
+          echo ${{ steps.getRequest.outputs.headers.last-modified }}

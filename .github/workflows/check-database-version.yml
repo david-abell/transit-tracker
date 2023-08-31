@@ -30,6 +30,14 @@ jobs:
       - name: test
         run: echo $lastModified
 
+  test:
+    needs: get_header
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          output1: ${{needs.get_header.outputs.lastModified}}
+        run: echo "$output1"
+
   # call_deploy:
   #   needs:
   #     get_header

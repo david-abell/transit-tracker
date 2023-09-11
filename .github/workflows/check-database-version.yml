@@ -66,6 +66,6 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy?
         if: env.IS_DEPLOY == 'true'
-        run: flyctl deploy --remote-only --build-arg "${env.LAST_MODIFIED_HEADER}"
+        run: flyctl deploy --remote-only --build-arg "${env.LAST_MODIFIED}"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

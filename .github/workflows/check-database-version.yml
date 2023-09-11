@@ -24,10 +24,12 @@ jobs:
         with:
           url: "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip"
           method: "GET"
+
       - name: Set last modified
         id: setlastModified
         run: |
           echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
+
       - name: test
         run: echo $lastModified
 
@@ -57,7 +59,10 @@ jobs:
         if: env.IS_DEPLOY != 'true'
         run: echo "No changes found for main or last_modifed. Deploy not triggered"
 
+      - name: Set GTFS_LAST_MODIFIED env
+        if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
+        run: echo "GTFS_LAST_MODIFIED=env.LAST_MODIFIED" >> "$GITHUB_ENV"
       - name: Deploy?
         if: env.IS_DEPLOY == 'true'
-        run: echo "ready to deploy" $LAST_MODIFIED $PREV_LAST_MODIFIED
-        # uses: ./.github/workflows/deploy.yml
+        # run: echo "ready to deploy" $LAST_MODIFIED $PREV_LAST_MODIFIED
+        uses: ./.github/workflows/deploy.yml

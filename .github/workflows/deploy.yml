@@ -13,7 +13,7 @@ jobs:
       # This step checks out a copy of your repository.
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only --build-arg "${env.LAST_MODIFIED_HEADER}"
+      - run: flyctl deploy --remote-only --build-arg LAST_MODIFIED_HEADER="${LAST_MODIFIED}"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-          LAST_MODIFIED_HEADER: ${{ vars.GTFS_LAST_MODIFIED }}
+          LAST_MODIFIED: ${{ vars.GTFS_LAST_MODIFIED }}

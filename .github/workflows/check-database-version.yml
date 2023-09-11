@@ -38,7 +38,7 @@ jobs:
   #         LAST_MODIFIED: ${{needs.get_headers.outputs.lastModified}}
   #       run: echo $LAST_MODIFIED $PREV_LAST_MODIFIED
 
-  call_deploy:
+  deploy:
     runs-on: ubuntu-latest
     needs: get_headers
     env:
@@ -59,7 +59,13 @@ jobs:
       - name: Set GTFS_LAST_MODIFIED env
         if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
         run: echo "GTFS_LAST_MODIFIED=env.LAST_MODIFIED" >> "$GITHUB_ENV"
+
+        # run: echo "ready to deploy" $LAST_MODIFIED $PREV_LAST_MODIFIED
+
+      - uses: actions/checkout@v2
+      - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy?
         if: env.IS_DEPLOY == 'true'
-        # run: echo "ready to deploy" $LAST_MODIFIED $PREV_LAST_MODIFIED
-        uses: ./.github/workflows/deploy.yml
+        run: flyctl deploy --remote-only --build-arg "${env.LAST_MODIFIED_HEADER}"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

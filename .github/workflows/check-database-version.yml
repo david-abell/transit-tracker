@@ -30,9 +30,6 @@ jobs:
         run: |
           echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
 
-      - name: test
-        run: echo $lastModified
-
   # test:
   #   needs: get_headers
   #   runs-on: ubuntu-latest

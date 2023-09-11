@@ -47,7 +47,7 @@ jobs:
     steps:
       - name: Set env IS_DEPLOY
         run: |
-          if [[ $GITHUB_EVENT_NAME == 'push' || env.LAST_MODIFIED != env.PREV_LAST_MODIFIED]]; then
+          if [[ $GITHUB_EVENT_NAME == 'push' || env.LAST_MODIFIED != env.PREV_LAST_MODIFIED ]]; then
             echo "IS_DEPLOY=true" >> "$GITHUB_ENV"
           else
             echo "IS_DEPLOY=false" >> "$GITHUB_ENV"

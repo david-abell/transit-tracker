@@ -42,6 +42,9 @@ COPY --link . .
 # Invalidate database cache when stale
 ARG LAST_MODIFIED_HEADER
 
+# test current path
+RUN echo ${PWD} && ls -lR
+
 # Build database
 RUN RESET_LAYER="${LAST_MODIFIED_HEADER}" && npm run db-import
 

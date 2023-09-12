@@ -68,6 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: read-all
     steps:
+      - uses: actions/checkout@v3
       - env:
           LAST_MODIFIED: ${{needs.get_headers.outputs.lastModified}}
         run: echo $LAST_MODIFIED

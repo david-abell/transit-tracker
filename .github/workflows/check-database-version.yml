@@ -66,8 +66,8 @@ jobs:
 
       - shell: bash
         run: |
-          value="cat artifact/database_last_modified_date.txt"
-          echo file contents is: $value
+          value="`head -1 artifact/database_last_modified_date.txt`"
+          echo file contents is: "$value"
 
   # test:
   #   needs: get_headers

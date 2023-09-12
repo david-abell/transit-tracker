@@ -60,7 +60,7 @@ jobs:
           UNZIP_DIR: artifact
         with:
           script: |
-            const script = require('./scripts/download-previous-artifact.js')
+            const script = require('./.github/scripts/download-previous-artifact.js')
             await script({github, context, core})
 
   test:

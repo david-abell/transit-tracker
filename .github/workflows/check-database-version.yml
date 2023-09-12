@@ -74,8 +74,8 @@ jobs:
     steps:
       - shell: bash
         run: |
-          echo "${ env.LAST_MODIFIED }"
-          echo "${ env.PREV_LAST_MODIFIED }"
+          echo "${ LAST_MODIFIED }"
+          echo "${ PREV_LAST_MODIFIED }"
 
       - name: Write new file
         if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED

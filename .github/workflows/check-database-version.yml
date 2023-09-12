@@ -32,16 +32,6 @@ jobs:
         run: |
           echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
 
-      # - name: Get previous lastModified
-      #   id: getPrevLastModified
-      #   uses: actions/download-artifact@v3
-      #   with:
-      #     name: databaseLast_modified
-
-      # Create file if it doesn't exist
-      # - shell: bash
-      #   run: |
-      #     touch database_last_modified_date.txt
       # Create file if it doesn't exist
       # - shell: bash
       #   run: |
@@ -49,31 +39,37 @@ jobs:
       #     value="${{ fromJson(steps.getRequest.outputs.headers).last-modified }}"
       #     echo "${value}" > database_last_modified_date.txt
 
-      # - name: Write lastModified to file
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: database_last_modified_date
-      #     path: database_last_modified_date.txt
-
   test:
     needs: get_headers
     runs-on: ubuntu-latest
     steps:
       - env:
           LAST_MODIFIED: ${{needs.get_headers.outputs.lastModified}}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: echo $LAST_MODIFIED
 
-      - name: Get previous lastModified
-        id: getPrevLastModified
-        uses: actions/download-artifact@v3
-        with:
-          name: database_last_modified_date
+      # - name: Get previous lastModified
+      #   id: getPrevLastModified
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: database_last_modified_date
+
+      - name: REST API with curl
+        run: |
+          value="${LAST_MODIFIED}"
+          curl -L \
+          -X PATCH \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/david-abell/transit-tracker/actions/variables/GTFS_LAST_MODIFIED \
+          -d '{"name":"GTFS_LAST_MODIFIED","value":"${value}"}'
 
       - name: Print the final result
         shell: bash
         run: |
-          value=`cat database_last_modified_date.txt`
-          echo The result is $value
+          newValue="${{ vars.GTFS_LAST_MODIFIED }}"
+          echo The result is ${PREV_LAST_MODIFIED} ${newValue}
 
   # deploy:
   #   runs-on: ubuntu-latest

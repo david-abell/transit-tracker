@@ -9,47 +9,41 @@ on:
       - db-import-script
 
 env:
-  PREV_LAST_MODIFIED: ${{ vars.GTFS_LAST_MODIFIED }}
   IS_DEPLOY: "false"
 
 jobs:
-  # get_headers:
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     lastModified: ${{ steps.setlastModified.outputs.lastModified }}
-  #   steps:
-  #     # - uses: actions/checkout@v3
-
-  #     - name: Make get request
-  #       id: getRequest
-  #       uses: fjogeleit/http-request-action@v1
-  #       with:
-  #         url: "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip"
-  #         method: "GET"
-
-  #     - name: Set last modified
-  #       id: setlastModified
-  #       run: |
-  #         echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
-
-  #     # Create file if it doesn't exist
-  #     - shell: bash
-  #       run: |
-  #         touch database_last_modified_date.txt
-  #         value="${{ fromJson(steps.getRequest.outputs.headers).last-modified }}"
-  #         echo "${value}" > database_last_modified_date.txt
-
-  get-last-artifact:
+  get-headers:
     runs-on: ubuntu-latest
-    # needs: get_headers
+    outputs:
+      lastModified: ${{ steps.setlastModified.outputs.lastModified }}
+    steps:
+      # - uses: actions/checkout@v3
+
+      - name: Make get request
+        id: getRequest
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip"
+          method: "GET"
+
+      - name: Set last modified
+        id: setlastModified
+        run: |
+          echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
+
+      # Create file if it doesn't exist
+      # - shell: bash
+      #   run: |
+      #     touch database_last_modified_date.txt
+      #     value="${{ fromJson(steps.getRequest.outputs.headers).last-modified }}"
+      #     echo "${value}" > database_last_modified_date.txt
+
+  get-artifact:
+    runs-on: ubuntu-latest
+    outputs:
+      prevLastModified: ${{ steps.outputArtifact.outputs.prevLastModified }}
     steps:
       - uses: actions/checkout@v3
-      # - uses: actions/setup-node@v3
-      #   with:
-      #     node-version: 18
-
-      # - name: Install dependencies
-      #   run: npm ci
 
       - name: Download artifact
         uses: actions/github-script@v6
@@ -64,10 +58,34 @@ jobs:
             const script = require('./.github/scripts/getArtifact.cjs')
             await script({github, context, core})
 
-      - shell: bash
+      - name: Output artifact
+        id: outputArtifact
+        shell: bash
         run: |
           value="`head -1 artifact/database_last_modified_date.txt`"
-          echo file contents is: "$value"
+          echo "prevLastModified='$value'" >> "$GITHUB_OUTPUT"
+
+  set-artifact:
+    runs-on: ubuntu-latest
+    needs: [get-artifact, get-headers]
+    env:
+      LAST_MODIFIED: ${{ needs.get-headers.outputs.lastModified }}
+      PREV_LAST_MODIFIED: ${{ needs.get-artifact.outputs.prevLastModified }}
+    steps:
+      - name: Write new file
+        if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
+        shell: bash
+        run: |
+          touch database_last_modified_date.txt
+          value="$PREV_LAST_MODIFIED"
+          echo "${value}" > database_last_modified_date.txt
+
+      - name: Save file as artifact
+        if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
+        uses: actions/upload-artifact@v3
+        with:
+          name: database_last_modified_date
+          path: database_last_modified_date.txt
 
   # test:
   #   needs: get_headers

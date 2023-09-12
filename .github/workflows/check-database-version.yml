@@ -42,6 +42,7 @@ jobs:
   test:
     needs: get_headers
     runs-on: ubuntu-latest
+    permissions: write-all
     steps:
       - env:
           LAST_MODIFIED: ${{needs.get_headers.outputs.lastModified}}

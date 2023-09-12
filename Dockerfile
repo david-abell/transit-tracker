@@ -40,10 +40,10 @@ RUN npx prisma generate
 COPY --link . .
 
 # Invalidate database cache when stale
-ARG LAST_MODIFIED_HEADER=placeholder_date
+ARG LAST_MODIFIED_HEADER
 
 # Build database
-RUN RESET_LAYER="$LAST_MODIFIED_HEADER" && npm run db-import
+RUN RESET_LAYER="${LAST_MODIFIED_HEADER}" && npm run db-import
 
 # Copy database
 COPY --link prisma/gtfs.db /app/prisma/gtfs.db

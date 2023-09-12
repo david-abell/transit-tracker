@@ -72,6 +72,11 @@ jobs:
       LAST_MODIFIED: ${{ needs.get-headers.outputs.lastModified }}
       PREV_LAST_MODIFIED: ${{ needs.get-artifact.outputs.prevLastModified }}
     steps:
+      - shell: bash
+        run: |
+          echo "${ env.LAST_MODIFIED }"
+          echo "${ env.PREV_LAST_MODIFIED }"
+
       - name: Write new file
         if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
         shell: bash

@@ -66,7 +66,7 @@ jobs:
       - name: Print the final result
         shell: bash
         run: |
-          value=`database_last_modified_date.txt`
+          value=`head -n database_last_modified_date.txt`
           echo The result is $value
 
   # deploy:

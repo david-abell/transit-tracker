@@ -46,7 +46,7 @@ jobs:
       - name: Write lastModified to file
         uses: actions/upload-artifact@v3
         with:
-          name: homework
+          name: database_last_modified_date
           path: database_last_modified_date.txt
 
   test:
@@ -61,7 +61,7 @@ jobs:
         id: getPrevLastModified
         uses: actions/download-artifact@v3
         with:
-          name: databaseLast_modified
+          name: database_last_modified_date
 
       - name: Print the final result
         shell: bash

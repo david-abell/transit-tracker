@@ -39,6 +39,30 @@ jobs:
       #     value="${{ fromJson(steps.getRequest.outputs.headers).last-modified }}"
       #     echo "${value}" > database_last_modified_date.txt
 
+  get-last-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # - uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 18
+
+      # - name: Install dependencies
+      #   run: npm ci
+
+      - name: Download artifact
+        uses: actions/github-script@v6
+        continue-on-error: true
+        env:
+          WORKFLOW_FILENAME: check-database-version.yml
+          ARTIFACT_NAME: database_last_modified_date
+          ARTIFACT_FILENAME: database_last_modified_date.zip
+          UNZIP_DIR: artifact
+        with:
+          script: |
+            const script = require('./scripts/download-previous-artifact.js')
+            await script({github, context, core})
+
   test:
     needs: get_headers
     runs-on: ubuntu-latest
@@ -48,28 +72,34 @@ jobs:
           LAST_MODIFIED: ${{needs.get_headers.outputs.lastModified}}
         run: echo $LAST_MODIFIED
 
+      - shell: bash
+        run: |
+
+          value="cat artifact/database_last_modified_date.txt"
+          echo "${value}"
+
       # - name: Get previous lastModified
       #   id: getPrevLastModified
       #   uses: actions/download-artifact@v3
       #   with:
       #     name: database_last_modified_date
 
-      - name: REST API with curl
-        run: |
-          value="${LAST_MODIFIED}"
-          curl -L \
-          -X PATCH \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/${{ github.repository }}/actions/variables/GTFS_LAST_MODIFIED \
-          -d '{"name":"GTFS_LAST_MODIFIED","value":"${value}"}'
+      # - name: REST API with curl
+      #   run: |
+      #     value="${LAST_MODIFIED}"
+      #     curl -L \
+      #     -X PATCH \
+      #     -H "Accept: application/vnd.github+json" \
+      #     -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+      #     -H "X-GitHub-Api-Version: 2022-11-28" \
+      #     https://api.github.com/repos/${{ github.repository }}/actions/variables/GTFS_LAST_MODIFIED \
+      #     -d '{"name":"GTFS_LAST_MODIFIED","value":"${value}"}'
 
-      - name: Print the final result
-        shell: bash
-        run: |
-          newValue="${{ vars.GTFS_LAST_MODIFIED }}"
-          echo The result is ${PREV_LAST_MODIFIED} ${newValue}
+      # - name: Print the final result
+      #   shell: bash
+      #   run: |
+      #     newValue="${{ vars.GTFS_LAST_MODIFIED }}"
+      #     echo The result is ${PREV_LAST_MODIFIED} ${newValue}
 
   # deploy:
   #   runs-on: ubuntu-latest

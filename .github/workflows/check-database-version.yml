@@ -47,7 +47,7 @@ jobs:
         run: |
           touch database_last_modified_date.txt
           value="${{ fromJson(steps.getRequest.outputs.headers).last-modified }}"
-          "${value}" > database_last_modified_date.txt
+          echo "${value}" > database_last_modified_date.txt
 
       - name: Write lastModified to file
         uses: actions/upload-artifact@v3

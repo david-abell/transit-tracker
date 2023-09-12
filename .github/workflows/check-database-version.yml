@@ -13,35 +13,35 @@ env:
   IS_DEPLOY: "false"
 
 jobs:
-  get_headers:
-    runs-on: ubuntu-latest
-    outputs:
-      lastModified: ${{ steps.setlastModified.outputs.lastModified }}
-    steps:
-      # - uses: actions/checkout@v3
+  # get_headers:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     lastModified: ${{ steps.setlastModified.outputs.lastModified }}
+  #   steps:
+  #     # - uses: actions/checkout@v3
 
-      - name: Make get request
-        id: getRequest
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip"
-          method: "GET"
+  #     - name: Make get request
+  #       id: getRequest
+  #       uses: fjogeleit/http-request-action@v1
+  #       with:
+  #         url: "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip"
+  #         method: "GET"
 
-      - name: Set last modified
-        id: setlastModified
-        run: |
-          echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
+  #     - name: Set last modified
+  #       id: setlastModified
+  #       run: |
+  #         echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
 
-      # Create file if it doesn't exist
-      # - shell: bash
-      #   run: |
-      #     touch database_last_modified_date.txt
-      #     value="${{ fromJson(steps.getRequest.outputs.headers).last-modified }}"
-      #     echo "${value}" > database_last_modified_date.txt
+  #     # Create file if it doesn't exist
+  #     - shell: bash
+  #       run: |
+  #         touch database_last_modified_date.txt
+  #         value="${{ fromJson(steps.getRequest.outputs.headers).last-modified }}"
+  #         echo "${value}" > database_last_modified_date.txt
 
   get-last-artifact:
     runs-on: ubuntu-latest
-    needs: get_headers
+    # needs: get_headers
     steps:
       - uses: actions/checkout@v3
       # - uses: actions/setup-node@v3
@@ -65,9 +65,10 @@ jobs:
             await script({github, context, core})
 
       - shell: bash
-        run: |
-          value="cat artifact/database_last_modified_date.txt"
-          echo "${value}"
+        run: ls
+        # run: |
+        #   value="cat artifact/database_last_modified_date.txt"
+        #   echo "${value}"
 
   # test:
   #   needs: get_headers

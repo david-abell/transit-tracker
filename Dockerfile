@@ -15,8 +15,7 @@ WORKDIR /app
 
 # Set production environment
 ENV NODE_ENV=production
-ENV DATABASE_URL="file:/data/dev.db"
-ENV SHADOW_DATABASE_URL="file:shadowdev.db"
+ENV DATABASE_URL="file:gtfs.db"
 ENV PORT="3000"
 
 
@@ -44,9 +43,6 @@ ARG LAST_MODIFIED_HEADER
 
 # Build database
 RUN RESET_LAYER="${LAST_MODIFIED_HEADER}" && npm run db-import
-
-# Copy database
-RUN cp ./prisma/gtfs.db /app/prisma/gtfs.db
 
 # Build application
 RUN npm run build

@@ -33,7 +33,7 @@ RUN npm ci --include=dev --loglevel verbose
 
 # Generate Prisma Client
 # COPY --link prisma .
-COPY prisma /app/prisma
+COPY --link prisma /app/prisma
 RUN npx prisma generate
 
 # Copy application code
@@ -44,6 +44,9 @@ ARG LAST_MODIFIED_HEADER=placeholder_date
 
 # Build database
 RUN npm run db-import
+
+# Copy database
+COPY --link prisma/gtfs.db /app/prisma/gtfs.db
 
 # Build application
 RUN npm run build
@@ -59,7 +62,7 @@ FROM base
 COPY --from=build /app /app
 
 # Entrypoint prepares the database.
-ENTRYPOINT [ "/app/docker-entrypoint.cjs", "npm", "run", "start"  ]
+# ENTRYPOINT ["/app/docker-entrypoint.cjs", "npm", "run", "start"]
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000

@@ -41,6 +41,7 @@ jobs:
 
   get-last-artifact:
     runs-on: ubuntu-latest
+    needs: get_headers
     steps:
       - uses: actions/checkout@v3
       # - uses: actions/setup-node@v3
@@ -63,44 +64,49 @@ jobs:
             const script = require('./.github/scripts/getArtifact.js')
             await script({github, context, core})
 
-  test:
-    needs: get_headers
-    runs-on: ubuntu-latest
-    permissions: read-all
-    steps:
-      - uses: actions/checkout@v3
-      - env:
-          LAST_MODIFIED: ${{needs.get_headers.outputs.lastModified}}
-        run: echo $LAST_MODIFIED
-
       - shell: bash
         run: |
-
           value="cat artifact/database_last_modified_date.txt"
           echo "${value}"
 
-      # - name: Get previous lastModified
-      #   id: getPrevLastModified
-      #   uses: actions/download-artifact@v3
-      #   with:
-      #     name: database_last_modified_date
+  # test:
+  #   needs: get_headers
+  #   runs-on: ubuntu-latest
+  #   permissions: read-all
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - env:
+  #         LAST_MODIFIED: ${{needs.get_headers.outputs.lastModified}}
+  #       run: echo $LAST_MODIFIED
 
-      # - name: REST API with curl
-      #   run: |
-      #     value="${LAST_MODIFIED}"
-      #     curl -L \
-      #     -X PATCH \
-      #     -H "Accept: application/vnd.github+json" \
-      #     -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-      #     -H "X-GitHub-Api-Version: 2022-11-28" \
-      #     https://api.github.com/repos/${{ github.repository }}/actions/variables/GTFS_LAST_MODIFIED \
-      #     -d '{"name":"GTFS_LAST_MODIFIED","value":"${value}"}'
+  #     - shell: bash
+  #       run: |
 
-      # - name: Print the final result
-      #   shell: bash
-      #   run: |
-      #     newValue="${{ vars.GTFS_LAST_MODIFIED }}"
-      #     echo The result is ${PREV_LAST_MODIFIED} ${newValue}
+  #         value="cat artifact/database_last_modified_date.txt"
+  #         echo "${value}"
+
+  #     - name: Get previous lastModified
+  #       id: getPrevLastModified
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: database_last_modified_date
+
+  #     - name: REST API with curl
+  #       run: |
+  #         value="${LAST_MODIFIED}"
+  #         curl -L \
+  #         -X PATCH \
+  #         -H "Accept: application/vnd.github+json" \
+  #         -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+  #         -H "X-GitHub-Api-Version: 2022-11-28" \
+  #         https://api.github.com/repos/${{ github.repository }}/actions/variables/GTFS_LAST_MODIFIED \
+  #         -d '{"name":"GTFS_LAST_MODIFIED","value":"${value}"}'
+
+  #     - name: Print the final result
+  #       shell: bash
+  #       run: |
+  #         newValue="${{ vars.GTFS_LAST_MODIFIED }}"
+  #         echo The result is ${PREV_LAST_MODIFIED} ${newValue}
 
   # deploy:
   #   runs-on: ubuntu-latest

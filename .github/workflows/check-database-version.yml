@@ -17,8 +17,6 @@ jobs:
     outputs:
       lastModified: ${{ steps.setlastModified.outputs.lastModified }}
     steps:
-      # - uses: actions/checkout@v3
-
       - name: Make get request
         id: getRequest
         uses: fjogeleit/http-request-action@v1
@@ -30,13 +28,6 @@ jobs:
         id: setlastModified
         run: |
           echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
-
-      # Create file if it doesn't exist
-      # - shell: bash
-      #   run: |
-      #     touch database_last_modified_date.txt
-      #     value="${{ fromJson(steps.getRequest.outputs.headers).last-modified }}"
-      #     echo "${value}" > database_last_modified_date.txt
 
   get-artifact:
     runs-on: ubuntu-latest
@@ -131,34 +122,33 @@ jobs:
   #         newValue="${{ vars.GTFS_LAST_MODIFIED }}"
   #         echo The result is ${PREV_LAST_MODIFIED} ${newValue}
 
-  # deploy:
-  #   runs-on: ubuntu-latest
-  #   needs: get_headers
-  #   env:
-  #     LAST_MODIFIED: ${{needs.get_headers.outputs.lastModified}}
-  #   steps:
-  #     - name: Set env IS_DEPLOY
-  #       run: |
-  #         if [[ $GITHUB_EVENT_NAME == 'push' || env.LAST_MODIFIED != env.PREV_LAST_MODIFIED ]]; then
-  #           echo "IS_DEPLOY=true" >> "$GITHUB_ENV"
-  #         else
-  #           echo "IS_DEPLOY=false" >> "$GITHUB_ENV"
-  #         fi
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [get-headers, get-artifact]
+    env:
+      LAST_MODIFIED: ${{needs.get-headers.outputs.lastModified}}
+      PREV_LAST_MODIFIED: ${{ needs.get-artifact.outputs.prevLastModified }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Set env IS_DEPLOY
+        run: |
+          if [[ $GITHUB_EVENT_NAME == 'push' || env.LAST_MODIFIED != env.PREV_LAST_MODIFIED ]]; then
+            echo "IS_DEPLOY=true" >> "$GITHUB_ENV"
+          fi
 
-  #     - name: Skip Deploy?
-  #       if: env.IS_DEPLOY != 'true'
-  #       run: echo "No changes found for main or last_modifed. Deploy not triggered"
+      - name: Skip Deploy?
+        if: env.IS_DEPLOY != 'true'
+        run: echo "No changes found on main or last_modifed. Deploy not triggered"
 
-  #     - name: Set GTFS_LAST_MODIFIED env
-  #       if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
-  #       run: echo "GTFS_LAST_MODIFIED=env.LAST_MODIFIED" >> "$GITHUB_ENV"
+      # - name: Set GTFS_LAST_MODIFIED env
+      #   if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
+      #   run: echo "GTFS_LAST_MODIFIED=env.LAST_MODIFIED" >> "$GITHUB_ENV"
 
-  # run: echo "ready to deploy" $LAST_MODIFIED $PREV_LAST_MODIFIED
+      # run: echo "ready to deploy" $LAST_MODIFIED $PREV_LAST_MODIFIED
 
-  # - uses: actions/checkout@v2
-  # - uses: superfly/flyctl-actions/setup-flyctl@master
-  # - name: Deploy?
-  #   if: env.IS_DEPLOY == 'true'
-  #   run: flyctl deploy --remote-only --build-arg LAST_MODIFIED_HEADER="${env.LAST_MODIFIED}"
-  #   env:
-  #     FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: Deploy?
+        if: env.IS_DEPLOY == 'true'
+        run: flyctl deploy --remote-only --build-arg LAST_MODIFIED_HEADER="${LAST_MODIFIED}"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

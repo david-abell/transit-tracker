@@ -45,7 +45,7 @@ jobs:
       # Create file if it doesn't exist
       - shell: bash
         run: |
-          value=`cat database_last_modified_date.txt`
+          touch database_last_modified_date.txt
           "${{ fromJson(steps.getRequest.outputs.headers).last-modified }}" > database_last_modified_date.txt
 
       - name: Write lastModified to file

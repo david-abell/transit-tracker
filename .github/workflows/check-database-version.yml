@@ -65,7 +65,9 @@ jobs:
             await script({github, context, core})
 
       - shell: bash
-        run: ls
+        run: |
+          cd artifact
+          ls
         # run: |
         #   value="cat artifact/database_last_modified_date.txt"
         #   echo "${value}"

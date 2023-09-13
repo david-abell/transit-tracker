@@ -40,7 +40,7 @@ jobs:
         uses: actions/github-script@v6
         continue-on-error: true
         env:
-          WORKFLOW_FILENAME: check-database-version.yml
+          WORKFLOW_FILENAME: deploy.yml
           ARTIFACT_NAME: database_last_modified_date
           ARTIFACT_FILENAME: database_last_modified_date.zip
           UNZIP_DIR: artifact

@@ -1,4 +1,4 @@
-name: Check GTFS schedule version
+name: Check GTFS schedule & Deploy
 
 on:
   schedule:

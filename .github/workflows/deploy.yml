@@ -1,0 +1,104 @@
+name: Check GTFS schedule & Deploy
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  push:
+    branches:
+      - main
+      - db-import-script
+
+env:
+  IS_DEPLOY: "false"
+
+jobs:
+  get-api-headers:
+    runs-on: ubuntu-latest
+    outputs:
+      lastModified: ${{ steps.setlastModified.outputs.lastModified }}
+    steps:
+      - name: Make get request
+        id: getRequest
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: "https://www.transportforireland.ie/transitData/Data/GTFS_All.zip"
+          method: "GET"
+
+      - name: Set last modified
+        id: setlastModified
+        run: |
+          echo "lastModified='${{ fromJson(steps.getRequest.outputs.headers).last-modified }}'" >> "$GITHUB_OUTPUT"
+
+  import-previous-header-value:
+    runs-on: ubuntu-latest
+    outputs:
+      prevLastModified: ${{ steps.outputArtifact.outputs.prevLastModified }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download artifact
+        uses: actions/github-script@v6
+        continue-on-error: true
+        env:
+          WORKFLOW_FILENAME: deploy.yml
+          ARTIFACT_NAME: database_last_modified_date
+          ARTIFACT_FILENAME: database_last_modified_date.zip
+          UNZIP_DIR: artifact
+        with:
+          script: |
+            const script = require('./.github/scripts/getArtifact.cjs')
+            await script({github, context, core})
+
+      - name: Output artifact
+        id: outputArtifact
+        shell: bash
+        run: |
+          value="`head -1 artifact/database_last_modified_date.txt`"
+          echo "prevLastModified='$value'" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [get-api-headers, import-previous-header-value]
+    env:
+      LAST_MODIFIED: ${{needs.get-api-headers.outputs.lastModified}}
+      PREV_LAST_MODIFIED: ${{ needs.import-previous-header-value.outputs.prevLastModified }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Set env IS_DEPLOY
+        run: |
+          if [[ $GITHUB_EVENT_NAME == 'push' || env.LAST_MODIFIED != env.PREV_LAST_MODIFIED ]]; then
+            echo "IS_DEPLOY=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Skip Deploy?
+        if: env.IS_DEPLOY != 'true'
+        run: echo "No changes found on main or last_modifed. Deploy not triggered"
+
+      - name: Deploy?
+        if: env.IS_DEPLOY == 'true'
+        run: flyctl deploy --remote-only --build-arg LAST_MODIFIED_HEADER="${LAST_MODIFIED}"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  save-new-header-value:
+    runs-on: ubuntu-latest
+    needs: [import-previous-header-value, get-api-headers, deploy]
+    env:
+      LAST_MODIFIED: ${{ needs.get-api-headers.outputs.lastModified }}
+      PREV_LAST_MODIFIED: ${{ needs.import-previous-header-value.outputs.prevLastModified }}
+    steps:
+      - name: Write new file
+        if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
+        shell: bash
+        run: |
+          touch database_last_modified_date.txt
+          value="$PREV_LAST_MODIFIED"
+          echo "${value}" > database_last_modified_date.txt
+
+      - name: Save file as artifact
+        if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
+        uses: actions/upload-artifact@v3
+        with:
+          name: database_last_modified_date
+          path: database_last_modified_date.txt

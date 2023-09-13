@@ -15,8 +15,7 @@ WORKDIR /app
 
 # Set production environment
 ENV NODE_ENV=production
-ENV DATABASE_URL="file:/data/dev.db"
-ENV SHADOW_DATABASE_URL="file:shadowdev.db"
+ENV DATABASE_URL="file:gtfs.db"
 ENV PORT="3000"
 
 
@@ -33,11 +32,17 @@ RUN npm ci --include=dev --loglevel verbose
 
 # Generate Prisma Client
 # COPY --link prisma .
-COPY prisma /app/prisma
+COPY --link prisma /app/prisma
 RUN npx prisma generate
 
 # Copy application code
 COPY --link . .
+
+# Invalidate database cache when stale
+ARG LAST_MODIFIED_HEADER
+
+# Build database
+RUN RESET_LAYER="${LAST_MODIFIED_HEADER}" && npm run db-import
 
 # Build application
 RUN npm run build
@@ -53,7 +58,7 @@ FROM base
 COPY --from=build /app /app
 
 # Entrypoint prepares the database.
-ENTRYPOINT [ "/app/docker-entrypoint.js" ]
+# ENTRYPOINT ["/app/docker-entrypoint.cjs", "npm", "run", "start"]
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000

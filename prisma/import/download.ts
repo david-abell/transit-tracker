@@ -61,24 +61,32 @@ export async function downloadFiles(dirName: string) {
     if (!reader) {
       throw new Error("Response body could not be read.");
     }
-    // Log download progress
-    process.stdout.write("\r");
+
+    if (process.stdout.isTTY) {
+      process.stdout.write("\r");
+    }
+
     while (true) {
       const { done, value } = await reader.read();
 
       if (done) {
-        process.stdout.write("\r");
+        if (process.stdout.isTTY) {
+          process.stdout.write("\r");
+        }
         break;
       }
 
       receivedLength += value.length;
       chunks.push(value);
 
-      clearLine(process.stdout, 1);
-      cursorTo(process.stdout, 0);
-      process.stdout.write(
-        `Received ${bytesToMb(receivedLength)} of ${contentLengthInMb}`
-      );
+      // Don't log detailed progress when in CI
+      if (process.stdout.isTTY) {
+        clearLine(process.stdout, 1);
+        cursorTo(process.stdout, 0);
+        process.stdout.write(
+          `Received ${bytesToMb(receivedLength)} of ${contentLengthInMb}`
+        );
+      }
     }
 
     const allChunks = new Uint8Array(receivedLength);

@@ -41,9 +41,12 @@ export async function importFile(filePath: string) {
         formattedLines.push(formatLine(results.data));
 
         if (formattedLines.length >= BATCH_SIZE / MAX_TABLE_HEADER_COUNT) {
-          // clearLine(process.stdout, 1);
-          // cursorTo(process.stdout, 0);
-          // process.stdout.write(`Processing total records: ${totalLineCount}`);
+          // Don't log detailed progress when in CI
+          if (process.stdout.isTTY) {
+            clearLine(process.stdout, 1);
+            cursorTo(process.stdout, 0);
+            process.stdout.write(`Processing total records: ${totalLineCount}`);
+          }
 
           parser.pause();
 
@@ -58,7 +61,10 @@ export async function importFile(filePath: string) {
           await insertLines(formattedLines, fileName);
         }
 
-        // process.stdout.write("\r");
+        if (process.stdout.isTTY) {
+          process.stdout.write("\r");
+        }
+
         consola.success(
           `Processed ${totalLineCount} records from ${fileName}${extension}`
         );

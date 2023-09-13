@@ -83,45 +83,6 @@ jobs:
           name: database_last_modified_date
           path: database_last_modified_date.txt
 
-  # test:
-  #   needs: get_headers
-  #   runs-on: ubuntu-latest
-  #   permissions: read-all
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - env:
-  #         LAST_MODIFIED: ${{needs.get_headers.outputs.lastModified}}
-  #       run: echo $LAST_MODIFIED
-
-  #     - shell: bash
-  #       run: |
-
-  #         value="cat artifact/database_last_modified_date.txt"
-  #         echo "${value}"
-
-  #     - name: Get previous lastModified
-  #       id: getPrevLastModified
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: database_last_modified_date
-
-  #     - name: REST API with curl
-  #       run: |
-  #         value="${LAST_MODIFIED}"
-  #         curl -L \
-  #         -X PATCH \
-  #         -H "Accept: application/vnd.github+json" \
-  #         -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-  #         -H "X-GitHub-Api-Version: 2022-11-28" \
-  #         https://api.github.com/repos/${{ github.repository }}/actions/variables/GTFS_LAST_MODIFIED \
-  #         -d '{"name":"GTFS_LAST_MODIFIED","value":"${value}"}'
-
-  #     - name: Print the final result
-  #       shell: bash
-  #       run: |
-  #         newValue="${{ vars.GTFS_LAST_MODIFIED }}"
-  #         echo The result is ${PREV_LAST_MODIFIED} ${newValue}
-
   deploy:
     runs-on: ubuntu-latest
     needs: [get-headers, get-artifact]
@@ -141,15 +102,8 @@ jobs:
         if: env.IS_DEPLOY != 'true'
         run: echo "No changes found on main or last_modifed. Deploy not triggered"
 
-      # - name: Set GTFS_LAST_MODIFIED env
-      #   if: env.LAST_MODIFIED != env.PREV_LAST_MODIFIED
-      #   run: echo "GTFS_LAST_MODIFIED=env.LAST_MODIFIED" >> "$GITHUB_ENV"
-
-      # run: echo "ready to deploy" $LAST_MODIFIED $PREV_LAST_MODIFIED
-
       - name: Deploy?
         if: env.IS_DEPLOY == 'true'
-        run: flyctl deploy --remote-only --build-arg LAST_MODIFIED_HEADER="rebuild"
-        # run: flyctl deploy --remote-only --build-arg LAST_MODIFIED_HEADER="${LAST_MODIFIED}"
+        run: flyctl deploy --remote-only --build-arg LAST_MODIFIED_HEADER="${LAST_MODIFIED}"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

@@ -1,14 +1,16 @@
 {
   "name": "irish-buses",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "prisma-format": "npx prisma-case-format --file prisma/schema.prisma",
-    "deploy": "flyctl deploy --local-only"
+    "deploy": "flyctl deploy --local-only",
+    "db-import": "npx tsx ./prisma/import/index.ts"
   },
   "dependencies": {
     "@prisma/client": "^4.13.0",
@@ -50,11 +52,18 @@
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.2.15",
+    "@types/adm-zip": "^0.5.0",
     "@types/leaflet": "^1.9.3",
+    "@types/papaparse": "^5.3.8",
+    "adm-zip": "^0.5.10",
+    "consola": "^3.2.3",
     "eslint-config-prettier": "^8.8.0",
     "gtfs": "^4.2.0",
+    "papaparse": "^5.3.0",
     "prettier": "2.8.7",
     "prettier-plugin-tailwindcss": "^0.2.7",
-    "prisma": "^4.13.0"
+    "prisma": "^4.13.0",
+    "tempy": "^3.1.0",
+    "tsconfig-paths": "^4.2.0"
   }
 }

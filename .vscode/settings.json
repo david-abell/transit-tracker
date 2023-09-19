@@ -1,3 +1,15 @@
 {
-  "typescript.tsdk": "node_modules\\typescript\\lib"
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "cSpell.words": [
+    "camelcase",
+    "consola",
+    "Elio",
+    "headsign",
+    "luxon",
+    "papaparse",
+    "Struyf's",
+    "tailwindcss",
+    "tempy",
+    "timepoint"
+  ]
 }

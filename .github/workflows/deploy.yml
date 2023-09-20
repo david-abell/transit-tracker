@@ -53,7 +53,7 @@ jobs:
         id: outputArtifact
         shell: bash
         run: |
-          value="`head -1 artifact/database_last_modified_date.txt`"
+          value=$(head -1 artifact/database_last_modified_date.txt)
           echo "prevLastModified='$value'" >> "$GITHUB_OUTPUT"
 
   deploy:
@@ -93,7 +93,7 @@ jobs:
         shell: bash
         run: |
           touch database_last_modified_date.txt
-          value="$PREV_LAST_MODIFIED"
+          value="$LAST_MODIFIED"
           echo "${value}" > database_last_modified_date.txt
 
       - name: Save file as artifact

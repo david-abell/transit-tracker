@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           value=$(head -1 artifact/database_last_modified_date.txt)
-          echo "prevLastModified=\"$value\"" >> "$GITHUB_OUTPUT"
+          echo "prevLastModified=\$value" >> $GITHUB_OUTPUT
 
   deploy:
     runs-on: ubuntu-latest
@@ -68,7 +68,7 @@ jobs:
       - name: Set env IS_DEPLOY
         run: |
           if [[ $GITHUB_EVENT_NAME == 'push' || env.LAST_MODIFIED != env.PREV_LAST_MODIFIED ]]; then
-            echo "IS_DEPLOY=true" >> "$GITHUB_ENV"
+            echo "IS_DEPLOY=true" >> $GITHUB_ENV
           fi
 
       - name: Skip Deploy?
@@ -77,7 +77,7 @@ jobs:
 
       - name: Deploy?
         if: env.IS_DEPLOY == 'true'
-        run: flyctl deploy --remote-only --build-arg LAST_MODIFIED_HEADER="${LAST_MODIFIED}"
+        run: flyctl deploy --remote-only --ha=false --build-arg LAST_MODIFIED_HEADER="${LAST_MODIFIED}"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 

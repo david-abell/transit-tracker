@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           value=$(head -1 artifact/database_last_modified_date.txt)
-          echo "prevLastModified='$value'" >> "$GITHUB_OUTPUT"
+          echo "prevLastModified=\"$value\"" >> "$GITHUB_OUTPUT"
 
   deploy:
     runs-on: ubuntu-latest

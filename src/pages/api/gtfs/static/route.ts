@@ -28,11 +28,13 @@ async function handler(
           r.route_id,
           r.route_type
     FROM route r
-    WHERE route_short_name LIKE ${likeShortNameQuery} OR 
-          route_long_name LIKE ${likeLongNameQuery}
+    WHERE route_short_name ILIKE ${likeShortNameQuery} OR 
+          route_long_name ILIKE ${likeLongNameQuery}
     ORDER BY route_short_name = ${routeName} DESC,
-          CAST (route_short_name AS INTEGER) ASC,
-          route_short_name GLOB ${globQuery} DESC
+          COALESCE(SUBSTRING(route_short_name FROM '^(\\d+)')::INTEGER, 99999999),
+          SUBSTRING(route_short_name FROM '^\\d* *(.*?)( \\d+)?$'),
+          COALESCE(SUBSTRING(route_short_name FROM ' (\\d+)$')::INTEGER, 0),
+          substring(route_short_name, ${globQuery} ) DESC
     LIMIT 10;
  `;
 

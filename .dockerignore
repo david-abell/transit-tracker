@@ -51,5 +51,6 @@ next-env.d.ts
 # prisma
 
 prisma/backup/\*.db
+prisma/\*.db
 
 prisma/\*.tgz

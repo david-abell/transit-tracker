@@ -36,7 +36,7 @@ import useVehiclePosition from "@/hooks/useVehiclePosition";
 import { KeyedMutator } from "swr";
 import { DateTime } from "luxon";
 import useRealtime from "@/hooks/useRealtime";
-import useStop from "@/hooks/useStop";
+import useStopId from "@/hooks/useStopId";
 import { SavedStop } from "../SavedStops";
 import { useSearchParams } from "next/navigation";
 
@@ -92,7 +92,7 @@ function MapContentLayer({
     setShowSavedStops(true);
   };
 
-  const { selectedStop } = useStop(selectedStopId);
+  const { selectedStop } = useStopId(selectedStopId);
 
   useEffect(() => {
     if (stopIds.length && isEqual(stopIds, previousStopIds)) {

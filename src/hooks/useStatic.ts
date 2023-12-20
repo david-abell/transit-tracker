@@ -6,7 +6,7 @@ import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 
 import { fetchHelper } from "@/lib/FetchHelper";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
-import { StopsAPIResponse } from "@/pages/api/gtfs/static/stops";
+import { StopsAPIResponse } from "@/pages/api/gtfs/static/route-stops";
 
 type Props = {
   routeId: string;
@@ -18,7 +18,7 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
   const { data: stops } = useSWR<StopsAPIResponse>(
     () =>
       !!routeId
-        ? `/api/gtfs/static/stops?${new URLSearchParams({
+        ? `/api/gtfs/static/route-stops?${new URLSearchParams({
             routeId,
           })}`
         : null,

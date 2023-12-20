@@ -9,8 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "prisma-format": "npx prisma-case-format --file prisma/schema.prisma",
-    "deploy": "flyctl deploy --local-only",
-    "db-import": "npx tsx ./prisma/import/index.ts"
+    "deploy": "flyctl deploy --local-only"
   },
   "dependencies": {
     "@prisma/client": "^4.13.0",

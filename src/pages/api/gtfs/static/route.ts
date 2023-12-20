@@ -42,8 +42,6 @@ async function handler(
     return res.end();
   }
 
-  camelcaseKeys;
-
   return res.json(camelcaseKeys(routes));
 }
 

@@ -1,14 +1,13 @@
-# Irish public transit tracker
+# Irish public transport tracker
 
-> Live demo [_here_](https://transit-tracker.fly.dev).
+> [Try the live Transport Tracker on fly.io](https://transport-tracker.fly.dev).
 
 ## Table of Contents
 
 - [Overview](#overview)
   - [Project description](#project-description)
   - [Features](#features)
-  - [Screenshots](#screenshots)
-- [My process](#my-process)
+- [Project Details](#project-details)
   - [Built With](#built-with)
   - [What I learned](#what-i-learned)
   - [Continued development](#continued-development)
@@ -22,73 +21,59 @@
 
 ## Overview
 
+![Example desktop screenshot](./app-screenshot.jpg)
+
 ### Project Description
 
-This is an easy to use alternative to the TFI Live transit App.
+This is an easy to use alternative to the TFI Live transport App.
 
 - Search public bus and train schedules across Ireland for their favorite travel routes.
-- Save favorite transit stops for quick future access.
+- Save favorite transport stops for quick future access.
 - View scheduled and real arrival estimates for upcoming trains and buses. No more wondering when your bus is actually supposed to arrive.
 - Select trips to display current or estimated train or bus positions.
 
 ### Features
 
-- Search backend SQL database served by REST apis for scheduled public transit routes.
-- Leaflet map displays interactive transit stops, route paths, arrival times, and estimated vehicle position.
+- Next.js rest APIs and postgreSQL database serve up-to-date schedule of public transport routes.
+- Leaflet map displays interactive transport stops, route paths, arrival times, and estimated vehicle position.
 - Interactive features include travel date/time picker, departure point by stop, and scheduled trip selection.
-- Redis realtime transit data cache provides fast trip updates by serving only user requested trips.
+- Redis realtime transport data cache provides fast trip updates by serving only user requested trips.
 - Containerized with Docker for flexible and easy deployment.
-- Continuous deployment with github workflows ensures Transport schedules are kept up to date.
+- Continuous deployment with github workflows ensures transport schedules are kept up to date.
 
-### Screenshots
-
-<!-- ![Example desktop screenshot](./img/screenshot-desktop.png)
-
-<details>
-
-  <summary>Click here to show mobile screenshot</summary>
-
-![Example mobile screenshot](./img/screenshot-mobile.png)
-
-</details>
-
-<br/><br/>
-
-Add a screenshot. The easiest way to do this is to use Firefox to view your project, right-click the page and select "Take a Screenshot". You can choose either a full-height screenshot or a cropped one based on how long the page is. If it's very long, it might be best to crop it.
-
-Alternatively, you can use a tool like [FireShot](https://getfireshot.com/) to take the screenshot. FireShot has a free option, so you don't need to purchase it.
-
-Then crop/optimize/edit your image however you like, add it to your project, and update the file path in the image above. -->
-
-## My Process
+## Project Details
 
 ### Built With
 
-- React and Next.JS
+- Next.JS single page React app
 - TypeScript
-- CSS and Tailwind
-- Leaflet
-- SQL and SQLite
-- Prisma
-- Docker
-- Redis
-- REST apis
-- git
-- Github Workflows
-- National Transit Authority Realtime API
-- [Transport for Ireland public transit data](https://www.transportforireland.ie/transitData/PT_Data.html)
+- Styling with CSS, Tailwind and [Shadcn/ui components](https://ui.shadcn.com)
+- Leaflet Maps
+- NEON PostgreSQL [See companion repo for PostgreSQL continuous deployment](https://github.com/david-abell/gtfs-to-postgres)
+- Deployed with Docker containers
+- Redis caching for the National Transport Authority Realtime schedule API
+- [Transport for Ireland public transport data](https://www.transportforireland.ie/transportData/PT_Data.html)
 
 ### Continued Development
 
-- A timeline schedule component as an alternative to the map layout.
+- Add a timeline schedule component as an alternative to the map layout.
+- Add feature to search for specific stop ids.
 
 ### What I learned
 
-#### Persisting values from Github workflows
+#### SQlite and PostgreSQL
 
-Sharing database version time stamps between Github workflows for continuos deployment proved unexpectedly difficult. Database files become outdated in anywhere from a few days to a few weeks. I needed a simple way to store last modified headers from the TFI endpoint to know when the database needed to be rebuild.
+This project was originally deployed with a companion SQLite database deployed as part of the app docker container. This allowed users low latency access to schedule information at the expense of larger container deployment size. At inception, this container size was manageable, but in the latter part of 2023 it outgrew fly.io's build worker memory limits when schedule data served by the NTA caused container size to balloon to over 2.5GB+.
 
-Repository variables seemed like the right place to store this but it turned out after a few attempts that `Actions` & `Workflows`, while they could read secrets and variables, could not be granted write permission.
+Extracting database hosting to a separate PostgreSQL service hosted on NEON added a small warm up and latency penalty but resolved all fly.io deployment memory issues.
+
+#### SQLite database versioning and persisting values with Github workflows
+
+Because the database serves only frequently changing transport schedule data, the simplest method for deployment was to perform a full database reset from the TFI api CSV files and then redeploy the app docker container.
+
+Schedule data could become outdated in anywhere from a few days to a few weeks. I needed a simple way to store last modified headers from the TFI endpoint to know when the database needed to be rebuilt from fresh CSV files. Since I was discarding the database and rebuilding, I needed a separate way to store the most recent last-modified timestamp. This proved to be more difficult than expected.
+
+Repository variables seemed like a simple place to store a string timestamp record but it turned out after a few attempts that `Actions` & `Workflows`, while they could read secrets and variables, could not be granted write permission.
 
 Stack overflow suggested to curl the Github rest api but requests were always rejected by the api with `"message": "Resource not accessible by integration"`. I attempted variations of the job below. Setting global repository workflow permission for read and write did not work.
 
@@ -109,13 +94,13 @@ test:
         -d '{"name":"GTFS_LAST_MODIFIED","value":"${value}"}'
 ```
 
-Workflow artifacts seemed to be the only in house possibility but they were cumbersome to work with. Importing and exporting artifacts between jobs in a workflow proved fairly simple but it turns out that, like environment variables, there is no method for sharing them between workflow runs. Elio Struyf's article [Retrieving an artifact from a previous GitHub Actions workflow](https://www.eliostruyf.com/retrieving-artifact-previous-github-actions-workflow/) saved me the hassle of figuring out how to grab the most recently generated artifact.
+Storing a text file with workflow artifacts seemed to be the only in house possibility but they were cumbersome to work with. Importing and exporting artifacts between jobs in a workflow proved fairly simple but it turns out that, like environment variables, there is no method for sharing them between workflow runs. Elio Struyf's article [Retrieving an artifact from a previous GitHub Actions workflow](https://www.eliostruyf.com/retrieving-artifact-previous-github-actions-workflow/) saved me the hassle of figuring out how to grab the most recently generated artifact.
 
-The repository public workflow apis available at `https://api.github.com/repos/OWNER/REPO/actions/artifacts` and `https://api.github.com/repos/OWNER/REPO/actions/workflows/[workflow-filename]/runs` were especially helpful for understanding api response structure and retrieving the correct artifacts.
+The repository public workflow apis available at `https://api.github.com/repos/<OWNER>/<REPO>/actions/artifacts` and `https://api.github.com/repos/<OWNER>/<REPO>/actions/workflows/<workflow-filename>/runs` were especially helpful for understanding the api response structure and successfully retrieving the correct artifact.
 
-<!-- [workflow_api](https://api.github.com/repos/david-abell/transit-tracker/actions/workflows/check-database-version.yml/runs) -->
+<!-- [workflow_api](https://api.github.com/repos/david-abell/transport-tracker/actions/workflows/check-database-version.yml/runs) -->
 
-<!-- [artifact_api](https://api.github.com/repos/david-abell/transit-tracker/actions/artifacts) -->
+<!-- [artifact_api](https://api.github.com/repos/david-abell/transport-tracker/actions/artifacts) -->
 
 ## Instructions
 
@@ -123,9 +108,11 @@ The repository public workflow apis available at `https://api.github.com/repos/O
 
 `npm install`
 
-run `npm run db-import` to populate the schedule database.
+For caching local live schedule data clone the REDIS server repo [fly-transit-redis](https://github.com/david-abell/fly-transit-redis), install, build the docker container and ensure that it is running.
 
-For live schedule data clone the REDIS server repo [@ADD_REDIS_SERVER_REPO_LINK](), install, build the docker container and ensure that it is running.
+For local schedule data clone the PostgreSQL repo [https://github.com/david-abell/gtfs-to-postgres](https://github.com/david-abell/fly-transit-redis), install, follow instructions to build the docker container and populate the PostgreSQL database, and ensure that the container is running.
+
+create a `.env` file in the project root with `DATABASE_URL='PostgreSQL connection string`
 
 ### Usage
 
@@ -139,21 +126,21 @@ then
 
 ### Deployment
 
-Deployment is automated with Github workflows ` push`` or  `merges` to main and nightly API checks to the TFI GTFS API. For live schedule updates the redis server must be cloned and deployed separately.
+Deployment is automated with Github workflows ` push`` or  `merges` to main and nightly API checks to the TFI GTFS API. For live schedule updates a separate fly.io redis server must be created.
 
 #### deploy to Fly.io
 
 - install flyctl available from [fly.io](fly.io)
 - run `fly launch`
-- run `fly secrets set DATABASE_URL=file:gtfs.db`
+- run `fly secrets set DATABASE_URL=postgreSQL connection string`
 - run `fly secrets set NTA_REALTIME_API_KEY=api key from NTA GTFS realtime api below`
 - run `npm run deploy`
 
 ## Useful resources
 
-- [Transport operator schedule data](https://www.transportforireland.ie/transitData/PT_Data.html)
+- [Transport operator schedule data](https://www.transportforireland.ie/transportData/PT_Data.html)
 - [NTA GTFS realtime api](https://developer.nationaltransport.ie/api-details#api=gtfsr&operation=gtfsr-v2)
-- [General transit feed specifications](https://gtfs.org)
+- [General transport feed specifications](https://gtfs.org)
 
 ## Author
 
@@ -163,4 +150,4 @@ Deployment is automated with Github workflows ` push`` or  `merges` to main and 
 ## Acknowledgements
 
 - Elio Struyf's article mentioned above [Retrieving an artifact from a previous GitHub Actions workflow](https://www.eliostruyf.com/retrieving-artifact-previous-github-actions-workflow/)
-- I relied heavily on Brendan Nee @BlinkTagInc and [node-gtfs](https://github.com/BlinkTagInc/node-gtfs) for initial database trials.
+- I relied heavily on Brendan Nee @BlinkTagInc and [node-gtfs](https://github.com/BlinkTagInc/node-gtfs) for initial SQLite database trials.

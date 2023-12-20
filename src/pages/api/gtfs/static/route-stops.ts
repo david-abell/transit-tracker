@@ -5,11 +5,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { Stop } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";
 
-export type StopsAPIResponse = Stop[];
+export type RouteStopsAPIResponse = Stop[];
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<StopsAPIResponse>
+  res: NextApiResponse<RouteStopsAPIResponse>
 ) {
   const { routeId } = req.query;
 

@@ -6,10 +6,6 @@
 app = "transit-tracker"
 primary_region = "cdg"
 
-[mounts]
-  source = "data"
-  destination = "/data"
-
 [http_service]
   internal_port = 3000
   force_https = true

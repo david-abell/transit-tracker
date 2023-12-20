@@ -1,7 +1,6 @@
 {
   "name": "irish-buses",
-  "version": "0.3.1",
-  "private": true,
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -9,8 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "prisma-format": "npx prisma-case-format --file prisma/schema.prisma",
-    "deploy": "flyctl deploy --local-only",
-    "db-import": "npx tsx ./prisma/import/index.ts"
+    "deploy": "flyctl deploy --local-only"
   },
   "dependencies": {
     "@prisma/client": "^4.13.0",

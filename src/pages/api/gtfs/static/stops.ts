@@ -29,7 +29,7 @@ async function handler(
         stop_name ILIKE ${containsQuery}
     ORDER BY stop_name ILIKE ${startsWithQuery} OR NULL,
         stop_id
-    LIMIT 10;
+    LIMIT 6;
  `;
 
   if (!stops.length) {

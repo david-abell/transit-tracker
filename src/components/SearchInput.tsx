@@ -98,7 +98,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
     <div className={className}>
       <form
         ref={formRef}
-        className="flex w-full flex-1 flex-col items-center justify-center text-center md:w-auto md:min-w-[28rem]"
+        className="flex w-full flex-1 flex-col items-center justify-center text-center md:w-[28rem] md:focus-within:w-[28rem]"
         // onSubmit={handleOnSubmit}
       >
         <label htmlFor="search-select" className="sr-only">
@@ -143,8 +143,8 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
 
           {!!searchResults.length && (
             <ul
-              className="text-md absolute left-0 top-full z-[1200] block max-h-[calc(100dvh-6rem)] w-full overflow-y-scroll rounded-b-lg border border-gray-300 bg-gray-50 text-gray-900
-               focus:border-blue-500  focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+              className="text-md absolute left-0 top-full z-[1200] block max-h-[calc(100dvh-6rem)] w-[calc(100dvw-2rem)] overflow-y-scroll rounded-b-lg border border-gray-300 bg-gray-50 text-gray-900 focus:border-blue-500
+               focus:ring-blue-500  dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500 md:w-full"
             >
               {searchResults.map((item) => {
                 if ("routeId" in item) {

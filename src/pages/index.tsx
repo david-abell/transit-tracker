@@ -16,7 +16,7 @@ import { useSearchParams } from "next/navigation";
 import MainNav from "@/components/MainNav";
 import { useElementSize, useWindowSize } from "usehooks-ts";
 import SavedStops from "@/components/SavedStops";
-import useStop from "@/hooks/useStop";
+import useStopId from "@/hooks/useStopId";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -66,7 +66,7 @@ export default function Home() {
 
   // static schedule data
   const { route: selectedRoute } = useRouteId(routeId);
-  const { selectedStop } = useStop(stopId);
+  const { selectedStop } = useStopId(stopId);
 
   const {
     selectedTripStopTimesById,

@@ -1,31 +1,42 @@
 import { prisma } from "@/lib/db";
-import withErrorHandler from "@/lib/withErrorHandler";
-
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { Stop } from "@prisma/client";
+
+import withErrorHandler from "@/lib/withErrorHandler";
+import { Route, Stop } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";
+import camelcaseKeys from "camelcase-keys";
 
 export type StopsAPIResponse = Stop[];
-
 async function handler(
   req: NextApiRequest,
   res: NextApiResponse<StopsAPIResponse>
 ) {
-  const { routeId } = req.query;
+  const { stopQuery = "" } = req.query;
 
-  if (!routeId || typeof routeId !== "string") {
+  if (!stopQuery || typeof stopQuery !== "string") {
     return res.end();
   }
 
-  const stops = await prisma.stop.findMany({
-    where: { stopTime: { some: { trip: { routeId: routeId } } } },
-  });
+  const startsWithQuery = `${stopQuery.toLowerCase().trim()}%`;
+  const containsQuery = `%${stopQuery.toLowerCase().trim()}%`;
+
+  const stops = await prisma.$queryRaw<Stop[]>`
+    SELECT stop_id,
+        stop_name
+    FROM stop
+    WHERE stop_id ILIKE ${startsWithQuery} OR 
+        stop_name ILIKE ${startsWithQuery} OR
+        stop_name ILIKE ${containsQuery}
+    ORDER BY stop_name ILIKE ${startsWithQuery} OR NULL,
+        stop_id
+    LIMIT 6;
+ `;
 
   if (!stops.length) {
-    throw new ApiError(404, "No stops found");
+    return res.end();
   }
 
-  return res.json(stops);
+  return res.json(camelcaseKeys(stops));
 }
 
 export default withErrorHandler(handler);

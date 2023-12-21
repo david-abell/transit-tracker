@@ -35,14 +35,12 @@ async function handler(
           SUBSTRING(route_short_name FROM '^\\d* *(.*?)( \\d+)?$'),
           COALESCE(SUBSTRING(route_short_name FROM ' (\\d+)$')::INTEGER, 0),
           substring(route_short_name, ${globQuery} ) DESC
-    LIMIT 10;
+    LIMIT 6;
  `;
 
   if (!routes.length) {
     return res.end();
   }
-
-  camelcaseKeys;
 
   return res.json(camelcaseKeys(routes));
 }

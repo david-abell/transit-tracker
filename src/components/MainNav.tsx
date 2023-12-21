@@ -22,7 +22,7 @@ type Props = {
 function MainNav({ children, selectedRoute }: Props) {
   const navRef = useRef<HTMLElement>(null);
   const [showMenu, setShowMenu] = useState(false);
-  const isMediumScreen = useMediaQuery("(min-width: 1024px)");
+  const isMediumScreen = useMediaQuery("(min-width: 768px)");
 
   useEffect(() => {
     const ref = navRef.current;
@@ -50,9 +50,9 @@ function MainNav({ children, selectedRoute }: Props) {
   return (
     <nav
       ref={navRef}
-      className="relative mx-auto flex min-h-[7rem] flex-row items-center justify-between
-       gap-2.5 border-gray-200 bg-gray-50 p-4 dark:border-gray-700 
-       dark:bg-gray-800 md:max-w-screen-2xl md:px-10"
+      className=";g:min-h-[6rem] relative mx-auto flex flex-row items-center justify-between
+       gap-2.5 border-gray-200 bg-gray-50 p-4 
+       dark:border-gray-700 dark:bg-gray-800 md:max-w-screen-2xl lg:px-10"
     >
       {showMenu ? (
         <>
@@ -82,13 +82,13 @@ function MainNav({ children, selectedRoute }: Props) {
 
       {/* Menu list */}
       <div
-        className={`absolute left-0 top-full z-[1100] mr-auto w-full justify-between md:gap-2.5 lg:static xl:flex ${
+        className={`absolute left-0 top-full z-[1100] mr-auto w-full justify-between md:gap-2.5 lg:static lg:flex ${
           showMenu ? "" : "hidden"
         }`}
       >
         <ul
           id="navbar-hamburger"
-          className="mx-auto flex flex-col flex-wrap gap-4 bg-gray-50 p-4 font-medium dark:border-gray-700 dark:bg-gray-800 lg:flex-row"
+          className="mx-auto flex flex-col flex-wrap gap-4 bg-gray-50 px-4 pb-4 font-medium dark:border-gray-700 dark:bg-gray-800 lg:flex-row lg:pt-4"
         >
           {Children.map(children, (child: ReactNode) => {
             if (isValidElement(child)) {

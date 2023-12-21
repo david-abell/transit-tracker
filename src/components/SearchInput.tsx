@@ -98,7 +98,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
     <div className={className}>
       <form
         ref={formRef}
-        className="flex w-full flex-1 flex-col items-center justify-center text-center md:w-[28rem] md:focus-within:w-[28rem]"
+        className="flex flex-1 flex-col items-center justify-center text-center lg:min-w-[32rem]"
         // onSubmit={handleOnSubmit}
       >
         <label htmlFor="search-select" className="sr-only">
@@ -123,7 +123,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
 
           <input
             id="search-select"
-            className={`text-md inline-block flex-1 appearance-none truncate rounded-none rounded-b-lg rounded-t-lg border border-gray-300 bg-gray-50 p-2.5 pl-8
+            className={`text-md inline-block w-full appearance-none truncate rounded-none rounded-b-lg rounded-t-lg border border-gray-300 bg-gray-50 p-2.5 pl-8
                text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white
                dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500 md:pl-10
                ${

@@ -56,26 +56,33 @@ function MainNav({ children, selectedRoute }: Props) {
     >
       {showMenu ? (
         <>
-          <div className="flex flex-1 flex-col dark:text-white md:flex-none lg:block">
-            <h2 className="inline-block text-base font-bold md:text-2xl">
-              {selectedRoute?.routeShortName}
-            </h2>
-            <p className="inline-block text-lg font-medium lg:pl-2.5">
-              {selectedRoute?.routeLongName}
-            </p>
-          </div>
-          <ThemeToggle />
+          {!!selectedRoute && (
+            <div className="flex items-baseline dark:text-white ">
+              {!!selectedRoute.routeShortName && (
+                <>
+                  <span className="inline-block whitespace-nowrap text-base font-bold md:text-2xl">
+                    {selectedRoute.routeShortName}
+                  </span>
+                  <span>&nbsp;-&nbsp;</span>
+                </>
+              )}
+              <h2 className="text-lg font-medium lg:pl-2.5">
+                {selectedRoute?.routeLongName ?? ""}
+              </h2>
+            </div>
+          )}
+          <ThemeToggle className="ml-auto" />
         </>
       ) : (
         <SearchInput
           selectedRoute={selectedRoute}
-          className={"mx-auto md:w-auto lg:hidden"}
+          className={"mr-auto flex-1 lg:hidden"}
         />
       )}
 
       {/* Menu list */}
       <div
-        className={`absolute left-0 top-full z-[1100] mx-auto w-full justify-between md:gap-2.5 lg:static xl:flex ${
+        className={`absolute left-0 top-full z-[1100] mr-auto w-full justify-between md:gap-2.5 lg:static xl:flex ${
           showMenu ? "" : "hidden"
         }`}
       >

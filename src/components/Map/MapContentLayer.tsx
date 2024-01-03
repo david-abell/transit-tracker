@@ -24,6 +24,7 @@ import { useInterval, useLocalStorage } from "usehooks-ts";
 
 import type { Stop, StopTime, Trip } from "@prisma/client";
 import {
+  formatDelay,
   getDelayedTime,
   isPastArrivalTime,
   parseDatetimeLocale,
@@ -210,6 +211,10 @@ function MapContentLayer({
                   arrival?.delay || departure?.delay
                 );
 
+                const prettyDelay = formatDelay(
+                  arrival?.delay || departure?.delay
+                );
+
                 return (
                   <Marker
                     key={stopId}
@@ -230,22 +235,30 @@ function MapContentLayer({
                     // }}
                   >
                     <Popup>
-                      <strong>Stop Name:</strong> {stopName}
-                      <br />
-                      <strong>Stop Id:</strong> {stopId}
+                      <h3 className="text-lg font-bold">{stopName}</h3>
+                      <p className="!mt-0">
+                        <strong>Stop Id:</strong> {stopId}
+                      </p>
                       {!!arrivalTime && (
-                        <>
-                          <br />
-                          <strong>Scheduled arrival</strong> @: {arrivalTime}
-                        </>
+                        <p className="!mb-0">
+                          <strong>Scheduled arrival</strong>:
+                          <span> {arrivalTime}</span>
+                        </p>
                       )}
                       {!!tripId && !!realtimeTrip && !!delayedArrivalTime && (
                         <>
-                          <br />
-                          <div className="tooltip-schedule-change">
+                          <p className="tooltip-schedule-change !mt-0">
                             <strong>Estimated arrival</strong>:{" "}
-                            <span>{delayedArrivalTime}</span>
-                          </div>
+                            {delayedArrivalTime}
+                          </p>
+                          {!!prettyDelay && (
+                            <p>
+                              <strong>Delayed by: </strong>
+                              <span className="text-red-900">
+                                {prettyDelay}
+                              </span>
+                            </p>
+                          )}
                         </>
                       )}
                       <button
@@ -255,7 +268,7 @@ function MapContentLayer({
                          focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700
                           dark:focus:ring-blue-800"
                       >
-                        View trips
+                        Upcoming trips
                       </button>
                       <button
                         type="button"

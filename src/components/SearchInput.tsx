@@ -32,8 +32,6 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
     setSearchQuery("");
   };
 
-  console.log(stops);
-
   // trap keyboard focus inside form for arrow and tab key input
   const handleSearchKeydown = (
     e: React.KeyboardEvent<
@@ -81,8 +79,6 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
       : isStops
       ? stops
       : [];
-
-  console.log(searchResults, searchResults.length);
 
   // onsubmit not working
 

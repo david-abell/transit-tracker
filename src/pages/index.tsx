@@ -60,6 +60,7 @@ export default function Home() {
   // component visibility state
   const [showTripModal, setShowTripModal] = useState(false);
   const [showSavedStops, setShowSavedStops] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const { height: windowHeight } = useWindowSize();
   const [NavRef, { height: navHeight }] = useElementSize();
@@ -107,13 +108,19 @@ export default function Home() {
     <main className="flex min-h-[100svh] flex-col items-center justify-between bg-gray-50 text-slate-950 dark:bg-gray-800 dark:text-white">
       <div className="relative w-full">
         <div ref={NavRef}>
-          <MainNav selectedRoute={selectedRoute}>
+          <MainNav
+            selectedRoute={selectedRoute}
+            showMenu={showMobileMenu}
+            setShowMenu={setShowMobileMenu}
+          >
             <DateTimeSelect
               selectedDateTime={selectedDateTime}
               setSelectedDateTime={setSelectedDateTime}
             />
 
-            <SearchInput selectedRoute={selectedRoute} className="w-full" />
+            {!showMobileMenu && (
+              <SearchInput selectedRoute={selectedRoute} className="w-full" />
+            )}
 
             <button
               className={`md:text-md w-full rounded-md  border border-blue-700 bg-blue-700 p-2.5 

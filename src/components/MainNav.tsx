@@ -6,7 +6,8 @@ import {
   isValidElement,
   useEffect,
   useRef,
-  useState,
+  Dispatch,
+  SetStateAction,
 } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import SearchInput from "./SearchInput";
@@ -17,11 +18,12 @@ const ThemeToggle = dynamic(() => import("./ThemeToggle"), { ssr: false });
 type Props = {
   children: ReactNode;
   selectedRoute: Route | undefined;
+  showMenu: boolean;
+  setShowMenu: Dispatch<SetStateAction<boolean>>;
 };
 
-function MainNav({ children, selectedRoute }: Props) {
+function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
   const navRef = useRef<HTMLElement>(null);
-  const [showMenu, setShowMenu] = useState(false);
   const isMediumScreen = useMediaQuery("(min-width: 768px)");
 
   useEffect(() => {
@@ -39,18 +41,18 @@ function MainNav({ children, selectedRoute }: Props) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside, true);
     };
-  }, [showMenu]);
+  }, [setShowMenu, showMenu]);
 
   useEffect(() => {
     if (isMediumScreen) {
       setShowMenu(false);
     }
-  }, [isMediumScreen]);
+  }, [isMediumScreen, setShowMenu]);
 
   return (
     <nav
       ref={navRef}
-      className=";g:min-h-[6rem] relative mx-auto flex flex-row items-center justify-between
+      className="relative mx-auto flex min-h-[6rem] flex-row items-center justify-between
        gap-2.5 border-gray-200 bg-gray-50 p-4 
        dark:border-gray-700 dark:bg-gray-800 md:max-w-screen-2xl lg:px-10"
     >

@@ -138,7 +138,7 @@ Deployment is automated with Github workflows ` push`` or  `merges` to main and 
 
 ## Useful resources
 
-- [Transport operator schedule data](https://www.transportforireland.ie/transportData/PT_Data.html)
+- [Transport operator schedule data](https://www.transportforireland.ie/transitData/PT_Data.html)
 - [NTA GTFS realtime api](https://developer.nationaltransport.ie/api-details#api=gtfsr&operation=gtfsr-v2)
 - [General transport feed specifications](https://gtfs.org)
 

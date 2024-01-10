@@ -7,12 +7,13 @@ import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
 import { TripUpdate } from "@/types/realtime";
 import { Route, StopTime, Trip } from "@prisma/client";
 import { useContext, useState } from "react";
-import { DialogRefContext } from "./Modal";
+import { DialogRefContext } from "../Modal";
 import useUpcoming from "@/hooks/useUpcoming";
 import { useSearchParams } from "next/navigation";
 import useRealtime from "@/hooks/useRealtime";
 import { useMediaQuery } from "usehooks-ts";
 import { DateTime } from "luxon";
+import Time from "./Time";
 
 type Props = {
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
@@ -78,7 +79,7 @@ function TripSelect({
       {
         <p
           className={`mt-2 w-full flex-1 bg-yellow-200 px-2.5 py-0.5 text-center font-medium dark:bg-yellow-700 dark:text-white
-        ${hasRealtime || showAllTrips ? "invisible" : ""}`}
+        ${hasRealtime || showAllTrips ? "hidden" : ""}`}
         >
           {`Live data for ${selectedRoute?.routeShortName} not found`}
         </p>
@@ -101,44 +102,48 @@ function TripSelect({
             ? "Show all upcoming trips"
             : "No route selected"}
         </button>
-        <label htmlFor="trip-select" className="sr-only">
-          Pick a trip
-        </label>
-        <div
-          id="trip-select"
-          className="flex h-[21rem] max-w-full flex-col text-start"
-        >
-          {/* Column headers */}
-          <div
-            className={`flex w-full justify-between gap-1 border-b-2 border-gray-400 py-2 pl-2 pr-4 font-medium dark:border-gray-600 
-                md:gap-2 md:px-4 md:pr-10`}
-          >
-            {/* schedule headers */}
-            <span className="w-20 cursor-default md:w-28">Route</span>
-            <span className="flex-1 cursor-default">Destination</span>
-            <span
-              className={`w-16 cursor-default md:w-28 ${
-                showAllTrips || hasRealtime ? "hidden md:inline-block" : ""
-              }`}
-            >
-              Scheduled
-            </span>
 
-            {/* realtime headers */}
-            {(showAllTrips || hasRealtime) && (
-              <>
-                <span className="w-14 cursor-default md:w-20"> Arriving</span>
-                <span className="w-14 cursor-default text-right md:w-20">
-                  Delay
-                </span>
-              </>
-            )}
-          </div>
-          {/* Trip list */}
+        <div className="flex h-[21rem] max-w-full flex-col text-start [contain:paint]">
           {!!currentStopTimes && !!currentStopTimes.length && (
             <ul className="flex h-[21rem] max-w-full flex-col overflow-y-auto text-start">
+              {/* Column headers */}
+
+              <li
+                className={`sticky top-0 flex w-full justify-between gap-1 border-b-2 border-gray-400 bg-gray-50 px-2 py-2 pl-2 text-start font-medium 
+                dark:border-gray-600 dark:bg-gray-800 md:gap-2 md:px-4`}
+              >
+                {/* Route */}
+                <span className="w-20 cursor-default md:w-28">Route</span>
+                {/* Destination */}
+                <span className="flex-1 cursor-default">Destination</span>
+                {/* Scheduled */}
+                <span
+                  className={`w-16 cursor-default text-right md:w-20 ${
+                    showAllTrips || hasRealtime ? "hidden sm:inline-block" : ""
+                  }`}
+                >
+                  Scheduled
+                </span>
+
+                {(showAllTrips || hasRealtime) && (
+                  <>
+                    {/* Arriving */}
+                    <span className="w-16  cursor-default text-right md:w-20">
+                      {" "}
+                      Arriving
+                    </span>
+
+                    {/* Delay */}
+                    <span className={`w-16  cursor-default text-right md:w-20`}>
+                      Delay
+                    </span>
+                  </>
+                )}
+              </li>
+
+              {/* Trip list */}
               {currentStopTimes.flatMap(
-                ({ tripId, departureTime, stopSequence, arrivalTime }) => {
+                ({ tripId, departureTime, stopSequence }) => {
                   const { stopTimeUpdate } =
                     realtimeScheduledByTripId.get(tripId) || {};
 
@@ -173,7 +178,13 @@ function TripSelect({
                     (!!(arrival?.delay && arrival.delay > 60) ||
                       !!(departure?.delay && departure.delay > 60));
 
-                  const isOnTime = !isCanceled && !isEarly && !isDelayed;
+                  const tripStatus = isCanceled
+                    ? "canceled"
+                    : isEarly
+                    ? "early"
+                    : isDelayed
+                    ? "delayed"
+                    : "ontime";
 
                   const { tripHeadsign = "", routeId } =
                     (showAllTrips ? allTrips : tripsById).get(tripId) || {};
@@ -190,89 +201,53 @@ function TripSelect({
                         onKeyDown={handleKeydown}
                         disabled={isCanceled}
                         className={`flex w-full items-center justify-between gap-1 border-b border-gray-200 
-                  py-2 pl-2 pr-4 text-start font-medium dark:border-gray-600 md:gap-2 md:px-4
+                  px-2 py-2 text-start font-medium dark:border-gray-600 md:gap-2 md:px-4
                   ${
                     isCanceled
                       ? "cursor-not-allowed"
-                      : `cursor-pointer ring-inset hover:bg-gray-100 hover:text-blue-700 focus-visible:text-blue-700 focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus-visible:text-white dark:focus-visible:ring-gray-500`
+                      : `cursor-pointer ring-inset hover:bg-gray-100 hover:text-blue-700 focus-visible:bg-gray-100 focus-visible:text-blue-700 focus-visible:outline-none focus-visible:ring-2
+                       focus-visible:ring-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:hover:ring-gray-500 dark:focus-visible:bg-gray-600 dark:focus-visible:text-white dark:focus-visible:ring-gray-500`
                   }`}
                       >
-                        {/* schedule columns */}
-                        <div className="w-20 font-bold md:w-28 md:text-lg">
-                          <b>
-                            {typeof displayRoute === "object"
-                              ? displayRoute.routeShortName
-                              : ""}
-                          </b>
-                        </div>
-
-                        {/* towards */}
+                        {/* Route Short Name */}
+                        <b className="w-20 font-bold md:w-28 md:text-lg">
+                          {typeof displayRoute === "object"
+                            ? displayRoute.routeShortName
+                            : ""}
+                        </b>
+                        {/* Destination */}
                         <span className="flex-1">{tripHeadsign}</span>
+                        {/* Scheduled */}
                         <span
-                          className={`w-16 md:w-28 ${
-                            hasRealtime || showAllTrips
-                              ? "hidden md:inline-block"
+                          className={
+                            showAllTrips || hasRealtime
+                              ? "hidden sm:inline-block"
                               : ""
-                          }`}
+                          }
                         >
-                          {departureTime}
+                          <Time
+                            time={departureTime}
+                            column="scheduled"
+                            status={tripStatus}
+                          />
                         </span>
 
-                        {/* realtime columns */}
                         {(showAllTrips || hasRealtime) && (
                           <>
-                            {/* Arrival */}
-                            {isEarly && (
-                              <span className="w-14 text-green-700 dark:text-green-500 md:w-20">
-                                {delayedArrivalTime || departureTime}
-                              </span>
-                            )}
-                            {isOnTime && (
-                              <span className="w-14 md:w-20">
-                                {matchesLarge && hasRealtime
-                                  ? "on time"
-                                  : matchesLarge
-                                  ? "scheduled"
-                                  : arrivalTime}
-                              </span>
-                            )}
-                            {isDelayed && (
-                              <span className="w-14 text-red-700 dark:text-red-500 md:w-20">
-                                {delayedArrivalTime || departureTime}
-                              </span>
-                            )}
-                            {isCanceled && (
-                              <span className="w-14 text-red-700 line-through dark:text-red-500 md:w-20">
-                                {departureTime}
-                              </span>
-                            )}
-
+                            {/* Arriving */}
+                            <Time
+                              time={delayedArrivalTime || departureTime}
+                              column="arriving"
+                              status={tripStatus}
+                            />
                             {/* Delay */}
-                            {isEarly && (
-                              <span className="w-14 text-right text-green-700 dark:text-green-500 md:w-20">
-                                {formatDelay(
-                                  arrival?.delay || departure?.delay
-                                )}
-                              </span>
-                            )}
-                            {isOnTime && (
-                              <span className="w-14 text-right md:w-20">
-                                {closestStopUpdate ? "on time" : "no data"}
-                              </span>
-                            )}
-                            {isDelayed && (
-                              <span className="w-14 text-right text-red-700 dark:text-red-500 md:w-20">
-                                {formatDelay(
-                                  arrival?.delay || departure?.delay
-                                )}
-                              </span>
-                            )}
-                            {isCanceled && (
-                              <span className="w-14 text-right text-red-700 dark:text-red-500 md:w-20">
-                                Canceled
-                              </span>
-                            )}
+                            <Time
+                              time={formatDelay(
+                                arrival?.delay || departure?.delay
+                              )}
+                              column="delay"
+                              status={tripStatus}
+                            />
                           </>
                         )}
                       </button>

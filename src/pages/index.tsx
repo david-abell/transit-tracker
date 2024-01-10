@@ -6,7 +6,7 @@ import useRealtime from "@/hooks/useRealtime";
 import useStatic from "@/hooks/useStatic";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
-import TripSelect from "@/components/TripSelect";
+import TripSelect from "@/components/tripSelect/TripSelect";
 import DateTimeSelect from "@/components/DateTimeSelect";
 import { initDateTimeValue } from "@/lib/timeHelpers";
 import Modal from "@/components/Modal";

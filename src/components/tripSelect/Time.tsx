@@ -1,7 +1,9 @@
+type Status = "early" | "canceled" | "delayed" | "ontime";
+type Column = "scheduled" | "arriving" | "delay";
 type Props = {
   time: string | null | undefined;
-  column: "scheduled" | "arriving" | "delay";
-  status?: "early" | "canceled" | "delayed" | "ontime";
+  column: Column;
+  status?: Status;
 };
 
 const textClasses = {
@@ -17,6 +19,10 @@ const srText = {
   delay: "delay",
 } as const;
 
+// function getText(status: Status, column: Column) {
+//   if (status)
+// }
+
 function Time({ time, column, status = "ontime" }: Props) {
   return (
     <>
@@ -25,12 +31,18 @@ function Time({ time, column, status = "ontime" }: Props) {
           {srText[column]}
         </span>
       }
-      <time
-        dateTime={time || ""}
-        className={`w-16 text-right md:w-20 ${textClasses[status]}`}
-      >
-        {time || ""}
-      </time>
+      {status === "canceled" && column === "arriving" ? (
+        <span className={`w-16 text-right md:w-20 ${textClasses[status]}`}>
+          Canceled
+        </span>
+      ) : (
+        <time
+          dateTime={time || ""}
+          className={`w-16 text-right md:w-20 ${textClasses[status]}`}
+        >
+          {time || ""}
+        </time>
+      )}
     </>
   );
 }

@@ -4,11 +4,11 @@ type Props = {
   status?: "early" | "canceled" | "delayed" | "ontime";
 };
 
-const colors = {
-  early: "green",
-  canceled: "red",
-  delayed: "red",
-  ontime: "slate",
+const textClasses = {
+  early: "text-green-700 dark:text-green-500",
+  canceled: "text-red-700 dark:text-red-500",
+  delayed: "text-red-700 dark:text-red-500",
+  ontime: "text-slate-700 dark:text-slate-500",
 } as const;
 
 const srText = {
@@ -18,13 +18,6 @@ const srText = {
 } as const;
 
 function Time({ time, column, status = "ontime" }: Props) {
-  const color = colors[status];
-  const columnClasses = {
-    scheduled: `w-16 md:w-20 text-right`,
-    arriving: `w-16 md:w-20 text-right text-${color}-700 dark:text-${color}-500`,
-    delay: `w-16 md:w-20 text-right text-${color}-700 dark:text-${color}-500`,
-  };
-
   return (
     <>
       {
@@ -32,7 +25,10 @@ function Time({ time, column, status = "ontime" }: Props) {
           {srText[column]}
         </span>
       }
-      <time dateTime={time || ""} className={columnClasses[column]}>
+      <time
+        dateTime={time || ""}
+        className={`w-16 text-right md:w-20 ${textClasses[status]}`}
+      >
         {time || ""}
       </time>
     </>

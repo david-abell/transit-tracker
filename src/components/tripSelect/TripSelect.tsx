@@ -169,14 +169,14 @@ function TripSelect({
 
                   const isEarly =
                     !isCanceled &&
-                    (!!(arrival?.delay && arrival.delay < -60) ||
-                      !!(departure?.delay && departure.delay < -60));
+                    (!!(arrival?.delay && arrival.delay < -30) ||
+                      !!(departure?.delay && departure.delay < -30));
 
                   const isDelayed =
                     !isCanceled &&
                     !isEarly &&
-                    (!!(arrival?.delay && arrival.delay > 60) ||
-                      !!(departure?.delay && departure.delay > 60));
+                    (!!(arrival?.delay && arrival.delay > 30) ||
+                      !!(departure?.delay && departure.delay > 30));
 
                   const tripStatus = isCanceled
                     ? "canceled"

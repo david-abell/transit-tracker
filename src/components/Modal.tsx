@@ -71,26 +71,26 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
     >
       <div
         onClick={preventAutoClose}
-        className="flex h-full flex-col justify-between gap-4 p-2 md:gap-6 md:p-6"
+        className="flex h-full flex-col justify-between gap-2 p-4 md:p-6"
       >
         <h3 className="text-center text-2xl font-extrabold md:text-4xl">
           {title}
         </h3>
         <DialogRefContext.Provider value={{ dialog: ref?.current }}>
-          <div>{children}</div>
+          <div className="flex-1">{children}</div>
         </DialogRefContext.Provider>
         <div className="flex justify-between gap-3">
           <button
             onClick={handleClose}
             onKeyDown={handleKeydown}
-            className="mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            className="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
           >
             Close
           </button>
           <button
             onClick={handleProceed}
             onKeyDown={handleKeydown}
-            className="mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            className="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
           >
             Proceed
           </button>

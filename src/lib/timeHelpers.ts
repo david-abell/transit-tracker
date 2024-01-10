@@ -113,32 +113,29 @@ export function getDelayedTime(
   return dateToStopTimeString(delayedDate);
 }
 
+// Return valid time duration string in format 19h 11m 32s | 11m 32s | 32s
+// https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-time-element:valid-duration-string
 export function formatDelay(delayInSeconds: number | undefined) {
   if (!delayInSeconds) return undefined;
-  // Less than an hour early
-  if (delayInSeconds < -3600) {
-    // const seconds = Math.abs(delayInSeconds % 60);
-    // const minutes = (delayInSeconds + seconds) / 60;
-    // return `${minutes}:${String(seconds).padStart(2, String(0))}`;
-    return undefined;
-  }
-  if (delayInSeconds > -3600 && delayInSeconds < -60) {
-    const seconds = Math.abs(delayInSeconds % 60);
-    const minutes = (delayInSeconds + seconds) / 60;
-    return `${minutes}:${String(seconds).padStart(2, String(0))}`;
-  }
-  // less than a minute early or late
-  if (delayInSeconds < 60) {
-    return `${delayInSeconds} s`;
-  }
-  // Less than an hour
-  if (delayInSeconds < 3600) {
-    const seconds = delayInSeconds % 60;
-    const minutes = (delayInSeconds - seconds) / 60;
-    return `${minutes}:${String(seconds).padStart(2, String(0))}`;
+  const positiveDelay = Math.abs(delayInSeconds);
+  const hours = Math.floor(positiveDelay / 3600);
+  const minutes = Math.floor((positiveDelay - hours * 3600) / 60);
+  const seconds = positiveDelay - hours * 3600 - minutes * 60;
+
+  if (positiveDelay < 30) {
+    return;
   }
 
-  return ">1hr";
+  if (positiveDelay < 60) {
+    return `${positiveDelay}s`;
+  }
+
+  // Less than an hour
+  if (positiveDelay < 3600) {
+    return `${minutes}m ${seconds}s`;
+  }
+
+  return `${hours}h ${minutes}m ${seconds}s`;
 }
 
 export function getDifferenceInSeconds(

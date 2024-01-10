@@ -7,10 +7,12 @@
     "headsign",
     "ILIKE",
     "luxon",
+    "ontime",
     "papaparse",
     "Struyf's",
     "tailwindcss",
     "tempy",
     "timepoint"
-  ]
+  ],
+  "tailwindCSS.classAttributes": [".*Classes", "className"]
 }

@@ -34,7 +34,7 @@ function TripSelect({
   tripsById,
 }: Props) {
   const { dialog } = useContext(DialogRefContext);
-  const [showAllTrips, setShowAllTrips] = useState(false);
+  const [showAllRoutes, setShowAllRoutes] = useState(false);
   const searchParams = useSearchParams();
   const selectedStopId = searchParams.get("stopId");
 
@@ -46,7 +46,7 @@ function TripSelect({
     trips: allTrips,
   } = useUpcoming(selectedStopId, selectedDateTime);
 
-  const currentStopTimes = showAllTrips ? allStopTimes : stopTimes;
+  const currentStopTimes = showAllRoutes ? allStopTimes : stopTimes;
   const tripIds = currentStopTimes?.map(({ tripId }) => tripId);
 
   const {
@@ -80,18 +80,18 @@ function TripSelect({
     <div className="flex h-full w-full flex-col gap-4 text-start text-sm font-medium text-gray-900  dark:text-white ">
       {
         <form className="flex w-full flex-row items-center gap-5 bg-slate-50 text-lg dark:bg-slate-800">
-          <label htmlFor="show-trips-checkbox">Show all trips</label>
+          <label htmlFor="show-trips-checkbox">Show all routes</label>
           <Switch
             id="show-trips-checkbox"
-            checked={showAllTrips}
-            onCheckedChange={() => setShowAllTrips(!showAllTrips)}
+            checked={showAllRoutes}
+            onCheckedChange={() => setShowAllRoutes(!showAllRoutes)}
           />
         </form>
       }
       {
         <p
           className={`mt-0 w-full flex-1 bg-yellow-200 py-2 text-center font-medium dark:bg-yellow-700 dark:text-white
-        ${hasRealtime || showAllTrips ? "hidden" : ""}`}
+        ${hasRealtime || showAllRoutes ? "hidden" : ""}`}
         >
           {`Live data for ${selectedRoute?.routeShortName} not found`}
         </p>
@@ -112,13 +112,13 @@ function TripSelect({
             {/* Scheduled */}
             <span
               className={`w-20 cursor-default text-right ${
-                showAllTrips || hasRealtime ? "hidden sm:inline-block" : ""
+                showAllRoutes || hasRealtime ? "hidden sm:inline-block" : ""
               }`}
             >
               Scheduled
             </span>
 
-            {(showAllTrips || hasRealtime) && (
+            {(showAllRoutes || hasRealtime) && (
               <>
                 {/* Delay */}
                 <span className={`w-20  cursor-default text-right`}>Delay</span>
@@ -180,7 +180,7 @@ function TripSelect({
                   : "ontime";
 
                 const { tripHeadsign = "", routeId } =
-                  (showAllTrips ? allTrips : tripsById).get(tripId) || {};
+                  (showAllRoutes ? allTrips : tripsById).get(tripId) || {};
 
                 const displayRoute = routeId
                   ? upComingRoutes.get(routeId)!
@@ -213,7 +213,7 @@ function TripSelect({
                       {/* Scheduled */}
                       <span
                         className={
-                          showAllTrips || hasRealtime
+                          showAllRoutes || hasRealtime
                             ? "hidden sm:inline-block"
                             : ""
                         }
@@ -225,7 +225,7 @@ function TripSelect({
                         />
                       </span>
 
-                      {(showAllTrips || hasRealtime) && (
+                      {(showAllRoutes || hasRealtime) && (
                         <>
                           {/* Delay */}
                           <Time
@@ -265,8 +265,10 @@ function TripSelect({
 
         {/* No trips found */}
         {!!currentStopTimes && currentStopTimes.length === 0 && (
-          <p className="flex-1px-2.5 my-2.5 w-full py-0.5 text-center font-medium">
-            No upcoming trips found
+          <p className="w-full text-center text-xl font-medium">
+            {showAllRoutes
+              ? "No upcoming trips found"
+              : "No upcoming trips found. Try showing all routes instead."}
           </p>
         )}
       </>

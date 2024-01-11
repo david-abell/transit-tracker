@@ -76,15 +76,15 @@ function TripSelect({
 
   return (
     <>
-      {
-        <p
-          className={`mt-2 w-full flex-1 bg-yellow-200 px-2.5 py-0.5 text-center font-medium dark:bg-yellow-700 dark:text-white
+      <div className="flex h-full w-full flex-col rounded-lg border border-gray-200 bg-white text-start text-sm font-medium text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white ">
+        {
+          <p
+            className={`mt-0 w-full flex-1 bg-yellow-200 py-2 text-center font-medium dark:bg-yellow-700 dark:text-white
         ${hasRealtime || showAllTrips ? "hidden" : ""}`}
-        >
-          {`Live data for ${selectedRoute?.routeShortName} not found`}
-        </p>
-      }
-      <div className="flex w-full flex-col rounded-lg border border-gray-200 bg-white text-start text-sm font-medium text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white ">
+          >
+            {`Live data for ${selectedRoute?.routeShortName} not found`}
+          </p>
+        }
         <button
           className={`text-md px-5 py-2.5 text-center font-medium text-white ${
             !selectedRoute
@@ -103,9 +103,9 @@ function TripSelect({
             : "No route selected"}
         </button>
 
-        <div className="flex h-[21rem] max-w-full flex-col text-start [contain:paint]">
+        <>
           {!!currentStopTimes && !!currentStopTimes.length && (
-            <ul className="flex h-[21rem] max-w-full flex-col overflow-y-auto text-start">
+            <ul className="flex max-h-[26rem] max-w-full flex-col overflow-y-auto text-start [contain:paint]">
               {/* Column headers */}
 
               <li
@@ -127,15 +127,15 @@ function TripSelect({
 
                 {(showAllTrips || hasRealtime) && (
                   <>
+                    {/* Delay */}
+                    <span className={`w-16  cursor-default text-right md:w-20`}>
+                      Delay
+                    </span>
+
                     {/* Arriving */}
                     <span className="w-16  cursor-default text-right md:w-20">
                       {" "}
                       Arriving
-                    </span>
-
-                    {/* Delay */}
-                    <span className={`w-16  cursor-default text-right md:w-20`}>
-                      Delay
                     </span>
                   </>
                 )}
@@ -234,18 +234,18 @@ function TripSelect({
 
                         {(showAllTrips || hasRealtime) && (
                           <>
-                            {/* Arriving */}
-                            <Time
-                              time={delayedArrivalTime || departureTime}
-                              column="arriving"
-                              status={tripStatus}
-                            />
                             {/* Delay */}
                             <Time
                               time={formatDelay(
                                 arrival?.delay || departure?.delay
                               )}
                               column="delay"
+                              status={tripStatus}
+                            />
+                            {/* Arriving */}
+                            <Time
+                              time={delayedArrivalTime || departureTime}
+                              column="arriving"
                               status={tripStatus}
                             />
                           </>
@@ -277,7 +277,7 @@ function TripSelect({
               No upcoming trips found
             </p>
           )}
-        </div>
+        </>
       </div>
     </>
   );

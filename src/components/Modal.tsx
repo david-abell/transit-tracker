@@ -77,7 +77,7 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
           {title}
         </h3>
         <DialogRefContext.Provider value={{ dialog: ref?.current }}>
-          <div className="flex-1">{children}</div>
+          <div className="mb-auto overflow-hidden">{children}</div>
         </DialogRefContext.Provider>
         <div className="flex justify-between gap-3">
           <button

@@ -28,13 +28,13 @@ function Time({ time, column, status = "ontime" }: Props) {
         </span>
       }
       {status === "canceled" && column === "arriving" ? (
-        <span className={`w-16 text-right md:w-20 ${textClasses[status]}`}>
+        <span className={`w-20 text-right ${textClasses[status]}`}>
           Canceled
         </span>
       ) : (
         <time
           dateTime={time || ""}
-          className={`w-16 text-right md:w-20 ${textClasses[status]}`}
+          className={`w-20 text-right ${textClasses[status]}`}
         >
           {time || ""}
         </time>

@@ -19,10 +19,6 @@ const srText = {
   delay: "delay",
 } as const;
 
-// function getText(status: Status, column: Column) {
-//   if (status)
-// }
-
 function Time({ time, column, status = "ontime" }: Props) {
   return (
     <>

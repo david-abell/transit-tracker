@@ -53,9 +53,7 @@ async function handler(
     } else {
       idArray = [tripIds];
     }
-    console.log(
-      `redis cache hit:  searching for trip ids: ${JSON.stringify(tripIds)}`
-    );
+    console.log(`redis cache hit: searching for ${tripIds.length} trip ids.`);
 
     const addedTripRecords = await redis.hgetall(addedTripsKey);
 

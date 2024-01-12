@@ -170,7 +170,6 @@ export default function Home() {
         isOpen={showTripModal}
         title={`${selectedStop ? selectedStop.stopName : ""}`}
         onClose={() => setShowTripModal(false)}
-        onProceed={() => setShowTripModal(false)}
       >
         <TripSelect
           handleSelectedTrip={handleSelectedTrip}

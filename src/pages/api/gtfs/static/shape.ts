@@ -2,8 +2,9 @@ import { prisma } from "@/lib/db";
 import withErrorHandler from "@/lib/withErrorHandler";
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import { ApiError } from "next/dist/server/api-utils";
 import { LatLngTuple } from "leaflet";
+
+import { StatusCodes } from "http-status-codes";
 
 export type ShapeAPIResponse = LatLngTuple[];
 
@@ -14,7 +15,7 @@ async function handler(
   const { shapeId } = req.query;
 
   if (!shapeId || typeof shapeId !== "string") {
-    throw new ApiError(400, "Must provide a valid trip id");
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   const shapePoints = await prisma.shape.findMany({
@@ -23,7 +24,7 @@ async function handler(
   });
 
   if (!shapePoints.length) {
-    throw new ApiError(404, `No shapes found for shape id: ${shapeId}`);
+    return res.status(StatusCodes.OK).json([]);
   }
 
   return res.json(

@@ -7,6 +7,8 @@ const API_KEY = process.env.NTA_REALTIME_API_KEY;
 import { createRedisInstance } from "@/lib/redis/createRedisInstance";
 import camelcaseKeys from "camelcase-keys";
 
+import { StatusCodes, ReasonPhrases } from "http-status-codes";
+
 const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/TripUpdates?format=json";
 
@@ -22,12 +24,10 @@ async function handler(
   const { tripIds } = req.query;
 
   if (Array.isArray(tripIds)) {
-    return res.end();
+    // shouldn't happen
+    console.error("Shouldn't happen: tripIds was an array...");
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
-
-  const idArray = !!tripIds
-    ? tripIds.split(",").map((tripId) => decodeURI(tripId))
-    : undefined;
 
   console.log("realtime called:", new Date().toLocaleString());
 
@@ -41,6 +41,18 @@ async function handler(
   const cachedUpdates = await redis.exists(tripUpdateKey);
 
   if (cachedAdded && cachedUpdates) {
+    if (!tripIds) {
+      console.error("No tripIds received");
+      return res.status(StatusCodes.BAD_REQUEST).end();
+    }
+
+    let idArray: string[] = [];
+
+    if (tripIds.includes(",")) {
+      idArray = tripIds.split(",").map((tripId) => decodeURI(tripId));
+    } else {
+      idArray = [tripIds];
+    }
     console.log(
       `redis cache hit:  searching for trip ids: ${JSON.stringify(tripIds)}`
     );
@@ -53,7 +65,7 @@ async function handler(
 
     let tripUpdates: [string, TripUpdate][] = [];
 
-    if (Array.isArray(idArray) && idArray.length) {
+    if (idArray.length) {
       const storedTrips = await redis.hmget(tripUpdateKey, ...idArray);
       const parsedTrips: TripUpdate[] = storedTrips.flatMap((val) =>
         val ? JSON.parse(val) : []
@@ -66,7 +78,7 @@ async function handler(
       ]);
     }
 
-    return res.status(200).send({ addedTrips, tripUpdates });
+    return res.status(StatusCodes.OK).send({ addedTrips, tripUpdates });
   }
 
   console.log(`redis cache miss, setting new trip updates`);
@@ -80,10 +92,10 @@ async function handler(
   });
 
   if (!response.ok) {
-    console.warn(
+    console.error(
       `Realtime response error: Status: ${response.status}, StatusText: ${response.statusText}`
     );
-    throw new ApiError(response.status, response.statusText);
+    throw new ApiError(StatusCodes.BAD_GATEWAY, ReasonPhrases.BAD_GATEWAY);
   }
 
   const json = await response.json();

@@ -9,6 +9,8 @@ import { parseISO } from "date-fns";
 import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 import { scheduledService, serviceException } from "@/lib/api/static/consts";
 
+import { StatusCodes } from "http-status-codes";
+
 // create safe SQL column names for raw SQL version
 // from https://github.com/prisma/prisma/issues/9765#issuecomment-1528729000
 type ColumnName<T> = string & keyof T;
@@ -45,7 +47,7 @@ async function handler(
     !dateTime ||
     typeof dateTime !== "string"
   ) {
-    return res.end();
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   const date = parseISO(dateTime);
@@ -94,10 +96,10 @@ async function handler(
   const trips = await findOrderedTrips(routeId);
 
   if (!trips.length) {
-    throw new ApiError(404, "No trips found");
+    return res.status(StatusCodes.OK).json([]);
   }
 
-  return res.json(camelcaseKeys(trips));
+  return res.status(StatusCodes.OK).json(camelcaseKeys(trips));
 }
 
 export default withErrorHandler(handler);

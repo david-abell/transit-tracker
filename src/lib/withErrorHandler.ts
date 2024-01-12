@@ -1,16 +1,26 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import { ApiError } from "next/dist/server/api-utils";
 
+import {
+  ReasonPhrases,
+  StatusCodes,
+  getReasonPhrase,
+  getStatusCode,
+} from "http-status-codes";
+
 function withErrorHandler(handler: NextApiHandler) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       return await handler(req, res);
     } catch (error) {
       if (error instanceof ApiError) {
-        res.status(error.statusCode).send(error.message);
+        console.error(`${error.statusCode}/n${error.message}/n${error.stack}`);
       } else {
-        res.status(500).send({ error: "Internal server error" });
+        console.error(`An unknown error occurred /n${JSON.stringify(error)}`);
       }
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .send({ error: ReasonPhrases.INTERNAL_SERVER_ERROR });
     }
   };
 }

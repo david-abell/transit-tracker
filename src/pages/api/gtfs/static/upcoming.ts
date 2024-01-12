@@ -10,6 +10,8 @@ import { scheduledService, serviceException } from "@/lib/api/static/consts";
 import { calendarDayColumns } from "./trips";
 import camelcaseKeys from "camelcase-keys";
 
+import { StatusCodes } from "http-status-codes";
+
 export type TripsByStopIdAPIResponse = {
   routes: Route[];
   stopTimes: StopTime[];
@@ -24,11 +26,11 @@ async function handler(
 ) {
   const { dateTime, stopId, page } = req.query;
   if (typeof dateTime !== "string" || typeof stopId !== "string") {
-    return res.end();
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   if (Number.isNaN(Number(page))) {
-    throw new ApiError(500, "invalid page requested");
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   const date = parseISO(dateTime);
@@ -89,7 +91,7 @@ async function handler(
     orderBy: { routeId: "asc" },
   });
 
-  return res.json({ stopTimes, trips, routes });
+  return res.status(StatusCodes.OK).json({ stopTimes, trips, routes });
 }
 
 export default withErrorHandler(handler);

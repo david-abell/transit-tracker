@@ -3,7 +3,8 @@ import withErrorHandler from "@/lib/withErrorHandler";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { Trip } from "@prisma/client";
-import { ApiError } from "next/dist/server/api-utils";
+
+import { StatusCodes } from "http-status-codes";
 
 export type TripIdAPIResponse = Trip;
 
@@ -14,16 +15,16 @@ async function handler(
   const { tripId } = req.query;
 
   if (!tripId || typeof tripId !== "string") {
-    return res.end();
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   const trip = await prisma.trip.findFirst({ where: { tripId } });
 
   if (!trip) {
-    throw new ApiError(404, "No trips found");
+    return res.status(StatusCodes.NOT_FOUND).end();
   }
 
-  return res.json(trip);
+  return res.status(StatusCodes.OK).json(trip);
 }
 
 export default withErrorHandler(handler);

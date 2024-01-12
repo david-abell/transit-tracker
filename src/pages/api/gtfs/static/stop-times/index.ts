@@ -5,8 +5,10 @@ import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { StopTime, Trip } from "@prisma/client";
-import { ApiError } from "next/dist/server/api-utils";
+
 import { scheduledService, serviceException } from "@/lib/api/static/consts";
+
+import { StatusCodes } from "http-status-codes";
 
 export type StopTimesApiResponse = {
   stopTimesZero: StopTime[];
@@ -24,7 +26,7 @@ async function handler(
     !dateTime ||
     typeof dateTime !== "string"
   ) {
-    return res.end();
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   const trips = await prisma.trip.findMany({
@@ -32,7 +34,7 @@ async function handler(
   });
 
   if (!trips.length) {
-    throw new ApiError(400, "Invalid route Id");
+    return res.status(StatusCodes.NOT_FOUND).end();
   }
 
   // Time variables
@@ -130,7 +132,7 @@ async function handler(
       )
     : [];
 
-  return res.json({
+  return res.status(StatusCodes.OK).json({
     stopTimesZero,
     stopTimesOne,
   });

@@ -3,7 +3,6 @@ import { Calendar, Prisma, Stop, StopTime, Trip } from "@prisma/client";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import withErrorHandler from "@/lib/withErrorHandler";
-import { ApiError } from "next/dist/server/api-utils";
 
 import { addHours, parseISO, startOfDay, differenceInSeconds } from "date-fns";
 import {
@@ -14,6 +13,8 @@ import {
 
 import { scheduledService, serviceException } from "@/lib/api/static/consts";
 import camelcaseKeys from "camelcase-keys";
+
+import { StatusCodes } from "http-status-codes";
 
 // create safe SQL column names for raw SQL version
 // from https://github.com/prisma/prisma/issues/9765#issuecomment-1528729000
@@ -50,7 +51,7 @@ async function handler(
     !dateTime ||
     typeof dateTime !== "string"
   ) {
-    return res.end();
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   // Time variables
@@ -100,7 +101,7 @@ async function handler(
     trip_id ASC;`;
 
   if (!tripList.length) {
-    throw new ApiError(404, "No trips found");
+    return res.status(StatusCodes.OK).json({ trips: [], stopTimes: [] });
   }
 
   const trips = camelcaseKeys(tripList);
@@ -108,7 +109,7 @@ async function handler(
   const serviceIds = trips.map(({ serviceId }) => serviceId);
 
   if (!serviceIds.length) {
-    throw new ApiError(404, "No services found");
+    return res.status(StatusCodes.OK).json({ trips, stopTimes: [] });
   }
 
   const calendarDates = await prisma.calendarDate.findMany({
@@ -137,14 +138,14 @@ async function handler(
     calendarDate
   );
 
-  const stopTimes = await getStoptimes(
+  const stopTimes = await getStopTimes(
     trips,
     calendar,
     departureTimeInSeconds,
     maxDepartureTimeInSeconds
   );
 
-  return res.json({ trips, stopTimes });
+  return res.status(StatusCodes.OK).json({ trips, stopTimes });
 }
 
 export default withErrorHandler(handler);
@@ -175,7 +176,7 @@ async function getServiceCalendar(
   });
 }
 
-async function getStoptimes(
+async function getStopTimes(
   trips: Trip[],
   serviceCalendar: { serviceId: string }[],
   departureTimeInSeconds: number,

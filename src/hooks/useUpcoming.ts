@@ -1,12 +1,15 @@
 import useSWR from "swr";
 import { Route, Trip } from "@prisma/client";
 
-import { fetchHelper } from "@/lib/FetchHelper";
+import { ErrorWithCause, fetchHelper } from "@/lib/FetchHelper";
 import { TripsByStopIdAPIResponse } from "@/pages/api/gtfs/static/upcoming";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 
 function useTrips(stopId: string | null, selectedDateTime: string, page = 0) {
-  const { data } = useSWR<TripsByStopIdAPIResponse>(
+  const { data, error, isLoading } = useSWR<
+    TripsByStopIdAPIResponse,
+    ErrorWithCause
+  >(
     () =>
       !!stopId
         ? `/api/gtfs/static/upcoming?${new URLSearchParams({
@@ -42,6 +45,8 @@ function useTrips(stopId: string | null, selectedDateTime: string, page = 0) {
       : new Map();
 
   return {
+    error,
+    isLoading,
     routes,
     trips,
     stopTimes,

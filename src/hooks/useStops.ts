@@ -1,11 +1,15 @@
 import useSWR from "swr";
 import { Stop } from "@prisma/client";
 
-import { fetchHelper } from "@/lib/FetchHelper";
+import { ErrorWithCause, fetchHelper } from "@/lib/FetchHelper";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 
 function useStops(stopQuery: string) {
-  const { data: stops } = useSWR<Stop[]>(
+  const {
+    data: stops,
+    error,
+    isLoading,
+  } = useSWR<Stop[], ErrorWithCause>(
     () =>
       !!stopQuery
         ? `/api/gtfs/static/stops?${new URLSearchParams({
@@ -17,6 +21,8 @@ function useStops(stopQuery: string) {
   );
 
   return {
+    error,
+    isLoading,
     stops,
   };
 }

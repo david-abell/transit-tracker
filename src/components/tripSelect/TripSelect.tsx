@@ -268,6 +268,8 @@ function TripSelect({
           <p className="w-full text-center text-xl font-medium">
             {showAllRoutes
               ? "No upcoming trips found"
+              : selectedRoute
+              ? "Selected route does not have any upcoming trips."
               : "No upcoming trips found. Try showing all routes instead."}
           </p>
         )}

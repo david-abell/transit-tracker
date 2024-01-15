@@ -50,16 +50,24 @@ async function handler(
     return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
+  const trips = await findOrderedTrips(routeId, dateTime);
+
+  if (!trips.length) {
+    return res.status(StatusCodes.OK).json([]);
+  }
+
+  return res.status(StatusCodes.OK).json(camelcaseKeys(trips));
+}
+
+// Find all trips on Route where:
+// service is scheduled on selected dateTime
+// or service is added
+// and service is not canceled
+async function findOrderedTrips(routeId: string, dateTime: string) {
   const date = parseISO(dateTime);
   const dayOfWeek = getDayString(date);
   const dateOfYear = getCalendarDate(date);
-
-  // Find all trips on Route where:
-  // service is scheduled on selected dateTime
-  // or service is added
-  // and service is not canceled
-  async function findOrderedTrips(routeId: string) {
-    const tripList = await prisma.$queryRaw<Trip[]>`
+  const tripList = await prisma.$queryRaw<Trip[]>`
       SELECT
         trip.route_id,
         trip.service_id,
@@ -87,19 +95,12 @@ async function handler(
           AND ${dateOfYear} BETWEEN start_date AND end_date 
           OR exception_type =  ${serviceException.added}
         )
+      GROUP BY block_id
+      HAVING count(block_id) > 1
       ORDER BY
         trip_id ASC;`;
 
-    return tripList;
-  }
-
-  const trips = await findOrderedTrips(routeId);
-
-  if (!trips.length) {
-    return res.status(StatusCodes.OK).json([]);
-  }
-
-  return res.status(StatusCodes.OK).json(camelcaseKeys(trips));
+  return tripList;
 }
 
 export default withErrorHandler(handler);

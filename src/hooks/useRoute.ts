@@ -1,15 +1,16 @@
 import useSWR from "swr";
 import { Route } from "@prisma/client";
 
-import { ErrorWithCause, fetchHelper } from "@/lib/FetchHelper";
+import { fetchHelper } from "@/lib/FetchHelper";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
+import { ApiError } from "next/dist/server/api-utils";
 
 function useRoute(routeName: string) {
   const {
     data: routes,
     error,
     isLoading,
-  } = useSWR<Route[], ErrorWithCause>(
+  } = useSWR<Route[], ApiError>(
     () =>
       !!routeName
         ? `/api/gtfs/static/route?${new URLSearchParams({

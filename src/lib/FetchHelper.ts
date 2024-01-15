@@ -1,21 +1,14 @@
-type FetchHelper = (args: RequestInfo[]) => Promise<any>;
+import { ApiError } from "next/dist/server/api-utils";
 
-export interface ErrorWithCause extends Error {
-  info?: ReturnType<Body["json"]>;
-  status?: Response["status"];
-}
+type FetchHelper = (args: RequestInfo[]) => Promise<any>;
 
 export const fetchHelper: FetchHelper = async (args: RequestInfo[]) => {
   const url = Array.isArray(args) ? args[0] : args;
   const response = await fetch(url);
+
   if (!response.ok) {
-    const error: ErrorWithCause = new Error(
-      "An error occurred while fetching the data."
-    );
-    // Attach extra info to the error object.
-    error.info = await response.json();
-    error.status = response.status;
-    throw error;
+    throw new ApiError(response.status, response.statusText);
   }
+
   return response.json();
 };

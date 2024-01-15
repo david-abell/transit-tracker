@@ -4,9 +4,10 @@ import { StopTime, Trip } from "@prisma/client";
 import { StaticAPIResponse } from "@/pages/api/gtfs/static";
 import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 
-import { ErrorWithCause, fetchHelper } from "@/lib/FetchHelper";
+import { fetchHelper } from "@/lib/FetchHelper";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { RouteStopsAPIResponse } from "@/pages/api/gtfs/static/route-stops";
+import { ApiError } from "next/dist/server/api-utils";
 
 type Props = {
   routeId: string;
@@ -15,17 +16,16 @@ type Props = {
 };
 
 function useStatic({ routeId, selectedDateTime, tripId }: Props) {
+  const stopsUrl = !!routeId
+    ? `/api/gtfs/static/route-stops?${new URLSearchParams({ routeId })}`
+    : null;
+
   const {
     data: stops,
     isLoading: isLoadingStops,
     error: stopsError,
-  } = useSWR<RouteStopsAPIResponse, ErrorWithCause>(
-    () =>
-      !!routeId
-        ? `/api/gtfs/static/route-stops?${new URLSearchParams({
-            routeId,
-          })}`
-        : null,
+  } = useSWR<RouteStopsAPIResponse, ApiError>(
+    stopsUrl,
     fetchHelper,
     skipRevalidationOptions
   );
@@ -34,7 +34,7 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
     data: staticData,
     isLoading: isLoadingStaticData,
     error: staticDataError,
-  } = useSWR<StaticAPIResponse, ErrorWithCause>(
+  } = useSWR<StaticAPIResponse, ApiError>(
     () =>
       !!routeId && selectedDateTime
         ? [
@@ -99,7 +99,7 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
     data: shape,
     isLoading: isLoadingShape,
     error: shapeError,
-  } = useSWR<ShapeAPIResponse, ErrorWithCause>(
+  } = useSWR<ShapeAPIResponse, ApiError>(
     () =>
       !!shapeId && tripId
         ? [
@@ -118,7 +118,7 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
     data: selectedTripStopTimes,
     isLoading: isLoadingSelectedTripStopTimes,
     error: selectedTripStopTimesError,
-  } = useSWR<StopTime[], ErrorWithCause>(
+  } = useSWR<StopTime[], ApiError>(
     () =>
       !!tripId && tripId
         ? [`/api/gtfs/static/stop-times/${tripId}`, tripId]
@@ -126,6 +126,15 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
     fetchHelper,
     skipRevalidationOptions
   );
+
+  const error =
+    stopsError || staticDataError || shapeError || selectedTripStopTimesError;
+
+  const isLoading =
+    isLoadingStops ||
+    isLoadingStaticData ||
+    isLoadingShape ||
+    isLoadingSelectedTripStopTimes;
 
   const selectedTripStopTimesById: Map<StopTime["tripId"], StopTime> =
     selectedTripStopTimes
@@ -136,15 +145,6 @@ function useStatic({ routeId, selectedDateTime, tripId }: Props) {
           })
         )
       : new Map();
-
-  const error =
-    stopsError || staticDataError || shapeError || selectedTripStopTimesError;
-
-  const isLoading =
-    isLoadingStops ||
-    isLoadingStaticData ||
-    isLoadingShape ||
-    isLoadingSelectedTripStopTimes;
 
   return {
     error,

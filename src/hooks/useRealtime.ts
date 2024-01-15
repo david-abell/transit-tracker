@@ -1,10 +1,11 @@
 import { Time, TripUpdate } from "@/types/realtime";
 import useSWR from "swr";
 
-import { ErrorWithCause, fetchHelper } from "@/lib/FetchHelper";
+import { fetchHelper } from "@/lib/FetchHelper";
 import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
 import { formatSecondsAsTimeString } from "@/lib/timeHelpers";
 import { StopTime } from "@prisma/client";
+import { ApiError } from "next/dist/server/api-utils";
 
 const API_URL = "/api/gtfs/realtime";
 
@@ -28,7 +29,7 @@ type AddedStopTime = Pick<
 function useRealtime(tripIds: string | string[] | undefined) {
   const { data, error, isLoading, mutate } = useSWR<
     RealtimeTripUpdateResponse,
-    ErrorWithCause
+    ApiError
   >(
     () =>
       !!tripIds && tripIds.length

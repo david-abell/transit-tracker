@@ -137,6 +137,11 @@ function TripSelect({
             !!currentStopTimes.length &&
             currentStopTimes.flatMap(
               ({ tripId, departureTime, stopSequence }) => {
+                const { tripHeadsign = "", routeId } =
+                  (showAllRoutes ? allTrips : tripsById).get(tripId) || {};
+
+                if (!routeId) return [];
+
                 const { stopTimeUpdate } =
                   realtimeScheduledByTripId.get(tripId) || {};
 
@@ -179,9 +184,6 @@ function TripSelect({
                   ? "delayed"
                   : "ontime";
 
-                const { tripHeadsign = "", routeId } =
-                  (showAllRoutes ? allTrips : tripsById).get(tripId) || {};
-
                 const displayRoute = routeId
                   ? upComingRoutes.get(routeId)!
                   : "";
@@ -210,6 +212,8 @@ function TripSelect({
                       </b>
                       {/* Destination */}
                       <span className="flex-1">{tripHeadsign}</span>
+                      {/* <span className="flex-1">{tripId}</span>
+                      <span className="flex-1">{blockId}</span> */}
                       {/* Scheduled */}
                       <span
                         className={

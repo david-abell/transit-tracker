@@ -70,7 +70,7 @@ async function handler(
   );
 
   const tripList = await prisma.$queryRaw<Trip[]>`
-  SELECT
+  SELECT DISTINCT ON (trip.block_id)
     trip.route_id,
     trip.service_id,
     trip.trip_id,
@@ -98,7 +98,7 @@ async function handler(
       OR exception_type =  ${serviceException.added}
     )
   ORDER BY
-    trip_id ASC;`;
+    block_id ASC;`;
 
   if (!tripList.length) {
     return res.status(StatusCodes.OK).json({ trips: [], stopTimes: [] });

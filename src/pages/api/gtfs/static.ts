@@ -70,7 +70,7 @@ async function handler(
   );
 
   const tripList = await prisma.$queryRaw<Trip[]>`
-  SELECT DISTINCT ON (trip.block_id)
+  SELECT 
     trip.route_id,
     trip.service_id,
     trip.trip_id,

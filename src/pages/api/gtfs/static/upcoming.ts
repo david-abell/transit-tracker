@@ -78,14 +78,11 @@ async function handler(
   const stopTimes: StopTime[] = camelcaseKeys(stopTimeResponse);
 
   const trips = await prisma.trip.findMany({
-    distinct: ["blockId"],
     where: {
       tripId: { in: stopTimes.map(({ tripId }) => tripId) },
     },
     orderBy: { tripId: "asc" },
   });
-
-  const dedupedTrips = dedupBlockIds(trips);
 
   const routes = await prisma.route.findMany({
     where: {
@@ -94,22 +91,7 @@ async function handler(
     orderBy: { routeId: "asc" },
   });
 
-  return res
-    .status(StatusCodes.OK)
-    .json({ stopTimes, trips: dedupedTrips, routes });
-}
-
-function dedupBlockIds(trips: Trip[]) {
-  const seenBlocks = new Set();
-  const result = trips.flatMap((trip) => {
-    if (seenBlocks.has(trip.blockId)) {
-      return [];
-    }
-    seenBlocks.add(trip.blockId);
-    return trip;
-  });
-
-  return result;
+  return res.status(StatusCodes.OK).json({ stopTimes, trips: trips, routes });
 }
 
 export default withErrorHandler(handler);

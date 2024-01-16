@@ -7,7 +7,9 @@ export const fetchHelper: FetchHelper = async (args: RequestInfo[]) => {
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new ApiError(response.status, response.statusText);
+    const res = await response.json();
+
+    throw new ApiError(response.status, res);
   }
 
   return response.json();

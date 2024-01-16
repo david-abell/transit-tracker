@@ -12,31 +12,26 @@ function withErrorHandler(handler: NextApiHandler) {
 
       return result;
     } catch (e) {
+      let responseMessage;
       if (e instanceof Prisma.PrismaClientInitializationError) {
-        // @ts-ignore
-        console.log(e.message);
+        console.info("\nPrismaClientInitializationError\n");
+        console.error(e.message);
       } else if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        // @ts-ignore
-        console.log(e.code);
-        console.log(e.message);
-      } else if (e instanceof ApiError) {
-        // console.error(
-        //   `\nApi ${e.statusCode} error \nMessage: \n${e.message}\nStack:\n${e.stack}`
-        // );
+        if (e.code === "P1001") {
+          responseMessage =
+            "Can't reach database server. Please try again later.";
+          console.info("\nPrismaClientKnownRequestError\n");
+          console.log(`Error code: ${e.code}\n${e.message}`);
+        }
       } else if (e instanceof Error) {
-        // console.error(
-        //   `\nApi error \nMessage: \n${e.message}\nStack:\n${e.stack}`
-        // );
-        // @ts-ignore
+        console.error(
+          `\nApi error \nMessage: \n${e.message}\nStack:\n${e.stack}`
+        );
       }
 
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        ReasonPhrases.INTERNAL_SERVER_ERROR
-      );
-      // return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-      //   error: ReasonPhrases.INTERNAL_SERVER_ERROR,
-      // });
+      return res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(responseMessage ?? ReasonPhrases.INTERNAL_SERVER_ERROR);
     }
   };
 }

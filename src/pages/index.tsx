@@ -18,6 +18,10 @@ import { useElementSize, useWindowSize } from "usehooks-ts";
 import SavedStops from "@/components/SavedStops";
 import useStopId from "@/hooks/useStopId";
 
+import { AlertCircle } from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
@@ -66,10 +70,20 @@ export default function Home() {
   const [NavRef, { height: navHeight }] = useElementSize();
 
   // static schedule data
-  const { route: selectedRoute } = useRouteId(routeId);
-  const { selectedStop } = useStopId(stopId);
+  const {
+    route: selectedRoute,
+    error: routeError,
+    isLoading: isLoadingRoute,
+  } = useRouteId(routeId);
+  const {
+    selectedStop,
+    error: stopError,
+    isLoading: isLoadingStop,
+  } = useStopId(stopId);
 
   const {
+    error: staticError,
+    isLoading: isLoadingStatic,
     selectedTripStopTimesById,
     stops,
     tripsById,
@@ -84,6 +98,9 @@ export default function Home() {
 
   // derived state
   const tripsAtSelectedStop = stopTimesByStopId?.get(stopId);
+
+  const isLoading = isLoadingRoute || isLoadingStop || isLoadingStatic;
+  const apiError = routeError || stopError || staticError;
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
@@ -151,18 +168,43 @@ export default function Home() {
             </button>
           </MainNav>
         </div>
+        <div className="relative">
+          {/* Errors and loading messages */}
+          {isLoading ? (
+            <Alert className="pointer-events-none absolute bottom-4 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-blue-50/70 dark:border-gray-50 dark:bg-gray-800/70">
+              <AlertCircle className="h-4 w-4" />
+              {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
+              <AlertDescription className="bg-transparent">
+                Loading...
+              </AlertDescription>
+            </Alert>
+          ) : !!apiError ? (
+            <Alert
+              variant="destructive"
+              className="pointer-events-none absolute bottom-4 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-gray-50/70 dark:border-gray-50 dark:bg-gray-800/70"
+            >
+              <AlertCircle className="h-4 w-4" />
+              {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
+              <AlertDescription className="bg-transparent">
+                {apiError.message}
+              </AlertDescription>
+            </Alert>
+          ) : (
+            ""
+          )}
 
-        <MapComponent
-          shape={shape}
-          selectedDateTime={selectedDateTime}
-          selectedTripStopTimesById={selectedTripStopTimesById}
-          setShowSavedStops={setShowSavedStops}
-          stops={stops}
-          stopsById={stopsById}
-          handleSelectedStop={handleSelectedStop}
-          tripId={tripId}
-          height={windowHeight - navHeight}
-        />
+          <MapComponent
+            shape={shape}
+            selectedDateTime={selectedDateTime}
+            selectedTripStopTimesById={selectedTripStopTimesById}
+            setShowSavedStops={setShowSavedStops}
+            stops={stops}
+            stopsById={stopsById}
+            handleSelectedStop={handleSelectedStop}
+            tripId={tripId}
+            height={windowHeight - navHeight}
+          />
+        </div>
       </div>
 
       {/* Trip select modal */}

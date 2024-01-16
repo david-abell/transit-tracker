@@ -7,9 +7,12 @@ export const fetchHelper: FetchHelper = async (args: RequestInfo[]) => {
   const response = await fetch(url);
 
   if (!response.ok) {
-    const res = await response.json();
+    const message = await response.json();
 
-    throw new ApiError(response.status, res);
+    throw new ApiError(
+      response.status,
+      typeof message === "string" ? message : "An unknown error occurred."
+    );
   }
 
   return response.json();

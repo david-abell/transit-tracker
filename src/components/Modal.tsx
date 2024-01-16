@@ -66,10 +66,10 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
       onCancel={handleClose}
       onClick={handleClose}
       data-state={isOpen ? "open" : "closed"}
-      className="h-[100svh] max-h-[37.5rem] w-full max-w-3xl overflow-hidden bg-slate-50 p-0 
-      data-[state=closed]:animate-[dialog-content-hide_200ms_forwards] data-[state=open]:animate-[dialog-content-show_200ms_forwards] 
-      backdrop:data-[state=closed]:animate-[dialog-overlay-hide_200ms_forwards] backdrop:data-[state=open]:animate-[dialog-overlay-show_200ms_forwards] dark:bg-gray-800  dark:text-white
-      md:rounded-lg"
+      className="h-[100svh] max-h-[37.5rem] w-11/12 max-w-3xl overflow-hidden rounded-lg bg-slate-50 
+      p-0 data-[state=closed]:animate-[dialog-content-hide_200ms_forwards] 
+      data-[state=open]:animate-[dialog-content-show_200ms_forwards] backdrop:data-[state=closed]:animate-[dialog-overlay-hide_200ms_forwards] backdrop:data-[state=open]:animate-[dialog-overlay-show_200ms_forwards]  dark:bg-gray-800
+     dark:text-white"
     >
       <div
         onClick={preventAutoClose}
@@ -79,9 +79,9 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
           {title}
         </h3>
         <DialogRefContext.Provider value={{ dialog: ref?.current }}>
-          <div className="mb-auto overflow-hidden">{children}</div>
+          <div className="mb-auto h-full overflow-hidden">{children}</div>
         </DialogRefContext.Provider>
-        <div className="flex  gap-3">
+        <div className="flex gap-3">
           <button
             onClick={handleClose}
             onKeyDown={handleKeydown}

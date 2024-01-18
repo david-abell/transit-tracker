@@ -99,7 +99,7 @@ function TripSelect({
         </form>
       }
 
-      <TripList showRealTimeHeaders={!isRealtimeLoading && !realtimeError}>
+      <TripList>
         {isUpcomingLoading ? (
           <li role="status" className="animate-pulse text-center">
             <span className="mt-2 pb-4 text-xl">Loading trips...</span>

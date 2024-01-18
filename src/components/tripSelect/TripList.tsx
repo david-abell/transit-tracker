@@ -2,10 +2,9 @@ import { ReactNode } from "react";
 
 type Props = {
   children: ReactNode;
-  showRealTimeHeaders: boolean;
 };
 
-function TripList({ children, showRealTimeHeaders }: Props) {
+function TripList({ children }: Props) {
   return (
     <ul className="flex h-full max-h-[26rem] max-w-full flex-col overflow-y-scroll bg-gray-50 text-start [contain:paint] dark:bg-gray-800 ">
       {/* Column headers */}
@@ -20,7 +19,7 @@ function TripList({ children, showRealTimeHeaders }: Props) {
         {/* Destination */}
         <span className="flex-1 cursor-default">Destination</span>
 
-        {showRealTimeHeaders ? (
+        {
           <>
             {/* Scheduled */}
             <span
@@ -35,12 +34,7 @@ function TripList({ children, showRealTimeHeaders }: Props) {
             {/* Arriving */}
             <span className="w-20  cursor-default text-right"> Arriving</span>
           </>
-        ) : (
-          <>
-            {/* Scheduled */}
-            <span className={`w-20 cursor-default text-right`}>Scheduled</span>
-          </>
-        )}
+        }
       </li>
 
       {/* Trip list */}

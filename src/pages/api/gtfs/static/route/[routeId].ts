@@ -2,6 +2,9 @@ import { prisma } from "@/lib/db";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import withErrorHandler from "@/lib/withErrorHandler";
+
+import { StatusCodes } from "http-status-codes";
+
 import { Route } from "@prisma/client";
 
 export type RouteAPIResponse = Route;
@@ -12,7 +15,7 @@ async function handler(
   const { routeId = "" } = req.query;
 
   if (!routeId || typeof routeId !== "string") {
-    return res.end();
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   const route = await prisma.route.findFirst({
@@ -20,10 +23,10 @@ async function handler(
   });
 
   if (!route) {
-    return res.end();
+    return res.status(StatusCodes.NOT_FOUND).end();
   }
 
-  return res.json(route);
+  return res.status(StatusCodes.OK).json(route);
 }
 
 export default withErrorHandler(handler);

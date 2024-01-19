@@ -17,6 +17,9 @@ import { DateTime } from "luxon";
 import Time from "./Time";
 
 import { Switch } from "@/components/ui/switch";
+import TripList from "./TripList";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { AlertCircle } from "lucide-react";
 
 type Props = {
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
@@ -41,6 +44,8 @@ function TripSelect({
   const matchesLarge = useMediaQuery("(min-width: 768px)");
 
   const {
+    isLoading: isUpcomingLoading,
+    error: upcomingError,
     routes: upComingRoutes,
     stopTimes: allStopTimes,
     trips: allTrips,
@@ -50,14 +55,16 @@ function TripSelect({
   const tripIds = currentStopTimes?.map(({ tripId }) => tripId);
 
   const {
+    error: realtimeError,
+    isLoading: isRealtimeLoading,
     realtimeAddedTrips,
     realtimeScheduledByTripId,
     realtimeRouteIds,
     realtimeCanceledTripIds,
   } = useRealtime(tripIds);
 
-  if (selectedRoute && !upComingRoutes.has(selectedRoute.routeId)) {
-    upComingRoutes.set(selectedRoute.routeId, selectedRoute);
+  if (selectedRoute && !upComingRoutes?.has(selectedRoute.routeId)) {
+    upComingRoutes?.set(selectedRoute.routeId, selectedRoute);
   }
 
   const isToday = DateTime.now().hasSame(
@@ -76,6 +83,9 @@ function TripSelect({
     }
   };
 
+  // Some trips have duplicate blockIds and arrival times and need to be skipped
+  let duplicateTrips = new Set();
+
   return (
     <div className="flex h-full w-full flex-col gap-4 text-start text-sm font-medium text-gray-900  dark:text-white ">
       {
@@ -88,55 +98,64 @@ function TripSelect({
           />
         </form>
       }
-      {
-        <p
-          className={`mt-0 w-full flex-1 bg-yellow-200 py-2 text-center font-medium dark:bg-yellow-700 dark:text-white
-        ${hasRealtime || showAllRoutes ? "hidden" : ""}`}
-        >
-          {`Live data for ${selectedRoute?.routeShortName} not found`}
-        </p>
-      }
 
-      <>
-        <ul className="flex max-h-[26rem] max-w-full flex-col overflow-y-auto bg-gray-50 text-start [contain:paint] dark:bg-gray-800">
-          {/* Column headers */}
-
-          <li
-            className={`sticky top-0 flex w-full justify-between gap-1 border-b-2 border-gray-400 bg-gray-50 py-2 pr-2 text-start
-                 text-lg font-medium dark:bg-gray-800 md:gap-2 md:pr-4`}
-          >
-            {/* Route */}
-            <span className="w-20 cursor-default md:w-28">Route</span>
-            {/* Destination */}
-            <span className="flex-1 cursor-default">Destination</span>
-            {/* Scheduled */}
-            <span
-              className={`w-20 cursor-default text-right ${
-                showAllRoutes || hasRealtime ? "hidden sm:inline-block" : ""
-              }`}
-            >
-              Scheduled
-            </span>
-
-            {(showAllRoutes || hasRealtime) && (
-              <>
-                {/* Delay */}
-                <span className={`w-20  cursor-default text-right`}>Delay</span>
-
-                {/* Arriving */}
-                <span className="w-20  cursor-default text-right">
-                  {" "}
-                  Arriving
-                </span>
-              </>
-            )}
+      <TripList>
+        {isUpcomingLoading ? (
+          <li role="status" className="animate-pulse text-center">
+            <span className="mt-2 pb-4 text-xl">Loading trips...</span>
+            <span className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></span>
+            <span className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></span>
+            <span className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></span>
+            <span className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></span>
+            <span className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></span>
+            <span className="h-7 bg-gray-200 dark:bg-gray-700"></span>
           </li>
+        ) : !!upcomingError ? (
+          <li className="relative h-full w-full">
+            <Alert
+              variant="destructive"
+              className="pointer-events-none absolute top-16 w-full  -translate-y-1/2 border-gray-400 bg-gray-50 dark:border-gray-50 dark:bg-gray-800"
+            >
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Trips failed to load.</AlertTitle>
+              <AlertDescription>{upcomingError.message}</AlertDescription>
+            </Alert>
+          </li>
+        ) : !currentStopTimes || currentStopTimes?.length === 0 ? (
+          <>
+            {/* No trips found */}
 
-          {/* Trip list */}
-          {!!currentStopTimes &&
-            !!currentStopTimes.length &&
-            currentStopTimes.flatMap(
+            <li className="w-full py-4 text-center text-xl font-medium">
+              {showAllRoutes
+                ? "No upcoming trips found"
+                : selectedRoute
+                ? "No upcoming trips found. Try showing all routes instead."
+                : "No route selected. Try showing all routes instead."}
+            </li>
+          </>
+        ) : (
+          <>
+            {currentStopTimes.flatMap(
               ({ tripId, departureTime, stopSequence }) => {
+                const {
+                  tripHeadsign = "",
+                  routeId,
+                  blockId,
+                } = (showAllRoutes ? allTrips : tripsById).get(tripId) || {};
+
+                if (!routeId) {
+                  console.log(`RouteId undefined for trip ${tripId}`);
+                  return [];
+                }
+
+                if (blockId && duplicateTrips.has(blockId)) {
+                  return [];
+                }
+
+                if (blockId) {
+                  duplicateTrips.add(blockId);
+                }
+
                 const { stopTimeUpdate } =
                   realtimeScheduledByTripId.get(tripId) || {};
 
@@ -179,15 +198,12 @@ function TripSelect({
                   ? "delayed"
                   : "ontime";
 
-                const { tripHeadsign = "", routeId } =
-                  (showAllRoutes ? allTrips : tripsById).get(tripId) || {};
-
                 const displayRoute = routeId
                   ? upComingRoutes.get(routeId)!
                   : "";
 
                 return (
-                  <li key={tripId}>
+                  <li key={tripId + departureTime}>
                     <button
                       type="button"
                       onClick={() => handleSelectedTrip(tripId, routeId)}
@@ -210,6 +226,8 @@ function TripSelect({
                       </b>
                       {/* Destination */}
                       <span className="flex-1">{tripHeadsign}</span>
+                      {/* <span className=" flex-1">{tripId}</span>
+                      <span className="flex-1">{blockId}</span> */}
                       {/* Scheduled */}
                       <span
                         className={
@@ -248,30 +266,9 @@ function TripSelect({
                 );
               }
             )}
-        </ul>
-
-        {/* loading placeholders */}
-        {!currentStopTimes && (
-          <div role="status" className="animate-pulse text-center">
-            <div className="mt-2 pb-4 text-xl">Loading trips...</div>
-            <div className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></div>
-            <div className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></div>
-            <div className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></div>
-            <div className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></div>
-            <div className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></div>
-            <div className="h-7 bg-gray-200 dark:bg-gray-700"></div>
-          </div>
+          </>
         )}
-
-        {/* No trips found */}
-        {!!currentStopTimes && currentStopTimes.length === 0 && (
-          <p className="w-full text-center text-xl font-medium">
-            {showAllRoutes
-              ? "No upcoming trips found"
-              : "No upcoming trips found. Try showing all routes instead."}
-          </p>
-        )}
-      </>
+      </TripList>
     </div>
   );
 }

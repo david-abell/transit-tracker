@@ -3,7 +3,8 @@ import withErrorHandler from "@/lib/withErrorHandler";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { Calendar } from "@prisma/client";
-import { ApiError } from "next/dist/server/api-utils";
+
+import { StatusCodes } from "http-status-codes";
 
 export type CalendarAPIResponse = Calendar;
 
@@ -14,16 +15,16 @@ async function handler(
   const { serviceId } = req.query;
 
   if (!serviceId || typeof serviceId !== "string") {
-    return res.end();
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   const service = await prisma.calendar.findFirst({ where: { serviceId } });
 
   if (!service) {
-    throw new ApiError(404, "No service found");
+    return res.status(StatusCodes.NOT_FOUND).end();
   }
 
-  return res.json(service);
+  return res.status(StatusCodes.OK).json(service);
 }
 
 export default withErrorHandler(handler);

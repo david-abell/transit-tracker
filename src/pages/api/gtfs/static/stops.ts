@@ -2,9 +2,10 @@ import { prisma } from "@/lib/db";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import withErrorHandler from "@/lib/withErrorHandler";
-import { Route, Stop } from "@prisma/client";
-import { ApiError } from "next/dist/server/api-utils";
+import { Stop } from "@prisma/client";
 import camelcaseKeys from "camelcase-keys";
+
+import { StatusCodes } from "http-status-codes";
 
 export type StopsAPIResponse = Stop[];
 async function handler(
@@ -14,7 +15,7 @@ async function handler(
   const { stopQuery = "" } = req.query;
 
   if (!stopQuery || typeof stopQuery !== "string") {
-    return res.end();
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   const startsWithQuery = `${stopQuery.toLowerCase().trim()}%`;
@@ -33,10 +34,10 @@ async function handler(
  `;
 
   if (!stops.length) {
-    return res.end();
+    return res.status(StatusCodes.OK).json([]);
   }
 
-  return res.json(camelcaseKeys(stops));
+  return res.status(StatusCodes.OK).json(camelcaseKeys(stops));
 }
 
 export default withErrorHandler(handler);

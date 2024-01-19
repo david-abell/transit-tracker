@@ -3,7 +3,8 @@ import withErrorHandler from "@/lib/withErrorHandler";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { Stop } from "@prisma/client";
-import { ApiError } from "next/dist/server/api-utils";
+
+import { StatusCodes } from "http-status-codes";
 
 export type StopAPIResponse = Stop;
 
@@ -14,16 +15,16 @@ async function handler(
   const { stopId } = req.query;
 
   if (!stopId || typeof stopId !== "string") {
-    return res.end();
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   const stop = await prisma.stop.findFirst({ where: { stopId } });
 
   if (!stop) {
-    throw new ApiError(404, "No stops found");
+    return res.status(StatusCodes.NOT_FOUND).end();
   }
 
-  return res.json(stop);
+  return res.status(StatusCodes.OK).json(stop);
 }
 
 export default withErrorHandler(handler);

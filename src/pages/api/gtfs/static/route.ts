@@ -3,8 +3,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import withErrorHandler from "@/lib/withErrorHandler";
 import { Route } from "@prisma/client";
-import { ApiError } from "next/dist/server/api-utils";
 import camelcaseKeys from "camelcase-keys";
+
+import { StatusCodes } from "http-status-codes";
 
 export type RouteAPIResponse = Route[];
 async function handler(
@@ -14,7 +15,7 @@ async function handler(
   const { routeName = "" } = req.query;
 
   if (!routeName || typeof routeName !== "string") {
-    return res.end();
+    return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
   const likeShortNameQuery = `${routeName}%`;
@@ -39,10 +40,10 @@ async function handler(
  `;
 
   if (!routes.length) {
-    return res.end();
+    return res.status(StatusCodes.OK).json([]);
   }
 
-  return res.json(camelcaseKeys(routes));
+  return res.status(StatusCodes.OK).json(camelcaseKeys(routes));
 }
 
 export default withErrorHandler(handler);

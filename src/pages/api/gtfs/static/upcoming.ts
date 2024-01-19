@@ -12,17 +12,28 @@ import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes } from "http-status-codes";
 
-export type TripsByStopIdAPIResponse = {
-  routes: Route[];
-  stopTimes: StopTime[];
-  trips: Trip[];
+type TripFields = Pick<Trip, "routeId" | "tripHeadsign" | "blockId">;
+type RouteFields = Pick<Route, "routeShortName" | "routeLongName">;
+type StopTimeFields = Pick<
+  StopTime,
+  | "tripId"
+  | "arrivalTime"
+  | "arrivalTimestamp"
+  | "departureTime"
+  | "departureTimestamp"
+  | "stopSequence"
+>;
+type UpcomingTrip = TripFields & RouteFields & StopTimeFields;
+
+export type UpcomingTripsAPIResponse = {
+  upcomingTrips: UpcomingTrip[];
 };
 
 // type NumericalString = `${number}`;
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<TripsByStopIdAPIResponse>
+  res: NextApiResponse<UpcomingTripsAPIResponse>
 ) {
   const { dateTime, stopId, page } = req.query;
   if (typeof dateTime !== "string" || typeof stopId !== "string") {
@@ -42,56 +53,35 @@ async function handler(
   const departureOffset = departureDifferenceInSeconds > 60 * 5 ? 60 * 5 : 0;
   const departureTimeInSeconds = departureDifferenceInSeconds - departureOffset;
 
-  const stopTimeResponse = await prisma.$queryRaw<StopTime[]>`
-    SELECT t.trip_id,
-           t.arrival_time,
-           t.arrival_timestamp,
-           t.departure_time,
-           t.departure_timestamp,
-           t.stop_id,
-           t.stop_sequence,
-           t.stop_headsign,
-           t.pickup_type,
-           t.drop_off_type,
-           t.timepoint
-    FROM
-        stop_time AS t
-            JOIN trip ON trip.trip_id = t.trip_id
-            JOIN calendar AS c ON c.service_id = trip.service_id                     
-          left JOIN
-            calendar_date 
-            ON trip.service_id = calendar_date.service_id 
-            AND calendar_date.date = ${dateOfYear}
-    WHERE
-        t.stop_id = ${stopId} AND
-        t.arrival_timestamp > ${departureTimeInSeconds}
-      AND 
-        (
-          exception_type IS NULL
-          AND ${calendarDayColumns[dayOfWeek]} = ${scheduledService.isTrue} 
-          AND ${dateOfYear} BETWEEN c.start_date AND c.end_date 
-          OR exception_type =  ${serviceException.added}
-        )
-    ORDER BY t.arrival_timestamp ASC;
-  `;
+  const stopTimeResponse = await prisma.$queryRaw<UpcomingTrip[]>`
+    SELECT ST.TRIP_ID,
+      ST.ARRIVAL_TIME,
+      ST.ARRIVAL_TIMESTAMP,
+      ST.DEPARTURE_TIME,
+      ST.DEPARTURE_TIMESTAMP,
+      ST.STOP_SEQUENCE,
+      TRIP.ROUTE_ID,
+      TRIP.BLOCK_ID,
+      TRIP.TRIP_HEADSIGN,
+      ROUTE.ROUTE_SHORT_NAME,
+      ROUTE.ROUTE_LONG_NAME
+    FROM STOP_TIME AS ST
+    JOIN TRIP ON TRIP.TRIP_ID = ST.TRIP_ID
+    JOIN CALENDAR AS C ON C.SERVICE_ID = TRIP.SERVICE_ID
+    JOIN ROUTE ON ROUTE.ROUTE_ID = TRIP.ROUTE_ID
+    LEFT JOIN CALENDAR_DATE ON TRIP.SERVICE_ID = CALENDAR_DATE.SERVICE_ID
+    AND CALENDAR_DATE.DATE = ${dateOfYear}
+    WHERE ST.STOP_ID = ${stopId}
+      AND ST.ARRIVAL_TIMESTAMP > ${departureTimeInSeconds}
+      AND (EXCEPTION_TYPE IS NULL
+                          AND ${calendarDayColumns[dayOfWeek]} = ${scheduledService.isTrue}
+                          AND ${dateOfYear} BETWEEN C.START_DATE AND C.END_DATE
+                          OR EXCEPTION_TYPE = ${serviceException.added})
+    ORDER BY ST.ARRIVAL_TIMESTAMP ASC;`;
 
-  const stopTimes: StopTime[] = camelcaseKeys(stopTimeResponse);
+  const upcomingTrips = camelcaseKeys(stopTimeResponse);
 
-  const trips = await prisma.trip.findMany({
-    where: {
-      tripId: { in: stopTimes.map(({ tripId }) => tripId) },
-    },
-    orderBy: { tripId: "asc" },
-  });
-
-  const routes = await prisma.route.findMany({
-    where: {
-      routeId: { in: trips.map(({ routeId }) => routeId) },
-    },
-    orderBy: { routeId: "asc" },
-  });
-
-  return res.status(StatusCodes.OK).json({ stopTimes, trips: trips, routes });
+  return res.status(StatusCodes.OK).json({ upcomingTrips });
 }
 
 export default withErrorHandler(handler);

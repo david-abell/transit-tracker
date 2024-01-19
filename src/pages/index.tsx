@@ -97,8 +97,6 @@ export default function Home() {
   });
 
   // derived state
-  const tripsAtSelectedStop = stopTimesByStopId?.get(stopId);
-
   const isLoading = isLoadingRoute || isLoadingStop || isLoadingStatic;
   const apiError = routeError || stopError || staticError;
 
@@ -217,8 +215,6 @@ export default function Home() {
           handleSelectedTrip={handleSelectedTrip}
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}
-          stopTimes={tripsAtSelectedStop}
-          tripsById={tripsById}
         />
       </Modal>
 

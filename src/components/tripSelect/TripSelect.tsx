@@ -25,34 +25,30 @@ type Props = {
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
   selectedDateTime: string;
   selectedRoute: Route | undefined;
-  stopTimes: StopTime[] | undefined;
-  tripsById: Map<string, Trip>;
 };
 
 function TripSelect({
   handleSelectedTrip,
   selectedDateTime,
   selectedRoute,
-  stopTimes = [],
-  tripsById,
 }: Props) {
   const { dialog } = useContext(DialogRefContext);
   const [showAllRoutes, setShowAllRoutes] = useState(false);
   const searchParams = useSearchParams();
   const selectedStopId = searchParams.get("stopId");
 
-  const matchesLarge = useMediaQuery("(min-width: 768px)");
+  // const matchesLarge = useMediaQuery("(min-width: 768px)");
 
   const {
     isLoading: isUpcomingLoading,
     error: upcomingError,
-    routes: upComingRoutes,
-    stopTimes: allStopTimes,
-    trips: allTrips,
+    upcomingTrips,
   } = useUpcoming(selectedStopId, selectedDateTime);
 
-  const currentStopTimes = showAllRoutes ? allStopTimes : stopTimes;
-  const tripIds = currentStopTimes?.map(({ tripId }) => tripId);
+  const trips = showAllRoutes
+    ? upcomingTrips
+    : upcomingTrips?.filter((trip) => trip.routeId === selectedRoute?.routeId);
+  const tripIds = upcomingTrips?.map(({ tripId }) => tripId);
 
   const {
     error: realtimeError,
@@ -63,9 +59,9 @@ function TripSelect({
     realtimeCanceledTripIds,
   } = useRealtime(tripIds);
 
-  if (selectedRoute && !upComingRoutes?.has(selectedRoute.routeId)) {
-    upComingRoutes?.set(selectedRoute.routeId, selectedRoute);
-  }
+  // if (selectedRoute && !upComingRoutes?.has(selectedRoute.routeId)) {
+  //   upComingRoutes?.set(selectedRoute.routeId, selectedRoute);
+  // }
 
   const isToday = DateTime.now().hasSame(
     parseDatetimeLocale(selectedDateTime),
@@ -121,7 +117,7 @@ function TripSelect({
               <AlertDescription>{upcomingError.message}</AlertDescription>
             </Alert>
           </li>
-        ) : !currentStopTimes || currentStopTimes?.length === 0 ? (
+        ) : !trips || trips.length === 0 ? (
           <>
             {/* No trips found */}
 
@@ -135,19 +131,16 @@ function TripSelect({
           </>
         ) : (
           <>
-            {currentStopTimes.flatMap(
-              ({ tripId, departureTime, stopSequence }) => {
-                const {
-                  tripHeadsign = "",
-                  routeId,
-                  blockId,
-                } = (showAllRoutes ? allTrips : tripsById).get(tripId) || {};
-
-                if (!routeId) {
-                  console.log(`RouteId undefined for trip ${tripId}`);
-                  return [];
-                }
-
+            {trips.flatMap(
+              ({
+                tripId,
+                departureTime,
+                stopSequence,
+                tripHeadsign,
+                routeId,
+                blockId,
+                routeShortName,
+              }) => {
                 if (blockId && duplicateTrips.has(blockId)) {
                   return [];
                 }
@@ -198,10 +191,6 @@ function TripSelect({
                   ? "delayed"
                   : "ontime";
 
-                const displayRoute = routeId
-                  ? upComingRoutes.get(routeId)!
-                  : "";
-
                 return (
                   <li key={tripId + departureTime}>
                     <button
@@ -220,9 +209,7 @@ function TripSelect({
                     >
                       {/* Route Short Name */}
                       <b className="w-20 font-bold md:w-28 md:text-lg">
-                        {typeof displayRoute === "object"
-                          ? displayRoute.routeShortName
-                          : ""}
+                        {routeShortName ?? ""}
                       </b>
                       {/* Destination */}
                       <span className="flex-1">{tripHeadsign}</span>

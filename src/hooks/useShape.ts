@@ -24,7 +24,7 @@ function useShape(tripId: string) {
 
   return {
     shapeError: error,
-    isShapeLoading: isLoading,
+    isLoadingShape: isLoading,
     shape,
   };
 }

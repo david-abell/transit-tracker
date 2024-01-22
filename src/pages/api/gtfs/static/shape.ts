@@ -5,6 +5,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { LatLngTuple } from "leaflet";
 
 import { StatusCodes } from "http-status-codes";
+import { Shape } from "@prisma/client";
+import camelcaseKeys from "camelcase-keys";
 
 export type ShapeAPIResponse = LatLngTuple[];
 
@@ -12,24 +14,31 @@ async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ShapeAPIResponse>
 ) {
-  const { shapeId } = req.query;
+  const { tripId } = req.query;
 
-  if (!shapeId || typeof shapeId !== "string") {
+  if (!tripId || typeof tripId !== "string") {
     return res.status(StatusCodes.BAD_REQUEST).end();
   }
 
-  const shapePoints = await prisma.shape.findMany({
-    where: { shapeId: shapeId },
-    orderBy: [{ shapePtSequence: "asc" }],
-  });
-
-  if (!shapePoints.length) {
+  const shapes = await prisma.$queryRaw<Shape[]>`
+    SELECT S.SHAPE_ID,
+      S.SHAPE_PT_LAT,
+      S.SHAPE_PT_LON,
+      S.SHAPE_PT_SEQUENCE,
+      S.SHAPE_DIST_TRAVELED
+    FROM SHAPE S
+    INNER JOIN TRIP ON S.SHAPE_ID = TRIP.SHAPE_ID
+    AND TRIP.TRIP_ID = ${tripId}
+    ORDER BY S.SHAPE_PT_SEQUENCE;`;
+  if (!shapes.length) {
     return res.status(StatusCodes.OK).json([]);
   }
 
-  return res.json(
-    shapePoints.map(({ shapePtLat, shapePtLon }) => [shapePtLat, shapePtLon])
+  const shapePoints: LatLngTuple[] = camelcaseKeys(shapes).map(
+    ({ shapePtLat, shapePtLon }) => [shapePtLat, shapePtLon]
   );
+
+  return res.json(shapePoints);
 }
 
 export default withErrorHandler(handler);

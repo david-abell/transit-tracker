@@ -28,7 +28,7 @@ type Arrival = {
 type Props = {
   stopIds: string[] | undefined;
   shape: LatLngTuple[] | undefined;
-  selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
+  stopTimesByTripId: Map<StopTime["tripId"], StopTime>;
   stopsById: Map<string, Stop>;
   stopTimeUpdate: StopTimeUpdate[] | undefined;
   options: {
@@ -39,7 +39,7 @@ type Props = {
 function useVehiclePosition({
   stopIds,
   shape,
-  selectedTripStopTimesById,
+  stopTimesByTripId,
   stopsById,
   stopTimeUpdate,
   options,
@@ -52,7 +52,7 @@ function useVehiclePosition({
 function useVehiclePosition({
   stopIds,
   shape,
-  selectedTripStopTimesById,
+  stopTimesByTripId,
   stopsById,
   stopTimeUpdate,
   options,
@@ -63,7 +63,7 @@ function useVehiclePosition({
 function useVehiclePosition({
   stopIds,
   shape,
-  selectedTripStopTimesById,
+  stopTimesByTripId,
   stopsById,
   stopTimeUpdate,
   options,
@@ -83,7 +83,7 @@ function useVehiclePosition({
             return [];
           }
           const { arrivalTime, stopSequence } =
-            selectedTripStopTimesById.get(stopId) || {};
+            stopTimesByTripId.get(stopId) || {};
           if (!arrivalTime || !stopSequence) {
             return [];
           }
@@ -118,13 +118,7 @@ function useVehiclePosition({
           };
         })
         .sort((a, b) => a.stopSequence - b.stopSequence),
-    [
-      lastStopTimeUpdate,
-      selectedTripStopTimesById,
-      stopIds,
-      stopTimeUpdate,
-      stopsById,
-    ]
+    [lastStopTimeUpdate, stopTimesByTripId, stopIds, stopTimeUpdate, stopsById]
   );
 
   // bail early if input requirements not met

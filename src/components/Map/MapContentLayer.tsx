@@ -48,7 +48,7 @@ type Props = {
   handleSelectedStop: (stopId: string) => void;
   shape: LatLngTuple[] | undefined;
   stopsById: Map<string, Stop>;
-  selectedTripStopTimesById: Map<StopTime["tripId"], StopTime>;
+  stopTimesByTripId: Map<StopTime["tripId"], StopTime>;
   setShowSavedStops: Dispatch<SetStateAction<boolean>>;
   stops: Stop[] | undefined;
 };
@@ -57,7 +57,7 @@ function MapContentLayer({
   handleSelectedStop,
   height,
   selectedDateTime,
-  selectedTripStopTimesById,
+  stopTimesByTripId,
   setShowSavedStops,
   shape,
   stops,
@@ -148,7 +148,7 @@ function MapContentLayer({
   );
 
   const { vehiclePosition, bearing, vehicleError } = useVehiclePosition({
-    selectedTripStopTimesById,
+    stopTimesByTripId,
     shape,
     stopIds,
     stopsById,
@@ -187,7 +187,7 @@ function MapContentLayer({
                 }
 
                 const { arrivalTime, departureTime, stopSequence } =
-                  selectedTripStopTimesById.get(stopId) ||
+                  stopTimesByTripId.get(stopId) ||
                   addedTripStopTimes.get(stopId) ||
                   {};
 

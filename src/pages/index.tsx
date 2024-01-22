@@ -21,6 +21,8 @@ import useStopId from "@/hooks/useStopId";
 import { AlertCircle } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import useShape from "@/hooks/useShape";
+import useStopTimes from "@/hooks/useStopTimes";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -75,30 +77,42 @@ export default function Home() {
     error: routeError,
     isLoading: isLoadingRoute,
   } = useRouteId(routeId);
+
   const {
     selectedStop,
     error: stopError,
     isLoading: isLoadingStop,
   } = useStopId(stopId);
 
+  const { stopTimesByTripId, isLoadingStopTimes, stopTimesError } =
+    useStopTimes(tripId);
+
+  const { shape, shapeError, isShapeLoading } = useShape(tripId);
+
   const {
     error: staticError,
     isLoading: isLoadingStatic,
     selectedTripStopTimesById,
     stops,
-    tripsById,
-    shape,
+    // shape,
     stopsById,
-    stopTimesByStopId,
   } = useStatic({
     routeId,
     selectedDateTime,
     tripId,
   });
 
+  console.log(shape);
+
   // derived state
-  const isLoading = isLoadingRoute || isLoadingStop || isLoadingStatic;
-  const apiError = routeError || stopError || staticError;
+  const isLoading =
+    isLoadingRoute ||
+    isLoadingStop ||
+    isLoadingStopTimes ||
+    isShapeLoading ||
+    isLoadingStatic;
+  const apiError =
+    routeError || stopError || stopTimesError || shapeError || staticError;
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
@@ -194,7 +208,7 @@ export default function Home() {
           <MapComponent
             shape={shape}
             selectedDateTime={selectedDateTime}
-            selectedTripStopTimesById={selectedTripStopTimesById}
+            stopTimesByTripId={stopTimesByTripId}
             setShowSavedStops={setShowSavedStops}
             stops={stops}
             stopsById={stopsById}

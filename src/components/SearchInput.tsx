@@ -14,7 +14,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const { routes } = useRoute(searchQuery);
-  const { stops } = useStops(searchQuery);
+  const { stops } = useStops({ stopQuery: searchQuery });
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleSearchSelection = (

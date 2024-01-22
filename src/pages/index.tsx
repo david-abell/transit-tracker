@@ -23,6 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import useShape from "@/hooks/useShape";
 import useStopTimes from "@/hooks/useStopTimes";
 import useStops from "@/hooks/useStops";
+import useWarmup from "@/hooks/useWarmup";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -71,6 +72,9 @@ export default function Home() {
   const { height: windowHeight } = useWindowSize();
   const [NavRef, { height: navHeight }] = useElementSize();
 
+  // trigger database warmup with a cheap onetime query
+  const { isLoading: isDBLoading, error: dbError } = useWarmup();
+
   // static schedule data
   const {
     route: selectedRoute,
@@ -95,6 +99,7 @@ export default function Home() {
 
   // derived state
   const isLoading =
+    isDBLoading ||
     isLoadingRoute ||
     isLoadingStop ||
     isLoadingStops ||
@@ -102,7 +107,12 @@ export default function Home() {
     isShapeLoading;
 
   const apiError =
-    routeError || stopError || stopsError || stopTimesError || shapeError;
+    dbError ||
+    routeError ||
+    stopError ||
+    stopsError ||
+    stopTimesError ||
+    shapeError;
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
@@ -177,7 +187,9 @@ export default function Home() {
               <AlertCircle className="h-4 w-4" />
               {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
               <AlertDescription className="bg-transparent">
-                Loading...
+                {isDBLoading
+                  ? "Database 🔥warming🔥 in progress"
+                  : "Loading..."}
               </AlertDescription>
             </Alert>
           ) : !!apiError ? (

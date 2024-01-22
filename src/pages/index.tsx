@@ -24,6 +24,8 @@ import useShape from "@/hooks/useShape";
 import useStopTimes from "@/hooks/useStopTimes";
 import useStops from "@/hooks/useStops";
 import useWarmup from "@/hooks/useWarmup";
+import useTrip from "@/hooks/useTrip";
+import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -88,14 +90,16 @@ export default function Home() {
     isLoading: isLoadingStop,
   } = useStopId(stopId);
 
+  const { selectedTrip, isLoadingTrip, tripError } = useTrip(tripId);
+
   const { stops, stopsById, isLoadingStops, stopsError } = useStops({
     routeId,
   });
 
-  const { stopTimesByTripId, isLoadingStopTimes, stopTimesError } =
+  const { stopTimes, stopTimesByStopId, isLoadingStopTimes, stopTimesError } =
     useStopTimes(tripId);
 
-  const { shape, shapeError, isShapeLoading } = useShape(tripId);
+  const { shape, shapeError, isLoadingShape } = useShape(tripId);
 
   // derived state
   const isLoading =
@@ -104,7 +108,8 @@ export default function Home() {
     isLoadingStop ||
     isLoadingStops ||
     isLoadingStopTimes ||
-    isShapeLoading;
+    isLoadingTrip ||
+    isLoadingShape;
 
   const apiError =
     dbError ||
@@ -112,7 +117,8 @@ export default function Home() {
     stopError ||
     stopsError ||
     stopTimesError ||
-    shapeError;
+    shapeError ||
+    tripError;
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
@@ -183,7 +189,7 @@ export default function Home() {
         <div className="relative">
           {/* Errors and loading messages */}
           {isLoading ? (
-            <Alert className="pointer-events-none absolute bottom-4 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-blue-50/70 dark:border-gray-50 dark:bg-gray-800/70">
+            <Alert className="pointer-events-none absolute bottom-28 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-blue-50/70 dark:border-gray-50 dark:bg-gray-800/70">
               <AlertCircle className="h-4 w-4" />
               {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
               <AlertDescription className="bg-transparent">
@@ -210,7 +216,7 @@ export default function Home() {
           <MapComponent
             shape={shape}
             selectedDateTime={selectedDateTime}
-            stopTimesByTripId={stopTimesByTripId}
+            stopTimesByStopId={stopTimesByStopId}
             setShowSavedStops={setShowSavedStops}
             stops={stops}
             stopsById={stopsById}
@@ -238,6 +244,13 @@ export default function Home() {
         isOpen={showSavedStops}
         setIsOpen={setShowSavedStops}
         setShowTripModal={setShowTripModal}
+      />
+
+      <Footer
+        route={selectedRoute}
+        stop={selectedStop}
+        stopTimes={stopTimes}
+        trip={selectedTrip}
       />
     </main>
   );

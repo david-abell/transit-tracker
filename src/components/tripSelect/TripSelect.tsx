@@ -59,10 +59,6 @@ function TripSelect({
     realtimeCanceledTripIds,
   } = useRealtime(tripIds);
 
-  // if (selectedRoute && !upComingRoutes?.has(selectedRoute.routeId)) {
-  //   upComingRoutes?.set(selectedRoute.routeId, selectedRoute);
-  // }
-
   const isToday = DateTime.now().hasSame(
     parseDatetimeLocale(selectedDateTime),
     "day"
@@ -211,10 +207,10 @@ function TripSelect({
                       <b className="w-20 font-bold md:w-28 md:text-lg">
                         {routeShortName ?? ""}
                       </b>
+
                       {/* Destination */}
                       <span className="flex-1">{tripHeadsign}</span>
-                      {/* <span className=" flex-1">{tripId}</span>
-                      <span className="flex-1">{blockId}</span> */}
+
                       {/* Scheduled */}
                       <span
                         className={

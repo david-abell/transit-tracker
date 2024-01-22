@@ -3,7 +3,6 @@ import Image from "next/image";
 import { Inter } from "next/font/google";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useRealtime from "@/hooks/useRealtime";
-import useStatic from "@/hooks/useStatic";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripSelect from "@/components/tripSelect/TripSelect";
@@ -21,6 +20,10 @@ import useStopId from "@/hooks/useStopId";
 import { AlertCircle } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import useShape from "@/hooks/useShape";
+import useStopTimes from "@/hooks/useStopTimes";
+import useStops from "@/hooks/useStops";
+import useWarmup from "@/hooks/useWarmup";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -69,36 +72,47 @@ export default function Home() {
   const { height: windowHeight } = useWindowSize();
   const [NavRef, { height: navHeight }] = useElementSize();
 
+  // trigger database warmup with a cheap onetime query
+  const { isLoading: isDBLoading, error: dbError } = useWarmup();
+
   // static schedule data
   const {
     route: selectedRoute,
     error: routeError,
     isLoading: isLoadingRoute,
   } = useRouteId(routeId);
+
   const {
     selectedStop,
     error: stopError,
     isLoading: isLoadingStop,
   } = useStopId(stopId);
 
-  const {
-    error: staticError,
-    isLoading: isLoadingStatic,
-    selectedTripStopTimesById,
-    stops,
-    tripsById,
-    shape,
-    stopsById,
-    stopTimesByStopId,
-  } = useStatic({
+  const { stops, stopsById, isLoadingStops, stopsError } = useStops({
     routeId,
-    selectedDateTime,
-    tripId,
   });
 
+  const { stopTimesByTripId, isLoadingStopTimes, stopTimesError } =
+    useStopTimes(tripId);
+
+  const { shape, shapeError, isShapeLoading } = useShape(tripId);
+
   // derived state
-  const isLoading = isLoadingRoute || isLoadingStop || isLoadingStatic;
-  const apiError = routeError || stopError || staticError;
+  const isLoading =
+    isDBLoading ||
+    isLoadingRoute ||
+    isLoadingStop ||
+    isLoadingStops ||
+    isLoadingStopTimes ||
+    isShapeLoading;
+
+  const apiError =
+    dbError ||
+    routeError ||
+    stopError ||
+    stopsError ||
+    stopTimesError ||
+    shapeError;
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
@@ -173,7 +187,9 @@ export default function Home() {
               <AlertCircle className="h-4 w-4" />
               {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
               <AlertDescription className="bg-transparent">
-                Loading...
+                {isDBLoading
+                  ? "Database 🔥warming🔥 in progress"
+                  : "Loading..."}
               </AlertDescription>
             </Alert>
           ) : !!apiError ? (
@@ -194,7 +210,7 @@ export default function Home() {
           <MapComponent
             shape={shape}
             selectedDateTime={selectedDateTime}
-            selectedTripStopTimesById={selectedTripStopTimesById}
+            stopTimesByTripId={stopTimesByTripId}
             setShowSavedStops={setShowSavedStops}
             stops={stops}
             stopsById={stopsById}

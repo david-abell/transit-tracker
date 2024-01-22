@@ -32,6 +32,7 @@ function useStopTimes(tripId: string) {
     stopTimesError: error,
     isLoadingStopTimes: isLoading,
     stopTimesByStopId,
+    stopTimes,
   };
 }
 

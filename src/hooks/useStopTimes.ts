@@ -19,7 +19,7 @@ function useStopTimes(tripId: string) {
     skipRevalidationOptions
   );
 
-  const stopTimesByTripId: Map<StopTime["tripId"], StopTime> = stopTimes
+  const stopTimesByStopId: Map<StopTime["stopId"], StopTime> = stopTimes
     ? new Map(
         stopTimes.map((data) => {
           const { stopId } = data;
@@ -31,7 +31,7 @@ function useStopTimes(tripId: string) {
   return {
     stopTimesError: error,
     isLoadingStopTimes: isLoading,
-    stopTimesByTripId,
+    stopTimesByStopId,
   };
 }
 

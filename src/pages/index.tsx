@@ -56,6 +56,11 @@ export default function Home() {
   const setQueryParams = useCallback(
     (queries: Record<string, string | boolean>, path = "/") => {
       const previous = router.query;
+
+      if ("destId" in previous) {
+        delete previous.destId;
+      }
+
       return router.push({
         pathname: path,
         query: { ...previous, ...queries },
@@ -95,7 +100,7 @@ export default function Home() {
     selectedStop: destinationStop,
     error: destinationError,
     isLoading: isLoadingDestination,
-  } = useStopId(destinationStopId);
+  } = useStopId(destinationStopId, true);
 
   const { selectedTrip, isLoadingTrip, tripError } = useTrip(tripId);
 
@@ -149,7 +154,7 @@ export default function Home() {
   };
 
   const handleShowAllStops = () => {
-    removeQueryParams(["tripId", "stopId"]);
+    removeQueryParams(["tripId", "stopId", "destId"]);
   };
 
   return (

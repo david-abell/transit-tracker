@@ -33,7 +33,7 @@ function TripSelect({
   selectedRoute,
 }: Props) {
   const { dialog } = useContext(DialogRefContext);
-  const [showAllRoutes, setShowAllRoutes] = useState(false);
+  const [showAllRoutes, setShowAllRoutes] = useState(!selectedRoute);
   const searchParams = useSearchParams();
   const selectedStopId = searchParams.get("stopId");
 

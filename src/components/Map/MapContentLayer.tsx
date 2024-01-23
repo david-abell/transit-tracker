@@ -46,6 +46,7 @@ type Props = {
   selectedDateTime: string;
   tripId: string;
   handleSelectedStop: (stopId: string) => void;
+  handleDestinationStop: (stopId: string) => void;
   shape: LatLngTuple[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
@@ -55,6 +56,7 @@ type Props = {
 
 function MapContentLayer({
   handleSelectedStop,
+  handleDestinationStop,
   height,
   selectedDateTime,
   stopTimesByStopId,
@@ -94,6 +96,7 @@ function MapContentLayer({
   };
 
   const { selectedStop } = useStopId(selectedStopId);
+  const selectedStoptime = stopTimesByStopId.get(selectedStopId);
 
   useEffect(() => {
     if (stopIds.length && isEqual(stopIds, previousStopIds)) {
@@ -215,6 +218,12 @@ function MapContentLayer({
                   arrival?.delay || departure?.delay
                 );
 
+                const isValidDestination =
+                  (selectedStoptime &&
+                    stopSequence &&
+                    selectedStoptime.stopSequence < stopSequence) ||
+                  false;
+
                 return (
                   <Marker
                     key={stopId}
@@ -270,6 +279,17 @@ function MapContentLayer({
                       >
                         Upcoming trips
                       </button>
+                      {!!selectedStopId && isValidDestination && (
+                        <button
+                          type="button"
+                          onClick={() => handleDestinationStop(stopId)}
+                          className="mx-auto my-2 block w-full rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
+                         focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700
+                          dark:focus:ring-blue-800"
+                        >
+                          set Destination
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => addStopToSaved(stopId, stopName)}

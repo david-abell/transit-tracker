@@ -37,6 +37,7 @@ export default function Home() {
   const routeId = searchParams.get("routeId") || "";
   const tripId = searchParams.get("tripId") || "";
   const stopId = searchParams.get("stopId") || "";
+  const destinationStopId = searchParams.get("destId") || "";
 
   // Query string helpers
   const removeQueryParams = useCallback(
@@ -90,6 +91,12 @@ export default function Home() {
     isLoading: isLoadingStop,
   } = useStopId(stopId);
 
+  const {
+    selectedStop: destinationStop,
+    error: destinationError,
+    isLoading: isLoadingDestination,
+  } = useStopId(destinationStopId);
+
   const { selectedTrip, isLoadingTrip, tripError } = useTrip(tripId);
 
   const { stops, stopsById, isLoadingStops, stopsError } = useStops({
@@ -104,6 +111,7 @@ export default function Home() {
   // derived state
   const isLoading =
     isDBLoading ||
+    isLoadingDestination ||
     isLoadingRoute ||
     isLoadingStop ||
     isLoadingStops ||
@@ -113,6 +121,7 @@ export default function Home() {
 
   const apiError =
     dbError ||
+    destinationError ||
     routeError ||
     stopError ||
     stopsError ||
@@ -133,6 +142,10 @@ export default function Home() {
 
   const handleSelectedStop = (stopId: string) => {
     setQueryParams({ stopId }).then(() => setShowTripModal(true));
+  };
+
+  const handleDestinationStop = (stopId: string) => {
+    setQueryParams({ destId: stopId });
   };
 
   const handleShowAllStops = () => {
@@ -221,6 +234,7 @@ export default function Home() {
             stops={stops}
             stopsById={stopsById}
             handleSelectedStop={handleSelectedStop}
+            handleDestinationStop={handleDestinationStop}
             tripId={tripId}
             height={windowHeight - navHeight}
           />
@@ -247,6 +261,7 @@ export default function Home() {
       />
 
       <Footer
+        destination={destinationStop}
         route={selectedRoute}
         stop={selectedStop}
         stopTimes={stopTimes}

@@ -5,13 +5,13 @@ import { fetchHelper } from "@/lib/FetchHelper";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
 
-function useStopId(stopId: string) {
+function useStopId(stopId: string, destination = false) {
   const {
     data: selectedStop,
     error,
     isLoading,
   } = useSWR<Stop, ApiError>(
-    () => (!!stopId ? `/api/gtfs/static/stops/${stopId}` : null),
+    !!stopId ? [`/api/gtfs/static/stops/${stopId}`, destination] : null,
     fetchHelper,
     skipRevalidationOptions
   );

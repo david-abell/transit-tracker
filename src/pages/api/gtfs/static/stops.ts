@@ -23,13 +23,17 @@ async function handler(
 
   const stops = await prisma.$queryRaw<Stop[]>`
     SELECT stop_id,
-        stop_name
+           stop_code, 
+           stop_lat, 
+           stop_lon,
+           stop_name
     FROM stop
     WHERE stop_id ILIKE ${startsWithQuery} OR 
-        stop_name ILIKE ${startsWithQuery} OR
-        stop_name ILIKE ${containsQuery}
+          stop_code ILIKE ${startsWithQuery} OR
+          stop_name ILIKE ${startsWithQuery} OR
+          stop_name ILIKE ${containsQuery}
     ORDER BY stop_name ILIKE ${startsWithQuery} OR NULL,
-        stop_id
+          stop_id
     LIMIT 6;
  `;
 

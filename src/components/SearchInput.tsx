@@ -162,7 +162,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
                     </li>
                   );
                 } else {
-                  const { stopId, stopName } = item;
+                  const { stopId, stopCode, stopName } = item;
                   return (
                     <li
                       key={stopId + stopName}
@@ -174,7 +174,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
                         className="w-full text-left"
                         onKeyDown={(e) => handleSearchKeydown(e)}
                       >
-                        <strong>Stop:</strong> {stopId} - {stopName}
+                        <strong>Stop:</strong> {stopCode ?? stopId} - {stopName}
                       </button>
                     </li>
                   );

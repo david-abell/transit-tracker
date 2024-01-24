@@ -184,143 +184,150 @@ function MapContentLayer({
         <LayersControl.Overlay name="Stops" checked>
           <FeatureGroup ref={markerGroupRef}>
             {currentStops &&
-              currentStops.flatMap(({ stopLat, stopLon, stopName, stopId }) => {
-                if (!stopLat || !stopLon) {
-                  return [];
-                }
+              currentStops.flatMap(
+                ({ stopLat, stopLon, stopName, stopId, stopCode }) => {
+                  if (!stopLat || !stopLon) {
+                    return [];
+                  }
 
-                const { arrivalTime, departureTime, stopSequence } =
-                  stopTimesByStopId.get(stopId) ||
-                  addedTripStopTimes.get(stopId) ||
-                  {};
+                  const { arrivalTime, departureTime, stopSequence } =
+                    stopTimesByStopId.get(stopId) ||
+                    addedTripStopTimes.get(stopId) ||
+                    {};
 
-                // When trip selected show only stops on that trip
-                if (tripId && !arrivalTime) return [];
+                  // When trip selected show only stops on that trip
+                  if (tripId && !arrivalTime) return [];
 
-                const closestStopUpdate =
-                  (stopTimeUpdate &&
-                    stopTimeUpdate.find(
-                      ({ stopId, stopSequence: realtimeSequence }) =>
-                        stopId === selectedStopId ||
-                        (stopSequence && realtimeSequence >= stopSequence)
-                    )) ||
-                  lastStopTimeUpdate;
+                  const closestStopUpdate =
+                    (stopTimeUpdate &&
+                      stopTimeUpdate.find(
+                        ({ stopId, stopSequence: realtimeSequence }) =>
+                          stopId === selectedStopId ||
+                          (stopSequence && realtimeSequence >= stopSequence)
+                      )) ||
+                    lastStopTimeUpdate;
 
-                // arrival delay is sometimes very wrong from realtime api exa. -1687598071
-                const { arrival, departure } = closestStopUpdate || {};
+                  // arrival delay is sometimes very wrong from realtime api exa. -1687598071
+                  const { arrival, departure } = closestStopUpdate || {};
 
-                const delayedArrivalTime = getDelayedTime(
-                  departureTime,
-                  arrival?.delay || departure?.delay
-                );
+                  const delayedArrivalTime = getDelayedTime(
+                    departureTime,
+                    arrival?.delay || departure?.delay
+                  );
 
-                const prettyDelay = formatDelay(
-                  arrival?.delay || departure?.delay
-                );
+                  const prettyDelay = formatDelay(
+                    arrival?.delay || departure?.delay
+                  );
 
-                const isValidDestination =
-                  (selectedStoptime &&
-                    stopSequence &&
-                    selectedStoptime.stopSequence < stopSequence) ||
-                  false;
+                  const isValidDestination =
+                    (selectedStoptime &&
+                      stopSequence &&
+                      selectedStoptime.stopSequence < stopSequence) ||
+                    false;
 
-                return (
-                  <Marker
-                    key={stopId}
-                    position={[stopLat, stopLon]}
-                    icon={stopMarkerIcon({
-                      isUpcoming:
-                        !!arrivalTime &&
-                        !isPastArrivalTime(
-                          delayedArrivalTime || arrivalTime,
-                          selectedDateTime
-                        ),
-                      isTripSelected: !!tripId,
-                      isCurrent: stopId === selectedStopId,
-                    })}
+                  return (
+                    <Marker
+                      key={stopId}
+                      position={[stopLat, stopLon]}
+                      icon={stopMarkerIcon({
+                        isUpcoming:
+                          !!arrivalTime &&
+                          !isPastArrivalTime(
+                            delayedArrivalTime || arrivalTime,
+                            selectedDateTime
+                          ),
+                        isTripSelected: !!tripId,
+                        isCurrent: stopId === selectedStopId,
+                      })}
 
-                    // eventHandlers={{
-                    //   click: () => handleSelectedStop(stopId),
-                    // }}
-                  >
-                    <Popup>
-                      <h3 className="text-lg font-bold">{stopName}</h3>
-                      <p className="!mt-0">
-                        <strong>Stop Id:</strong> {stopId}
-                      </p>
-                      {!!arrivalTime && (
-                        <p className="!mb-0">
-                          <strong>Scheduled arrival</strong>:
-                          <span> {arrivalTime}</span>
-                        </p>
-                      )}
-                      {!!tripId && !!realtimeTrip && !!delayedArrivalTime && (
-                        <>
-                          <p className="tooltip-schedule-change !mt-0">
-                            <strong>Estimated arrival</strong>:{" "}
-                            {delayedArrivalTime}
+                      // eventHandlers={{
+                      //   click: () => handleSelectedStop(stopId),
+                      // }}
+                    >
+                      <Popup>
+                        <h3 className="text-lg font-bold">
+                          <span className="text-sm font-normal">Stop </span>{" "}
+                          <span className="text-sm font-normal">
+                            {stopCode ?? stopId}
+                          </span>
+                          <br />
+                          {stopName}
+                        </h3>
+
+                        {!!arrivalTime && (
+                          <p className="!mb-0">
+                            <strong>Scheduled arrival</strong>:
+                            <span> {arrivalTime}</span>
                           </p>
-                          {!!prettyDelay && (
-                            <p>
-                              <strong>Delayed by: </strong>
-                              <span className="text-red-900">
-                                {prettyDelay}
-                              </span>
+                        )}
+                        {!!tripId && !!realtimeTrip && !!delayedArrivalTime && (
+                          <>
+                            <p className="tooltip-schedule-change !mt-0">
+                              <strong>Estimated arrival</strong>:{" "}
+                              {delayedArrivalTime}
                             </p>
-                          )}
-                        </>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleSelectedStop(stopId)}
-                        className="mx-auto my-2 block w-full rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
-                         focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700
-                          dark:focus:ring-blue-800"
-                      >
-                        Upcoming trips
-                      </button>
-                      {!!selectedStopId && isValidDestination && (
+                            {!!prettyDelay && (
+                              <p>
+                                <strong>Delayed by: </strong>
+                                <span className="text-red-900">
+                                  {prettyDelay}
+                                </span>
+                              </p>
+                            )}
+                          </>
+                        )}
                         <button
                           type="button"
-                          onClick={() => handleDestinationStop(stopId)}
+                          onClick={() => handleSelectedStop(stopId)}
                           className="mx-auto my-2 block w-full rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
-                         focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700
-                          dark:focus:ring-blue-800"
-                        >
-                          set Destination
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => addStopToSaved(stopId, stopName)}
-                        className="mx-auto my-2 flex w-full flex-row justify-center gap-1 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
                          focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700
                           dark:focus:ring-blue-800"
-                      >
-                        <svg
-                          aria-hidden="true"
-                          className="inline-block h-5 w-5 text-yellow-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                        </svg>
-                        <span>Add to favorites</span>
-                        <svg
-                          aria-hidden="true"
-                          className="inline-block h-5 w-5 text-yellow-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
+                          Upcoming trips
+                        </button>
+                        {!!selectedStopId && isValidDestination && (
+                          <button
+                            type="button"
+                            onClick={() => handleDestinationStop(stopId)}
+                            className="mx-auto my-2 block w-full rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
+                         focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700
+                          dark:focus:ring-blue-800"
+                          >
+                            set Destination
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => addStopToSaved(stopId, stopName)}
+                          className="mx-auto my-2 flex w-full flex-row justify-center gap-1 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
+                         focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700
+                          dark:focus:ring-blue-800"
                         >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                        </svg>
-                      </button>
-                    </Popup>
-                  </Marker>
-                );
-              })}
+                          <svg
+                            aria-hidden="true"
+                            className="inline-block h-5 w-5 text-yellow-400"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                          </svg>
+                          <span>Add to favorites</span>
+                          <svg
+                            aria-hidden="true"
+                            className="inline-block h-5 w-5 text-yellow-400"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                          </svg>
+                        </button>
+                      </Popup>
+                    </Marker>
+                  );
+                }
+              )}
           </FeatureGroup>
         </LayersControl.Overlay>
 

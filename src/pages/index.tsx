@@ -7,7 +7,11 @@ import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripSelect from "@/components/tripSelect/TripSelect";
 import DateTimeSelect from "@/components/DateTimeSelect";
-import { initDateTimeValue } from "@/lib/timeHelpers";
+import {
+  formatDelay,
+  getDelayedTime,
+  initDateTimeValue,
+} from "@/lib/timeHelpers";
 import Modal from "@/components/Modal";
 import { useRouter } from "next/router";
 import useRouteId from "@/hooks/useRouteId";
@@ -112,6 +116,10 @@ export default function Home() {
     useStopTimes(tripId);
 
   const { shape, shapeError, isLoadingShape } = useShape(tripId);
+
+  // Realtime state
+  const { realtimeScheduledByTripId: tripUpdatesByTripId } =
+    useRealtime(tripId);
 
   // derived state
   const isLoading =
@@ -271,6 +279,7 @@ export default function Home() {
         stop={selectedStop}
         stopTimes={stopTimes}
         trip={selectedTrip}
+        tripUpdatesByTripId={tripUpdatesByTripId}
       />
     </main>
   );

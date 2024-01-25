@@ -40,14 +40,6 @@ function Footer({
   const { arrivalTime: dropOffArrivalTime, stopSequence: dropOffStopSequence } =
     dropOffStopTime || {};
 
-  let arrivalText = "";
-
-  if (!!pickupArrivalTime && isPastArrivalTime(pickupArrivalTime)) {
-    arrivalText = "Departed @ " + pickupArrivalTime;
-  } else if (!!pickupArrivalTime) {
-    arrivalText = pickupArrivalTime;
-  }
-
   // Realtime derived state
   const stopTimeUpdates = useMemo(
     () => trip && tripUpdatesByTripId.get(trip?.tripId)?.stopTimeUpdate,
@@ -92,10 +84,12 @@ function Footer({
   );
 
   const isPastPickup =
-    !!dropOffArrivalTime && isPastArrivalTime(dropOffArrivalTime);
+    !!pickupArrivalTime &&
+    isPastArrivalTime(realtimePickupArrivalTime ?? pickupArrivalTime);
 
   const isPastDropOff =
-    !!pickupArrivalTime && isPastArrivalTime(pickupArrivalTime);
+    !!dropOffArrivalTime &&
+    isPastArrivalTime(realtimeDropOffArrivalTime ?? dropOffArrivalTime);
 
   return (
     <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto bg-gray-50 p-4 dark:border-gray-700 lg:px-10">
@@ -104,13 +98,13 @@ function Footer({
           <tr>
             <th className="p-2">Route</th>
             {/* <th className="p-2">Heading towards</th> */}
-            <th className="p-2">Pickup stop</th>
+            <th className="p-2">Journey start</th>
             <th className="p-2">Scheduled pickup</th>
-            <th className="p-2">Realtime pickup</th>
-            <th className="p-2">Drop-off stop</th>
-            <th className="p-2">Scheduled drop-off</th>
+            <th className="p-2">Realtime arrival</th>
+            <th className="p-2">Destination</th>
+            <th className="p-2">Scheduled arrival</th>
             <th className="p-2">Delay</th>
-            <th className="p-2">Realtime drop-off</th>
+            <th className="p-2">Realtime arrival</th>
           </tr>
         </thead>
         <tbody>
@@ -131,25 +125,18 @@ function Footer({
               )}
             </td>
             <td className="px-2 py-4">
-              {!!pickupStopTime?.arrivalTime &&
-                (isPastPickup ? (
-                  <p className="whitespace-break-spaces">
-                    <span>Departed @ </span>
-                    <time dateTime={pickupStopTime.arrivalTime}>
-                      {pickupStopTime.arrivalTime}
-                    </time>
-                  </p>
-                ) : (
-                  <time dateTime={pickupStopTime.arrivalTime}>
-                    {pickupStopTime.arrivalTime}
-                  </time>
-                ))}
+              {!!pickupArrivalTime && (
+                <time dateTime={pickupArrivalTime}>{pickupArrivalTime}</time>
+              )}
             </td>
             <td className="px-2 py-4">
-              {isPastPickup ? (
-                arrivalText
-              ) : (
-                <time dateTime={arrivalText}>{arrivalText}</time>
+              {!!realtimePickupArrivalTime && (
+                <>
+                  {isPastPickup && "Departed @ "}
+                  <time dateTime={realtimePickupArrivalTime}>
+                    {realtimePickupArrivalTime}
+                  </time>
+                </>
               )}
             </td>
             <td className="px-2 py-4">
@@ -161,10 +148,8 @@ function Footer({
               )}
             </td>
             <td className="px-2 py-4">
-              {!!dropOffStopTime?.arrivalTime && (
-                <time dateTime={dropOffStopTime.arrivalTime}>
-                  {dropOffStopTime.arrivalTime}
-                </time>
+              {!!dropOffArrivalTime && (
+                <time dateTime={dropOffArrivalTime}>{dropOffArrivalTime}</time>
               )}
             </td>
             <td className="px-2 py-4">
@@ -172,11 +157,13 @@ function Footer({
             </td>
             <td className="px-2 py-4">
               <>
-                {isPastDropOff && "Arrived @ "}
                 {!!realtimeDropOffArrivalTime && (
-                  <time dateTime={realtimeDropOffArrivalTime}>
-                    {realtimeDropOffArrivalTime}
-                  </time>
+                  <>
+                    {isPastDropOff && "Arrived @ "}
+                    <time dateTime={realtimeDropOffArrivalTime}>
+                      {realtimeDropOffArrivalTime}
+                    </time>
+                  </>
                 )}
               </>
             </td>

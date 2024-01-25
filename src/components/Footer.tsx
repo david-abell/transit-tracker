@@ -92,84 +92,79 @@ function Footer({
     isPastArrivalTime(realtimeDropOffArrivalTime ?? dropOffArrivalTime);
 
   return (
-    <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto bg-gray-50 p-4 dark:border-gray-700 lg:px-10">
-      <table className="w-full table-auto text-left text-sm text-gray-500 dark:text-gray-400">
-        <thead className="bg-gray-50 uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
-          <tr>
-            <th className="p-2">Route</th>
-            {/* <th className="p-2">Heading towards</th> */}
-            <th className="p-2">Journey start</th>
-            <th className="p-2">Scheduled pickup</th>
-            <th className="p-2">Realtime arrival</th>
-            <th className="p-2">Destination</th>
-            <th className="p-2">Scheduled arrival</th>
-            <th className="p-2">Delay</th>
-            <th className="p-2">Realtime arrival</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="whitespace-nowrap border-b bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-            <td className="px-2 py-4">
-              {!!route && (
-                <p className="whitespace-break-spaces">
-                  <b>{route.routeShortName}</b> {route.routeLongName}
-                  {!!trip && <>towards {trip.tripHeadsign}</>}
-                </p>
-              )}
-            </td>
-            <td className="px-2 py-4">
-              {!!stop && (
-                <p className="whitespace-break-spaces">
-                  <b>{stop.stopCode ?? stop.stopId}</b> {stop.stopName}
-                </p>
-              )}
-            </td>
-            <td className="px-2 py-4">
-              {!!pickupArrivalTime && (
-                <time dateTime={pickupArrivalTime}>{pickupArrivalTime}</time>
-              )}
-            </td>
-            <td className="px-2 py-4">
-              {!!realtimePickupArrivalTime && (
+    <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto p-4 dark:border-gray-700 lg:px-10">
+      <div className="w-full text-left text-sm">
+        <div className="grid grid-cols-9 gap-1 rounded-t-lg bg-gray-50 p-2 uppercase text-gray-950 dark:bg-gray-700 dark:text-gray-50">
+          <span className="col-span-2 p-2">Route</span>
+          <span className="p-2">Journey start</span>
+          <span className="p-2">Scheduled pickup</span>
+          <span className="p-2">Realtime arrival</span>
+          <span className="p-2">Destination</span>
+          <span className="p-2">Scheduled arrival</span>
+          <span className="p-2">Delay</span>
+          <span className="p-2">Realtime arrival</span>
+        </div>
+        <div className="grid grid-cols-9 gap-1 whitespace-break-spaces rounded-b-lg border-b bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+          <span className="col-span-2 flex-1 px-2 py-4">
+            {!!route && (
+              <p>
+                <b>{route.routeShortName}</b> {route.routeLongName}
+                {!!trip && <> towards {trip.tripHeadsign}</>}
+              </p>
+            )}
+          </span>
+          <span className="px-2 py-4">
+            {!!stop && (
+              <p>
+                <b>{stop.stopCode ?? stop.stopId}</b> {stop.stopName}
+              </p>
+            )}
+          </span>
+          <span className="px-2 py-4">
+            {!!pickupArrivalTime && (
+              <time dateTime={pickupArrivalTime}>{pickupArrivalTime}</time>
+            )}
+          </span>
+          <span className="px-2 py-4">
+            {!!realtimePickupArrivalTime && (
+              <>
+                {isPastPickup && "Departed @ "}
+                <time dateTime={realtimePickupArrivalTime}>
+                  {realtimePickupArrivalTime}
+                </time>
+              </>
+            )}
+          </span>
+          <span className="px-2 py-4">
+            {!!destination && (
+              <p>
+                <b>{destination.stopCode ?? destination.stopId}</b>{" "}
+                {destination.stopName}
+              </p>
+            )}
+          </span>
+          <span className="px-2 py-4">
+            {!!dropOffArrivalTime && (
+              <time dateTime={dropOffArrivalTime}>{dropOffArrivalTime}</time>
+            )}
+          </span>
+          <span className="px-2 py-4">
+            {pickupDelay && <span>{pickupDelay}</span>}
+          </span>
+          <span className="px-2 py-4">
+            <>
+              {!!realtimeDropOffArrivalTime && (
                 <>
-                  {isPastPickup && "Departed @ "}
-                  <time dateTime={realtimePickupArrivalTime}>
-                    {realtimePickupArrivalTime}
+                  {isPastDropOff && "Arrived @ "}
+                  <time dateTime={realtimeDropOffArrivalTime}>
+                    {realtimeDropOffArrivalTime}
                   </time>
                 </>
               )}
-            </td>
-            <td className="px-2 py-4">
-              {!!destination && (
-                <p className="whitespace-break-spaces">
-                  <b>{destination.stopCode ?? destination.stopId}</b>{" "}
-                  {destination.stopName}
-                </p>
-              )}
-            </td>
-            <td className="px-2 py-4">
-              {!!dropOffArrivalTime && (
-                <time dateTime={dropOffArrivalTime}>{dropOffArrivalTime}</time>
-              )}
-            </td>
-            <td className="px-2 py-4">
-              {pickupDelay && <span>{pickupDelay}</span>}
-            </td>
-            <td className="px-2 py-4">
-              <>
-                {!!realtimeDropOffArrivalTime && (
-                  <>
-                    {isPastDropOff && "Arrived @ "}
-                    <time dateTime={realtimeDropOffArrivalTime}>
-                      {realtimeDropOffArrivalTime}
-                    </time>
-                  </>
-                )}
-              </>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </>
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

@@ -5,7 +5,8 @@ import {
 } from "@/lib/timeHelpers";
 import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
 import { Route, Stop, StopTime, Trip } from "@prisma/client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useInterval } from "usehooks-ts";
 
 type Props = {
   destination?: Stop;
@@ -24,6 +25,12 @@ function Footer({
   destination,
   tripUpdatesByTripId,
 }: Props) {
+  // Rerender interval to arrival estimates
+  const [count, setCount] = useState<number>(0);
+  useInterval(() => {
+    setCount(count + 1);
+  }, 15000);
+
   const pickupStopTime = stopTimes?.find(
     ({ stopId }) => stopId === stop?.stopId
   );
@@ -93,76 +100,91 @@ function Footer({
 
   return (
     <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto p-4 dark:border-gray-700 lg:px-10">
-      <div className="w-full text-left text-sm">
-        <div className="grid grid-cols-9 gap-1 rounded-t-lg bg-gray-50 p-2 uppercase text-gray-950 dark:bg-gray-700 dark:text-gray-50">
-          <span className="col-span-2 p-2">Route</span>
-          <span className="p-2">Journey start</span>
-          <span className="p-2">Scheduled pickup</span>
-          <span className="p-2">Realtime arrival</span>
-          <span className="p-2">Destination</span>
-          <span className="p-2">Scheduled arrival</span>
-          <span className="p-2">Delay</span>
-          <span className="p-2">Realtime arrival</span>
-        </div>
-        <div className="grid grid-cols-9 gap-1 whitespace-break-spaces rounded-b-lg border-b bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-          <span className="col-span-2 flex-1 px-2 py-4">
-            {!!route && (
-              <p>
-                <b>{route.routeShortName}</b> {route.routeLongName}
-                {!!trip && <> towards {trip.tripHeadsign}</>}
-              </p>
-            )}
-          </span>
-          <span className="px-2 py-4">
-            {!!stop && (
-              <p>
-                <b>{stop.stopCode ?? stop.stopId}</b> {stop.stopName}
-              </p>
-            )}
-          </span>
-          <span className="px-2 py-4">
-            {!!pickupArrivalTime && (
-              <time dateTime={pickupArrivalTime}>{pickupArrivalTime}</time>
-            )}
-          </span>
-          <span className="px-2 py-4">
-            {!!realtimePickupArrivalTime && (
-              <>
-                {isPastPickup && "Departed @ "}
-                <time dateTime={realtimePickupArrivalTime}>
-                  {realtimePickupArrivalTime}
-                </time>
-              </>
-            )}
-          </span>
-          <span className="px-2 py-4">
-            {!!destination && (
-              <p>
-                <b>{destination.stopCode ?? destination.stopId}</b>{" "}
-                {destination.stopName}
-              </p>
-            )}
-          </span>
-          <span className="px-2 py-4">
-            {!!dropOffArrivalTime && (
-              <time dateTime={dropOffArrivalTime}>{dropOffArrivalTime}</time>
-            )}
-          </span>
-          <span className="px-2 py-4">
-            {pickupDelay && <span>{pickupDelay}</span>}
-          </span>
-          <span className="px-2 py-4">
-            <>
-              {!!realtimeDropOffArrivalTime && (
+      <div className="grid-rows-[16rem 1fr] grid w-full grid-cols-1 overflow-hidden rounded-lg bg-gray-50 text-left text-sm text-gray-950 dark:bg-gray-700 dark:text-gray-50 lg:grid-cols-2">
+        <div className="grid grid-cols-5 grid-rows-[minmax(0,_4rem)_1fr] gap-1">
+          {/* Pickup Headers */}
+          <div className="grid-rows-subgrid col-span-5 grid grid-cols-5 items-center gap-1  bg-gray-200 p-2 uppercase text-gray-950 dark:bg-gray-700 dark:text-gray-50">
+            <span className="col-span-2 p-2">Route</span>
+            <span className="p-2">Journey start</span>
+            <span className="p-2">Scheduled pickup</span>
+            <span className="p-2">Realtime arrival</span>
+          </div>
+
+          {/* Pickup Data */}
+          <div className="grid-rows-subgrid col-span-5 grid grid-cols-5 gap-1 whitespace-break-spaces border-b bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+            <span className="col-span-2 flex-1 px-2 py-4">
+              {!!route && (
+                <p>
+                  <b>{route.routeShortName}</b> {route.routeLongName}
+                  {!!trip && <> towards {trip.tripHeadsign}</>}
+                </p>
+              )}
+            </span>
+            <span className="px-2 py-4">
+              {!!stop && (
+                <p>
+                  <b>{stop.stopCode ?? stop.stopId}</b> {stop.stopName}
+                </p>
+              )}
+            </span>
+            <span className="px-2 py-4">
+              {!!pickupArrivalTime && (
+                <time dateTime={pickupArrivalTime}>{pickupArrivalTime}</time>
+              )}
+            </span>
+            <span className="px-2 py-4">
+              {!!realtimePickupArrivalTime && (
                 <>
-                  {isPastDropOff && "Arrived @ "}
-                  <time dateTime={realtimeDropOffArrivalTime}>
-                    {realtimeDropOffArrivalTime}
+                  {isPastPickup && "Departed @ "}
+                  <time dateTime={realtimePickupArrivalTime}>
+                    {realtimePickupArrivalTime}
                   </time>
                 </>
               )}
-            </>
-          </span>
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 grid-rows-[minmax(0,_4rem)_1fr] gap-1">
+          {/* Destination Headers */}
+          <div className="grid-rows-subgrid col-span-4 grid grid-cols-4 items-center gap-1 bg-gray-200 p-2 uppercase text-gray-950 dark:bg-gray-700 dark:text-gray-50 ">
+            <span className="p-2">Destination</span>
+            <span className="p-2">Scheduled arrival</span>
+            <span className="p-2">Delay</span>
+            <span className="p-2">Estimated arrival</span>
+          </div>
+
+          {/* Destination data */}
+          <div className="grid-rows-subgrid col-span-4 grid grid-cols-4 gap-1 whitespace-break-spaces border-b bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+            <span className="px-2 py-4">
+              {!!destination && (
+                <p>
+                  <b>{destination.stopCode ?? destination.stopId}</b>{" "}
+                  {destination.stopName}
+                </p>
+              )}
+            </span>
+            <span className="px-2 py-4">
+              {!!dropOffArrivalTime && (
+                <time dateTime={dropOffArrivalTime}>{dropOffArrivalTime}</time>
+              )}
+            </span>
+            <span className="px-2 py-4">
+              {pickupDelay && <span>{pickupDelay}</span>}
+            </span>
+            <span className="px-2 py-4">
+              <>
+                {!!realtimeDropOffArrivalTime && (
+                  <>
+                    {isPastDropOff && "Arrived @ "}
+                    <time dateTime={realtimeDropOffArrivalTime}>
+                      {realtimeDropOffArrivalTime}
+                    </time>
+                  </>
+                )}
+              </>
+            </span>
+          </div>
         </div>
       </div>
     </div>

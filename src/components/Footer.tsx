@@ -136,7 +136,7 @@ function Footer({
 
   return (
     <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto p-4 lg:max-w-7xl lg:px-10">
-      <div className="rounded-lg bg-gray-50 p-4 text-slate-950 dark:bg-gray-800 dark:text-white">
+      <div className="dark:bg-gray-800/90 rounded-lg bg-gray-50/90 p-4 text-slate-950 dark:text-white">
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1" className="border-none">
             <AccordionTrigger className="[&>svg]:h-[28px] [&>svg]:w-[28px] py-0 no-underline">
@@ -169,10 +169,10 @@ function Footer({
               }
             </AccordionTrigger>
             <AccordionContent className="last:pb-0">
-              <div className="grid-rows-[3rem 1fr] mt-4 grid w-full grid-cols-1 overflow-hidden rounded-lg bg-gray-50 text-left text-sm text-gray-950 dark:bg-gray-700 dark:text-gray-50 lg:grid-cols-2">
+              <div className="grid-rows-[3rem 1fr] dark:bg-gray-700/90 mt-4 grid w-full grid-cols-1 overflow-hidden  rounded-lg text-left text-sm text-gray-950 dark:text-gray-50 lg:grid-cols-2">
                 <div className="grid grid-cols-3 grid-rows-[minmax(0,_3rem)_1fr] gap-x-2">
                   {/* Pickup Headers */}
-                  <div className="col-span-3 grid grid-cols-3 grid-rows-subgrid items-center gap-2  bg-gray-200 p-2 uppercase text-gray-950 dark:bg-gray-700 dark:text-gray-50">
+                  <div className="dark:bg-gray-700/90 col-span-3 grid grid-cols-3 grid-rows-subgrid items-center  gap-2 bg-gray-200/90 p-2 uppercase text-gray-950 dark:text-gray-50">
                     {/* <span className="col-span-2 p-2">Route</span> */}
                     <span>Journey start</span>
                     <span>Scheduled</span>
@@ -180,7 +180,7 @@ function Footer({
                   </div>
 
                   {/* Pickup Data */}
-                  <div className="col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white p-2 text-gray-900  dark:bg-gray-800 dark:text-white">
+                  <div className="dark:bg-gray-800/90 col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white/90 p-2  text-gray-900 dark:text-white">
                     <span>
                       {!!displayStop && (
                         <p>
@@ -213,7 +213,7 @@ function Footer({
 
                 <div className="grid grid-cols-3 grid-rows-[minmax(0,_3rem)_1fr] gap-x-2">
                   {/* Destination Headers */}
-                  <div className="col-span-3 grid grid-cols-3 grid-rows-subgrid items-center gap-2 bg-gray-200 p-2 uppercase text-gray-950 dark:bg-gray-700 dark:text-gray-50 ">
+                  <div className="dark:bg-gray-700/90 col-span-3 grid grid-cols-3 grid-rows-subgrid items-center gap-2 bg-gray-200/90 p-2 uppercase text-gray-950 dark:text-gray-50 ">
                     <span>Destination</span>
                     <span>Scheduled</span>
                     {/* <span className="p-2">Delay</span> */}
@@ -221,7 +221,7 @@ function Footer({
                   </div>
 
                   {/* Destination data */}
-                  <div className="col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white p-2 text-gray-900 dark:bg-gray-800 dark:text-white">
+                  <div className="dark:bg-gray-800/90 col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white/90 p-2 text-gray-900 dark:text-white">
                     <span>
                       {!!displayStop && (
                         <p>

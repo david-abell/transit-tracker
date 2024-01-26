@@ -154,10 +154,17 @@ function Footer({
                     {!!trip && <> - towards {trip.tripHeadsign}</>}
                   </span>
                   <span>Status: {tripStatus}</span>
-                  <span>
-                    {pickupDelayStatus ? pickupDelayStatus + ": " : ""}
-                    {pickupDelay ?? ""}
-                  </span>
+                  {isPastPickup ? (
+                    <span>
+                      {dropOffDelayStatus ? dropOffDelayStatus + ": " : ""}
+                      {dropOffDelayStatus ?? ""}
+                    </span>
+                  ) : (
+                    <span>
+                      {pickupDelayStatus ? pickupDelayStatus + ": " : ""}
+                      {pickupDelay ?? ""}
+                    </span>
+                  )}
                 </div>
               }
             </AccordionTrigger>

@@ -226,17 +226,17 @@ export function getTripStatus(
   if (isPastArrivalTime(adjustedFinishTime)) {
     return tripStatus.finished;
   }
-  // if trip hasn't started yet
-  if (!isPastArrivalTime(adjustedStartTime)) {
-    return tripStatus.future;
-  }
   // if delayed
-  if (!!boardingTime && isPastArrivalTime(boardingTime) && delay > 30) {
+  if (delay > 30) {
     return tripStatus.delayed;
   }
   // if early
-  if (!!boardingTime && isPastArrivalTime(boardingTime) && delay < -30) {
+  if (delay < -30) {
     return tripStatus.early;
+  }
+  // if trip hasn't started yet and no delay
+  if (!isPastArrivalTime(adjustedStartTime)) {
+    return tripStatus.future;
   }
 
   return tripStatus["on-time"];

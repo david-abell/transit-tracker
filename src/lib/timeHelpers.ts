@@ -176,8 +176,9 @@ export function getDelayStatus(
 export const tripStatus = {
   canceled: "canceled",
   future: "scheduled",
-  active: "active",
-  boarded: "in transit",
+  early: "early",
+  delayed: "delayed",
+  "on-time": "on time",
   finished: "completed",
   not: "not in service",
 } as const;
@@ -221,20 +222,24 @@ export function getTripStatus(
     return "";
   }
 
-  // if after trip end with delay return return finished
+  // if trip has finished
   if (isPastArrivalTime(adjustedFinishTime)) {
     return tripStatus.finished;
   }
-  // if after boarding time with delay return boarding
-  if (!!boardingTime && isPastArrivalTime(boardingTime)) {
-    return tripStatus.boarded;
+  // if trip hasn't started yet
+  if (!isPastArrivalTime(adjustedStartTime)) {
+    return tripStatus.future;
   }
-  // if after trip start time with delay return active
-  if (isPastArrivalTime(adjustedStartTime)) {
-    return tripStatus.active;
+  // if delayed
+  if (!!boardingTime && isPastArrivalTime(boardingTime) && delay > 30) {
+    return tripStatus.delayed;
   }
-  // else return future scheduled
-  return tripStatus.future;
+  // if early
+  if (!!boardingTime && isPastArrivalTime(boardingTime) && delay < -30) {
+    return tripStatus.early;
+  }
+
+  return tripStatus["on-time"];
 }
 
 export function getDifferenceInSeconds(

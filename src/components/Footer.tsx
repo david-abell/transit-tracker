@@ -77,14 +77,6 @@ function Footer({
     [tripUpdatesByTripId, trip]
   );
 
-  const tripStatus = getTripStatus(
-    trip,
-    stopTimes,
-    stopTimeUpdates,
-    stop?.stopId,
-    destination?.stopId
-  );
-
   const lastStopTimeUpdate = stopTimeUpdates?.at(-1);
 
   const closestPickupStopUpdate =
@@ -120,6 +112,11 @@ function Footer({
 
   const dropOffDelayStatus = getDelayStatus(closestDropOffStopUpdate);
 
+  const dropOffDelay = formatDelay(
+    closestDropOffStopUpdate?.arrival?.delay ||
+      closestDropOffStopUpdate?.departure?.delay
+  );
+
   const realtimeDropOffArrivalTime = getDelayedTime(
     dropOffArrivalTime,
     closestDropOffStopUpdate?.arrival?.delay ||
@@ -134,6 +131,14 @@ function Footer({
     !!dropOffArrivalTime &&
     isPastArrivalTime(realtimeDropOffArrivalTime ?? dropOffArrivalTime);
 
+  const tripStatus = getTripStatus(
+    trip,
+    stopTimes,
+    stopTimeUpdates,
+    stop?.stopId,
+    destination?.stopId
+  );
+
   return (
     <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto p-4 lg:max-w-7xl lg:px-10">
       <div className="dark:bg-gray-800/90 rounded-lg bg-gray-50/90 p-4 text-slate-950 dark:text-white">
@@ -143,25 +148,32 @@ function Footer({
               {
                 <div className="flex w-full flex-row content-center justify-between gap-4 overflow-hidden pl-2 pr-4 text-left font-normal">
                   <span>
-                    {route?.routeShortName ? (
-                      <b>{route.routeShortName} </b>
+                    {!!route ? (
+                      <>
+                        <b>{route.routeShortName ?? ""} </b>
+                        <span className="max-lg:hidden">
+                          {route?.routeLongName ?? ""}
+                        </span>
+                      </>
                     ) : (
                       "No route selected"
                     )}
-                    <span className="max-lg:hidden">
-                      {route?.routeLongName ?? ""}
-                    </span>
+
                     {!!trip && <> - towards {trip.tripHeadsign}</>}
                   </span>
+
                   <span>Status: {tripStatus}</span>
-                  {isPastPickup ? (
+
+                  {tripStatus === "completed" ? (
+                    ""
+                  ) : isPastPickup ? (
                     <span>
                       {dropOffDelayStatus ? dropOffDelayStatus + ": " : ""}
-                      {dropOffDelayStatus ?? ""}
+                      {dropOffDelay ?? ""}
                     </span>
                   ) : (
                     <span>
-                      {pickupDelayStatus ? pickupDelayStatus + ": " : ""}
+                      {!!pickupDelayStatus ? pickupDelayStatus + ": " : ""}
                       {pickupDelay ?? ""}
                     </span>
                   )}

@@ -135,13 +135,13 @@ function Footer({
     isPastArrivalTime(realtimeDropOffArrivalTime ?? dropOffArrivalTime);
 
   return (
-    <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto p-4 dark:border-gray-700 lg:max-w-7xl lg:px-10">
-      <div className="rounded-lg bg-gray-50 p-4">
+    <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto p-4 lg:max-w-7xl lg:px-10">
+      <div className="rounded-lg bg-gray-50 p-4 text-slate-950 dark:bg-gray-800 dark:text-white">
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1" className="border-none">
             <AccordionTrigger className="[&>svg]:h-[28px] [&>svg]:w-[28px] py-0 no-underline">
               {
-                <div className="flex w-full flex-row content-center justify-between gap-4 overflow-hidden bg-gray-50 pl-2 pr-4 text-left font-normal">
+                <div className="flex w-full flex-row content-center justify-between gap-4 overflow-hidden pl-2 pr-4 text-left font-normal">
                   <span>
                     {route?.routeShortName ?? "No route selected"}{" "}
                     <span className="max-lg:hidden">
@@ -168,7 +168,7 @@ function Footer({
                   </div>
 
                   {/* Pickup Data */}
-                  <div className="col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces border-b bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                  <div className="col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white p-2 text-gray-900  dark:bg-gray-800 dark:text-white">
                     <span>
                       {!!displayStop && (
                         <p>
@@ -209,7 +209,7 @@ function Footer({
                   </div>
 
                   {/* Destination data */}
-                  <div className="col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces border-b bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                  <div className="col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white p-2 text-gray-900 dark:bg-gray-800 dark:text-white">
                     <span>
                       {!!displayStop && (
                         <p>

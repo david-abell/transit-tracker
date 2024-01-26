@@ -1,26 +1,26 @@
 import useSWR from "swr";
-import { Stop } from "@prisma/client";
+import { Trip } from "@prisma/client";
 
 import { fetchHelper } from "@/lib/FetchHelper";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
 
-function useStopId(stopId: string, destination = false) {
+function useTrip(tripId: string) {
   const {
-    data: selectedStop,
+    data: selectedTrip,
     error,
     isLoading,
-  } = useSWR<Stop, ApiError>(
-    !!stopId ? [`/api/gtfs/static/stops/${stopId}`, destination] : null,
+  } = useSWR<Trip, ApiError>(
+    () => (!!tripId ? `/api/gtfs/static/trips/${tripId}` : null),
     fetchHelper,
     skipRevalidationOptions
   );
 
   return {
-    error,
-    isLoading,
-    selectedStop,
+    tripError: error,
+    isLoadingTrip: isLoading,
+    selectedTrip,
   };
 }
 
-export default useStopId;
+export default useTrip;

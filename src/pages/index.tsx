@@ -7,7 +7,11 @@ import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripSelect from "@/components/tripSelect/TripSelect";
 import DateTimeSelect from "@/components/DateTimeSelect";
-import { initDateTimeValue } from "@/lib/timeHelpers";
+import {
+  formatDelay,
+  getDelayedTime,
+  initDateTimeValue,
+} from "@/lib/timeHelpers";
 import Modal from "@/components/Modal";
 import { useRouter } from "next/router";
 import useRouteId from "@/hooks/useRouteId";
@@ -24,6 +28,8 @@ import useShape from "@/hooks/useShape";
 import useStopTimes from "@/hooks/useStopTimes";
 import useStops from "@/hooks/useStops";
 import useWarmup from "@/hooks/useWarmup";
+import useTrip from "@/hooks/useTrip";
+import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,6 +41,7 @@ export default function Home() {
   const routeId = searchParams.get("routeId") || "";
   const tripId = searchParams.get("tripId") || "";
   const stopId = searchParams.get("stopId") || "";
+  const destinationStopId = searchParams.get("destId") || "";
 
   // Query string helpers
   const removeQueryParams = useCallback(
@@ -53,6 +60,11 @@ export default function Home() {
   const setQueryParams = useCallback(
     (queries: Record<string, string | boolean>, path = "/") => {
       const previous = router.query;
+
+      if ("destId" in previous) {
+        delete previous.destId;
+      }
+
       return router.push({
         pathname: path,
         query: { ...previous, ...queries },
@@ -88,31 +100,47 @@ export default function Home() {
     isLoading: isLoadingStop,
   } = useStopId(stopId);
 
+  const {
+    selectedStop: destinationStop,
+    error: destinationError,
+    isLoading: isLoadingDestination,
+  } = useStopId(destinationStopId, true);
+
+  const { selectedTrip, isLoadingTrip, tripError } = useTrip(tripId);
+
   const { stops, stopsById, isLoadingStops, stopsError } = useStops({
     routeId,
   });
 
-  const { stopTimesByTripId, isLoadingStopTimes, stopTimesError } =
+  const { stopTimes, stopTimesByStopId, isLoadingStopTimes, stopTimesError } =
     useStopTimes(tripId);
 
-  const { shape, shapeError, isShapeLoading } = useShape(tripId);
+  const { shape, shapeError, isLoadingShape } = useShape(tripId);
+
+  // Realtime state
+  const { realtimeScheduledByTripId: tripUpdatesByTripId } =
+    useRealtime(tripId);
 
   // derived state
   const isLoading =
     isDBLoading ||
+    isLoadingDestination ||
     isLoadingRoute ||
     isLoadingStop ||
     isLoadingStops ||
     isLoadingStopTimes ||
-    isShapeLoading;
+    isLoadingTrip ||
+    isLoadingShape;
 
   const apiError =
     dbError ||
+    destinationError ||
     routeError ||
     stopError ||
     stopsError ||
     stopTimesError ||
-    shapeError;
+    shapeError ||
+    tripError;
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
@@ -129,8 +157,12 @@ export default function Home() {
     setQueryParams({ stopId }).then(() => setShowTripModal(true));
   };
 
+  const handleDestinationStop = (stopId: string) => {
+    setQueryParams({ destId: stopId });
+  };
+
   const handleShowAllStops = () => {
-    removeQueryParams(["tripId", "stopId"]);
+    removeQueryParams(["tripId", "stopId", "destId"]);
   };
 
   return (
@@ -181,40 +213,15 @@ export default function Home() {
           </MainNav>
         </div>
         <div className="relative">
-          {/* Errors and loading messages */}
-          {isLoading ? (
-            <Alert className="pointer-events-none absolute bottom-4 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-blue-50/70 dark:border-gray-50 dark:bg-gray-800/70">
-              <AlertCircle className="h-4 w-4" />
-              {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
-              <AlertDescription className="bg-transparent">
-                {isDBLoading
-                  ? "Database 🔥warming🔥 in progress"
-                  : "Loading..."}
-              </AlertDescription>
-            </Alert>
-          ) : !!apiError ? (
-            <Alert
-              variant="destructive"
-              className="pointer-events-none absolute bottom-4 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-gray-50/70 dark:border-gray-50 dark:bg-gray-800/70"
-            >
-              <AlertCircle className="h-4 w-4" />
-              {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
-              <AlertDescription className="bg-transparent">
-                {apiError.message}
-              </AlertDescription>
-            </Alert>
-          ) : (
-            ""
-          )}
-
           <MapComponent
             shape={shape}
             selectedDateTime={selectedDateTime}
-            stopTimesByTripId={stopTimesByTripId}
+            stopTimesByStopId={stopTimesByStopId}
             setShowSavedStops={setShowSavedStops}
             stops={stops}
             stopsById={stopsById}
             handleSelectedStop={handleSelectedStop}
+            handleDestinationStop={handleDestinationStop}
             tripId={tripId}
             height={windowHeight - navHeight}
           />
@@ -238,6 +245,39 @@ export default function Home() {
         isOpen={showSavedStops}
         setIsOpen={setShowSavedStops}
         setShowTripModal={setShowTripModal}
+      />
+
+      {/* Errors and loading messages */}
+      {isLoading ? (
+        <Alert className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-gray-50 dark:border-gray-50 dark:bg-gray-800">
+          <AlertCircle className="h-4 w-4" />
+          {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
+          <AlertDescription className="bg-transparent">
+            {isDBLoading ? "Database 🔥warming🔥 in progress" : "Loading..."}
+          </AlertDescription>
+        </Alert>
+      ) : !!apiError ? (
+        <Alert
+          variant="destructive"
+          className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-gray-50 dark:border-gray-50 dark:bg-gray-800"
+        >
+          <AlertCircle className="h-4 w-4" />
+          {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
+          <AlertDescription className="bg-transparent">
+            {apiError.message}
+          </AlertDescription>
+        </Alert>
+      ) : (
+        ""
+      )}
+
+      <Footer
+        destination={destinationStop}
+        route={selectedRoute}
+        stop={selectedStop}
+        stopTimes={stopTimes}
+        trip={selectedTrip}
+        tripUpdatesByTripId={tripUpdatesByTripId}
       />
     </main>
   );

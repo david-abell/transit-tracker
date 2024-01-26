@@ -125,11 +125,13 @@ function Footer({
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1" className="border-none">
             <AccordionTrigger className="[&>svg]:h-[28px] [&>svg]:w-[28px] py-0 no-underline">
-              {!!route && (
+              {
                 <div className="flex w-full flex-row content-center justify-between gap-4 overflow-hidden bg-gray-50 pl-2 pr-4 text-left font-normal">
                   <span>
-                    {route.routeShortName}{" "}
-                    <span className="max-lg:hidden">{route.routeLongName}</span>
+                    {route?.routeShortName ?? "No route selected"}{" "}
+                    <span className="max-lg:hidden">
+                      {route?.routeLongName ?? ""}
+                    </span>
                     {!!trip && <> - towards {trip.tripHeadsign}</>}
                   </span>
                   <span>Status: {tripStatus}</span>
@@ -137,7 +139,7 @@ function Footer({
                     {pickupDelay ?? ""} {pickupDelayStatus}
                   </span>
                 </div>
-              )}
+              }
             </AccordionTrigger>
             <AccordionContent className="last:pb-0">
               <div className="grid-rows-[3rem 1fr] mt-4 grid w-full grid-cols-1 overflow-hidden rounded-lg bg-gray-50 text-left text-sm text-gray-950 dark:bg-gray-700 dark:text-gray-50 lg:grid-cols-2">

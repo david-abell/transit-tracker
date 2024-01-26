@@ -16,6 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import useStopId from "@/hooks/useStopId";
 
 type Props = {
   destination?: Stop;
@@ -40,12 +41,26 @@ function Footer({
     setCount(count + 1);
   }, 15000);
 
+  const lastStopId = useMemo(() => {
+    if (!!destination) return "";
+
+    return stopTimes?.at(-1)?.stopId ?? "";
+  }, [destination, stopTimes]);
+
+  const {
+    selectedStop: lastStop,
+    error: lastStopError,
+    isLoading: isLoadingLastStop,
+  } = useStopId(lastStopId, true);
+
+  const displayStop = destination ?? lastStop;
+
   const pickupStopTime = stopTimes?.find(
     ({ stopId }) => stopId === stop?.stopId
   );
-  const dropOffStopTime = stopTimes?.find(
-    ({ stopId }) => stopId === destination?.stopId
-  );
+  const dropOffStopTime =
+    stopTimes?.find(({ stopId }) => stopId === destination?.stopId) ||
+    stopTimes?.find(({ stopId }) => stopId === lastStop?.stopId);
 
   const {
     arrivalTime: pickupArrivalTime,
@@ -155,9 +170,12 @@ function Footer({
                   {/* Pickup Data */}
                   <div className="col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces border-b bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                     <span>
-                      {!!stop && (
+                      {!!displayStop && (
                         <p>
-                          <b>{stop.stopCode ?? stop.stopId}</b> {stop.stopName}
+                          <b>
+                            {displayStop.stopCode || displayStop.stopId || ""}
+                          </b>{" "}
+                          {displayStop.stopName || displayStop.stopName || ""}
                         </p>
                       )}
                     </span>
@@ -193,10 +211,10 @@ function Footer({
                   {/* Destination data */}
                   <div className="col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces border-b bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                     <span>
-                      {!!destination && (
+                      {!!displayStop && (
                         <p>
-                          <b>{destination.stopCode ?? destination.stopId}</b>{" "}
-                          {destination.stopName}
+                          <b>{displayStop.stopCode ?? displayStop.stopId}</b>{" "}
+                          {displayStop.stopName}
                         </p>
                       )}
                     </span>

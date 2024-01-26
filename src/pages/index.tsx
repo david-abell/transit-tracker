@@ -215,7 +215,7 @@ export default function Home() {
         <div className="relative">
           {/* Errors and loading messages */}
           {isLoading ? (
-            <Alert className="pointer-events-none absolute bottom-28 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-blue-50/70 dark:border-gray-50 dark:bg-gray-800/70">
+            <Alert className="dark:bg-gray-800/70 pointer-events-none absolute bottom-28 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-blue-50/70 dark:border-gray-50">
               <AlertCircle className="h-4 w-4" />
               {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
               <AlertDescription className="bg-transparent">
@@ -227,7 +227,7 @@ export default function Home() {
           ) : !!apiError ? (
             <Alert
               variant="destructive"
-              className="pointer-events-none absolute bottom-4 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-gray-50/70 dark:border-gray-50 dark:bg-gray-800/70"
+              className="dark:bg-gray-800/70 pointer-events-none absolute bottom-4 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-gray-50/70 dark:border-gray-50"
             >
               <AlertCircle className="h-4 w-4" />
               {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}

@@ -1,5 +1,5 @@
 import { StopTimeUpdate } from "@/types/realtime";
-import { Calendar } from "@prisma/client";
+import { Calendar, Stop, StopTime, Trip } from "@prisma/client";
 import { format, getDay } from "date-fns";
 
 // non standard format for input type="datetime"
@@ -95,7 +95,7 @@ export function getDelayedTime(
   delay: number | undefined,
   precise: boolean = false
 ) {
-  if (!timeString || !delay) return null;
+  if (!timeString || delay === undefined) return null;
 
   // feed has bad data sometimes delay is number like-1687598071
   // bail if delay is more than half a day
@@ -171,6 +171,70 @@ export function getDelayStatus(
   } else {
     return delayStatus.early;
   }
+}
+
+export const tripStatus = {
+  canceled: "canceled",
+  future: "scheduled",
+  active: "active",
+  boarded: "in transit",
+  finished: "completed",
+  not: "not in service",
+} as const;
+
+// returns empty string on invalid input
+export function getTripStatus(
+  trip: Trip | undefined,
+  stopTimes: StopTime[] | undefined,
+  stopTimeUpdate: StopTimeUpdate[] | undefined,
+  start: Stop["stopId"] | undefined,
+  end: Stop["stopId"] | undefined
+) {
+  if (!trip || !stopTimes) return "";
+  if (!stopTimes.length) return tripStatus.not;
+
+  if (stopTimeUpdate?.at(-1)?.scheduleRelationship === "CANCELED") {
+    return tripStatus.canceled;
+  }
+
+  const firstStop = stopTimes[0];
+
+  const boardingStop =
+    !!start && stopTimes.find((stop) => stop.stopId === start);
+
+  const lastStop =
+    stopTimes.find((stop) => stop.stopId === end) ?? stopTimes.at(-1);
+
+  const startTime = firstStop.departureTime ?? firstStop.arrivalTime;
+  const boardingTime = boardingStop
+    ? boardingStop?.departureTime ?? boardingStop?.arrivalTime
+    : undefined;
+  const finishTime = lastStop?.arrivalTime;
+
+  const realtime = stopTimeUpdate?.at(-1);
+  const delay = (realtime?.arrival?.delay || realtime?.departure?.delay) ?? 0;
+
+  const adjustedStartTime = getDelayedTime(startTime, delay, true);
+  const adjustedFinishTime = getDelayedTime(finishTime, delay, true);
+
+  if (!adjustedStartTime || !adjustedFinishTime) {
+    return "";
+  }
+
+  // if after trip end with delay return return finished
+  if (isPastArrivalTime(adjustedFinishTime)) {
+    return tripStatus.finished;
+  }
+  // if after boarding time with delay return boarding
+  if (!!boardingTime && isPastArrivalTime(boardingTime)) {
+    return tripStatus.boarded;
+  }
+  // if after trip start time with delay return active
+  if (isPastArrivalTime(adjustedStartTime)) {
+    return tripStatus.active;
+  }
+  // else return future scheduled
+  return tripStatus.future;
 }
 
 export function getDifferenceInSeconds(

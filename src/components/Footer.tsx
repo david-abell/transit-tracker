@@ -143,7 +143,11 @@ function Footer({
               {
                 <div className="flex w-full flex-row content-center justify-between gap-4 overflow-hidden pl-2 pr-4 text-left font-normal">
                   <span>
-                    {route?.routeShortName ?? "No route selected"}{" "}
+                    {route?.routeShortName ? (
+                      <b>{route.routeShortName} </b>
+                    ) : (
+                      "No route selected"
+                    )}
                     <span className="max-lg:hidden">
                       {route?.routeLongName ?? ""}
                     </span>
@@ -151,7 +155,8 @@ function Footer({
                   </span>
                   <span>Status: {tripStatus}</span>
                   <span>
-                    {pickupDelay ?? ""} {pickupDelayStatus}
+                    {pickupDelayStatus ? pickupDelayStatus + ": " : ""}
+                    {pickupDelay ?? ""}
                   </span>
                 </div>
               }

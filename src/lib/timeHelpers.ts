@@ -1,3 +1,4 @@
+import { StopTimeUpdate } from "@/types/realtime";
 import { Calendar } from "@prisma/client";
 import { format, getDay } from "date-fns";
 
@@ -136,6 +137,40 @@ export function formatDelay(delayInSeconds: number | undefined) {
   }
 
   return `${hours}h ${minutes}m ${seconds}s`;
+}
+
+export const delayStatus = {
+  delay: "delay",
+  early: "early",
+  "on-time": "on-time",
+  canceled: "canceled",
+} as const;
+
+export function getDelayStatus(
+  stopTimeUpdate: StopTimeUpdate | undefined,
+  departure = false
+) {
+  if (!stopTimeUpdate) return "";
+
+  if (stopTimeUpdate.scheduleRelationship === "CANCELED") {
+    return delayStatus.canceled;
+  }
+
+  let delay: number | undefined;
+
+  if (departure && stopTimeUpdate.departure?.delay) {
+    delay = stopTimeUpdate.departure.delay;
+  } else if (stopTimeUpdate.arrival?.delay) {
+    delay = stopTimeUpdate.arrival.delay;
+  }
+
+  if (!delay || (delay > -30 && delay < 30)) return delayStatus["on-time"];
+
+  if (delay > 30) {
+    return delayStatus.delay;
+  } else {
+    return delayStatus.early;
+  }
 }
 
 export function getDifferenceInSeconds(

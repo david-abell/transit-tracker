@@ -8,14 +8,15 @@ import { ApiError } from "next/dist/server/api-utils";
 
 function useTrips(stopId: string | null, selectedDateTime: string, page = 0) {
   const { data, error, isLoading } = useSWR<UpcomingTripsAPIResponse, ApiError>(
-    () =>
-      !!stopId
-        ? `/api/gtfs/static/upcoming?${new URLSearchParams({
+    !!stopId
+      ? [
+          `/api/gtfs/static/upcoming?${new URLSearchParams({
             stopId,
             dateTime: selectedDateTime,
             page: String(page),
-          })}`
-        : null,
+          })}`,
+        ]
+      : null,
     fetchHelper,
     skipRevalidationOptions
   );

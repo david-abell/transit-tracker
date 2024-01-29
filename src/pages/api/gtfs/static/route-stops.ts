@@ -5,10 +5,9 @@ import type { Stop } from "@prisma/client";
 
 import { StatusCodes } from "http-status-codes";
 import { ApiHandler } from "@/lib/FetchHelper";
+import { StopsAPIResponse } from "./stops";
 
-export type RouteStopsAPIResponse = Stop[];
-
-const handler: ApiHandler<RouteStopsAPIResponse> = async (req, res) => {
+const handler: ApiHandler<StopsAPIResponse> = async (req, res) => {
   const { routeId } = req.query;
 
   if (!routeId || typeof routeId !== "string") {

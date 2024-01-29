@@ -12,7 +12,7 @@ function useTrip(tripId: string) {
     error,
     isLoading,
   } = useSWR<TripIdAPIResponse, ApiError>(
-    () => (!!tripId ? `/api/gtfs/static/trips/${tripId}` : null),
+    !!tripId ? [`/api/gtfs/static/trips/${tripId}`] : null,
     fetchHelper,
     skipRevalidationOptions
   );

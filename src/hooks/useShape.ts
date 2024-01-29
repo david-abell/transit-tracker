@@ -12,12 +12,13 @@ function useShape(tripId: string) {
     error,
     isLoading,
   } = useSWR<ShapeAPIResponse, ApiError>(
-    () =>
-      !!tripId
-        ? `/api/gtfs/static/shape?${new URLSearchParams({
+    !!tripId
+      ? [
+          `/api/gtfs/static/shape?${new URLSearchParams({
             tripId,
-          })}`
-        : null,
+          })}`,
+        ]
+      : null,
     fetchHelper,
     skipRevalidationOptions
   );

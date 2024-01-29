@@ -1,14 +1,11 @@
 import useSWR from "swr";
-import { Stop } from "@prisma/client";
 
-import { fetchHelper } from "@/lib/FetchHelper";
 import { ApiError } from "next/dist/server/api-utils";
+import { StopAPIResponse } from "@/pages/api/gtfs/static/stops/[stopId]";
 
 function useWarmup() {
-  const { error, isLoading } = useSWR<Stop, ApiError>(
-    "/api/gtfs/static/stops/8220B1351201",
-    fetchHelper,
-    {}
+  const { error, isLoading } = useSWR<StopAPIResponse, ApiError>(
+    "/api/gtfs/static/stops/8220B1351201"
   );
 
   return {

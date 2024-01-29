@@ -31,15 +31,14 @@ function useRealtime(tripIds: string | string[] | undefined) {
     RealtimeTripUpdateResponse,
     ApiError
   >(
-    () =>
-      !!tripIds && tripIds.length
-        ? [
-            `${API_URL}?${new URLSearchParams({
-              tripIds: encodeURI(tripIds.toString()),
-            })}`,
-            tripIds,
-          ]
-        : null,
+    !!tripIds && tripIds.length
+      ? [
+          `${API_URL}?${new URLSearchParams({
+            tripIds: encodeURI(tripIds.toString()),
+          })}`,
+          tripIds,
+        ]
+      : null,
     fetchHelper,
     revalidateOptions
   );

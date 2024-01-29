@@ -4,6 +4,7 @@ import { Stop } from "@prisma/client";
 import { fetchHelper } from "@/lib/FetchHelper";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
+import { StopsAPIResponse } from "@/pages/api/gtfs/static/stops";
 
 type Props = {
   stopQuery?: string;
@@ -41,8 +42,8 @@ function useStops({ stopQuery, routeId }: Props) {
     data: stops,
     error,
     isLoading,
-  } = useSWR<Stop[], ApiError>(
-    () => (!!shouldQuery ? `/api/gtfs/static/${subRoute}?${params}` : null),
+  } = useSWR<StopsAPIResponse, ApiError>(
+    !!shouldQuery ? [`/api/gtfs/static/${subRoute}?${params}`] : null,
     fetchHelper,
     skipRevalidationOptions
   );

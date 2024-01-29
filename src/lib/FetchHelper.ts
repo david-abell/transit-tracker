@@ -35,10 +35,7 @@ export type ApiHandler<T = ApiResponse> = (
   res: NextApiResponse<T | ApiErrorResponse>
 ) => Promise<void | NextApiResponse<T | ApiErrorResponse>>;
 
-type FetchHelper = (
-  args: RequestInfo,
-  init?: RequestInit
-) => Promise<ApiResponse>;
+type FetchHelper = (args: RequestInfo, init?: RequestInit) => Promise<any>;
 
 export type ApiErrorResponse = { error: string };
 

@@ -1,18 +1,14 @@
 import { prisma } from "@/lib/db";
 import withErrorHandler from "@/lib/withErrorHandler";
 
-import type { NextApiRequest, NextApiResponse } from "next";
 import type { Stop } from "@prisma/client";
 
 import { StatusCodes } from "http-status-codes";
-import { ApiErrorResponse } from "@/lib/FetchHelper";
+import { ApiHandler } from "@/lib/FetchHelper";
 
 export type RouteStopsAPIResponse = Stop[];
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<RouteStopsAPIResponse | ApiErrorResponse>
-) {
+const handler: ApiHandler<RouteStopsAPIResponse> = async (req, res) => {
   const { routeId } = req.query;
 
   if (!routeId || typeof routeId !== "string") {
@@ -30,6 +26,6 @@ async function handler(
   }
 
   return res.status(StatusCodes.OK).json(stops);
-}
+};
 
 export default withErrorHandler(handler);

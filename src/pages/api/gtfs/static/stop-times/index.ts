@@ -3,23 +3,19 @@ import withErrorHandler from "@/lib/withErrorHandler";
 import { addHours, parseISO, startOfDay, differenceInSeconds } from "date-fns";
 import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 
-import type { NextApiRequest, NextApiResponse } from "next";
 import type { StopTime, Trip } from "@prisma/client";
 
 import { scheduledService, serviceException } from "@/lib/api/static/consts";
 
 import { StatusCodes } from "http-status-codes";
-import { ApiErrorResponse } from "@/lib/FetchHelper";
+import { ApiHandler } from "@/lib/FetchHelper";
 
 export type StopTimesApiResponse = {
   stopTimesZero: StopTime[];
   stopTimesOne: StopTime[];
 };
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<StopTimesApiResponse | ApiErrorResponse>
-) {
+const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
   const { routeId, dateTime } = req.query;
   if (
     !routeId ||
@@ -137,7 +133,7 @@ async function handler(
     stopTimesZero,
     stopTimesOne,
   });
-}
+};
 
 export default withErrorHandler(handler);
 

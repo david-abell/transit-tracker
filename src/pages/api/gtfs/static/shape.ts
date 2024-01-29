@@ -1,20 +1,16 @@
 import { prisma } from "@/lib/db";
 import withErrorHandler from "@/lib/withErrorHandler";
 
-import type { NextApiRequest, NextApiResponse } from "next";
 import { LatLngTuple } from "leaflet";
 
 import { StatusCodes } from "http-status-codes";
 import { Shape } from "@prisma/client";
 import camelcaseKeys from "camelcase-keys";
-import { ApiErrorResponse } from "@/lib/FetchHelper";
+import { ApiHandler } from "@/lib/FetchHelper";
 
 export type ShapeAPIResponse = LatLngTuple[];
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ShapeAPIResponse | ApiErrorResponse>
-) {
+const handler: ApiHandler<ShapeAPIResponse> = async (req, res) => {
   const { tripId } = req.query;
 
   if (!tripId || typeof tripId !== "string") {
@@ -46,6 +42,6 @@ async function handler(
   );
 
   return res.json(shapePoints);
-}
+};
 
 export default withErrorHandler(handler);

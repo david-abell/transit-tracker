@@ -1,19 +1,15 @@
 import { prisma } from "@/lib/db";
-import type { NextApiRequest, NextApiResponse } from "next";
 
 import withErrorHandler from "@/lib/withErrorHandler";
 import { Route } from "@prisma/client";
 import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes } from "http-status-codes";
-import { ApiErrorResponse } from "@/lib/FetchHelper";
+import { ApiHandler } from "@/lib/FetchHelper";
 
 export type RouteAPIResponse = Route[];
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<RouteAPIResponse | ApiErrorResponse>
-) {
+const handler: ApiHandler<RouteAPIResponse> = async (req, res) => {
   const { routeName = "" } = req.query;
 
   if (!routeName || typeof routeName !== "string") {
@@ -52,6 +48,6 @@ async function handler(
   }
 
   return res.status(StatusCodes.OK).json(camelcaseKeys(routes));
-}
+};
 
 export default withErrorHandler(handler);

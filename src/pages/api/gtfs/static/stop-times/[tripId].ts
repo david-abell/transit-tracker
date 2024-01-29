@@ -3,16 +3,12 @@ import withErrorHandler from "@/lib/withErrorHandler";
 
 import { StatusCodes } from "http-status-codes";
 
-import type { NextApiRequest, NextApiResponse } from "next";
 import type { StopTime } from "@prisma/client";
-import { ApiErrorResponse } from "@/lib/FetchHelper";
+import { ApiHandler } from "@/lib/FetchHelper";
 
 export type StopTimeByStopIdApiResponse = StopTime[];
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<StopTimeByStopIdApiResponse | ApiErrorResponse>
-) {
+const handler: ApiHandler<StopTimeByStopIdApiResponse> = async (req, res) => {
   const { tripId } = req.query;
 
   if (!tripId?.length) {
@@ -38,6 +34,6 @@ async function handler(
   }
 
   return res.json(stopTimes);
-}
+};
 
 export default withErrorHandler(handler);

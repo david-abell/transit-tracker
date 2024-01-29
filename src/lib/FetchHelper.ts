@@ -34,7 +34,7 @@ type ApiResponse =
 export type ApiHandler<ApiResponse> = (
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse | ApiErrorResponse>
-) => Promise<void | NextApiResponse<RouteAPIResponse | ApiErrorResponse>>;
+) => Promise<void | NextApiResponse<ApiResponse | ApiErrorResponse>>;
 
 type FetchHelper = (args: RequestInfo[]) => Promise<ApiResponse | undefined>;
 

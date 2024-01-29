@@ -1,19 +1,15 @@
 import { prisma } from "@/lib/db";
-import type { NextApiRequest, NextApiResponse } from "next";
 
 import withErrorHandler from "@/lib/withErrorHandler";
 import { Stop } from "@prisma/client";
 import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes } from "http-status-codes";
-import { ApiErrorResponse } from "@/lib/FetchHelper";
+import { ApiHandler } from "@/lib/FetchHelper";
 
 export type StopsAPIResponse = Stop[];
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<StopsAPIResponse | ApiErrorResponse>
-) {
+const handler: ApiHandler<StopsAPIResponse> = async (req, res) => {
   const { stopQuery = "" } = req.query;
 
   if (!stopQuery || typeof stopQuery !== "string") {
@@ -40,11 +36,9 @@ async function handler(
  `;
 
   if (!stops) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({
-        error: `There was an error while searching for stops with the query ${stopQuery}`,
-      });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: `There was an error while searching for stops with the query ${stopQuery}`,
+    });
   }
 
   if (!stops.length) {
@@ -52,6 +46,6 @@ async function handler(
   }
 
   return res.status(StatusCodes.OK).json(camelcaseKeys(stops));
-}
+};
 
 export default withErrorHandler(handler);

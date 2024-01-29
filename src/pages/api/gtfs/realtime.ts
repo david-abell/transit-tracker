@@ -8,7 +8,7 @@ import { createRedisInstance } from "@/lib/redis/createRedisInstance";
 import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
-import { ApiErrorResponse } from "@/lib/FetchHelper";
+import { ApiErrorResponse, ApiHandler } from "@/lib/FetchHelper";
 
 const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/TripUpdates?format=json";
@@ -18,10 +18,10 @@ export type RealtimeTripUpdateResponse = {
   addedTrips: [string, TripUpdate][];
 };
 
-async function handler(
+const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   req: NextApiRequest,
   res: NextApiResponse<RealtimeTripUpdateResponse | ApiErrorResponse>
-) {
+) => {
   const { tripIds } = req.query;
 
   if (Array.isArray(tripIds)) {
@@ -137,7 +137,7 @@ async function handler(
   return res
     .status(200)
     .json({ tripUpdates: requestedTripUpdates, addedTrips });
-}
+};
 
 export default withErrorHandler(handler);
 

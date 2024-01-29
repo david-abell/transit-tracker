@@ -2,15 +2,13 @@ import { prisma } from "@/lib/db";
 import camelcaseKeys from "camelcase-keys";
 import withErrorHandler from "@/lib/withErrorHandler";
 
-import type { NextApiRequest, NextApiResponse } from "next";
 import { Calendar, Prisma, Trip } from "@prisma/client";
-import { ApiError } from "next/dist/server/api-utils";
 import { parseISO } from "date-fns";
 import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 import { scheduledService, serviceException } from "@/lib/api/static/consts";
 
 import { StatusCodes } from "http-status-codes";
-import { ApiErrorResponse } from "@/lib/FetchHelper";
+import { ApiHandler } from "@/lib/FetchHelper";
 
 // create safe SQL column names for raw SQL version
 // from https://github.com/prisma/prisma/issues/9765#issuecomment-1528729000
@@ -37,10 +35,7 @@ export const calendarDayColumns = {
 
 export type TripAPIResponse = Trip[];
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<TripAPIResponse | ApiErrorResponse>
-) {
+const handler: ApiHandler<TripAPIResponse> = async (req, res) => {
   const { routeId, dateTime } = req.query;
   if (
     !routeId ||
@@ -64,7 +59,7 @@ async function handler(
   }
 
   return res.status(StatusCodes.OK).json(camelcaseKeys(trips));
-}
+};
 
 // Find all trips on Route where:
 // service is scheduled on selected dateTime

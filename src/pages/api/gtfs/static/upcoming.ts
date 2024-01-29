@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/db";
 import withErrorHandler from "@/lib/withErrorHandler";
 
-import type { NextApiRequest, NextApiResponse } from "next";
 import { Route, StopTime, Trip } from "@prisma/client";
-import { ApiError } from "next/dist/server/api-utils";
 import { differenceInSeconds, parseISO, startOfDay } from "date-fns";
 import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 import { scheduledService, serviceException } from "@/lib/api/static/consts";
@@ -11,7 +9,7 @@ import { calendarDayColumns } from "./trips";
 import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes } from "http-status-codes";
-import { ApiErrorResponse } from "@/lib/FetchHelper";
+import { ApiHandler } from "@/lib/FetchHelper";
 
 type TripFields = Pick<Trip, "routeId" | "tripHeadsign" | "blockId">;
 type RouteFields = Pick<Route, "routeShortName" | "routeLongName">;
@@ -32,10 +30,7 @@ export type UpcomingTripsAPIResponse = {
 
 // type NumericalString = `${number}`;
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<UpcomingTripsAPIResponse | ApiErrorResponse>
-) {
+const handler: ApiHandler<UpcomingTripsAPIResponse> = async (req, res) => {
   const { dateTime, stopId, page } = req.query;
   if (typeof dateTime !== "string" || typeof stopId !== "string") {
     return res.status(StatusCodes.BAD_REQUEST).end();
@@ -89,6 +84,6 @@ async function handler(
   const upcomingTrips = camelcaseKeys(stopTimeResponse);
 
   return res.status(StatusCodes.OK).json({ upcomingTrips });
-}
+};
 
 export default withErrorHandler(handler);

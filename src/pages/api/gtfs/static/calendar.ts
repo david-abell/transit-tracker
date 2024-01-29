@@ -1,18 +1,14 @@
 import { prisma } from "@/lib/db";
 import withErrorHandler from "@/lib/withErrorHandler";
 
-import type { NextApiRequest, NextApiResponse } from "next";
 import type { Calendar } from "@prisma/client";
 
 import { StatusCodes } from "http-status-codes";
-import { ApiErrorResponse } from "@/lib/FetchHelper";
+import { ApiHandler } from "@/lib/FetchHelper";
 
 export type CalendarAPIResponse = Calendar;
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<CalendarAPIResponse | ApiErrorResponse>
-) {
+const handler: ApiHandler<CalendarAPIResponse> = async (req, res) => {
   const { serviceId } = req.query;
 
   if (!serviceId || typeof serviceId !== "string") {
@@ -28,6 +24,6 @@ async function handler(
   }
 
   return res.status(StatusCodes.OK).json(service);
-}
+};
 
 export default withErrorHandler(handler);

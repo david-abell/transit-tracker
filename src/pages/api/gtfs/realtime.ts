@@ -8,6 +8,7 @@ import { createRedisInstance } from "@/lib/redis/createRedisInstance";
 import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
+import { ApiErrorResponse } from "@/lib/FetchHelper";
 
 const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/TripUpdates?format=json";
@@ -19,7 +20,7 @@ export type RealtimeTripUpdateResponse = {
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<RealtimeTripUpdateResponse>
+  res: NextApiResponse<RealtimeTripUpdateResponse | ApiErrorResponse>
 ) {
   const { tripIds } = req.query;
 
@@ -76,7 +77,7 @@ async function handler(
       ]);
     }
 
-    return res.status(StatusCodes.OK).send({ addedTrips, tripUpdates });
+    return res.status(StatusCodes.OK).json({ addedTrips, tripUpdates });
   }
 
   console.log(`redis cache miss, setting new trip updates`);

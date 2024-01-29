@@ -11,6 +11,7 @@ import { calendarDayColumns } from "./trips";
 import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes } from "http-status-codes";
+import { ApiErrorResponse } from "@/lib/FetchHelper";
 
 type TripFields = Pick<Trip, "routeId" | "tripHeadsign" | "blockId">;
 type RouteFields = Pick<Route, "routeShortName" | "routeLongName">;
@@ -33,7 +34,7 @@ export type UpcomingTripsAPIResponse = {
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<UpcomingTripsAPIResponse>
+  res: NextApiResponse<UpcomingTripsAPIResponse | ApiErrorResponse>
 ) {
   const { dateTime, stopId, page } = req.query;
   if (typeof dateTime !== "string" || typeof stopId !== "string") {
@@ -78,6 +79,12 @@ async function handler(
                           AND ${dateOfYear} BETWEEN C.START_DATE AND C.END_DATE
                           OR EXCEPTION_TYPE = ${serviceException.added})
     ORDER BY ST.ARRIVAL_TIMESTAMP ASC;`;
+
+  if (!stopTimeResponse) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: `There was an error while searching for upcoming trips at stop id ${stopId} on date ${dateTime}`,
+    });
+  }
 
   const upcomingTrips = camelcaseKeys(stopTimeResponse);
 

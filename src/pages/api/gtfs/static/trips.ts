@@ -10,6 +10,7 @@ import { getCalendarDate, getDayString } from "@/lib/timeHelpers";
 import { scheduledService, serviceException } from "@/lib/api/static/consts";
 
 import { StatusCodes } from "http-status-codes";
+import { ApiErrorResponse } from "@/lib/FetchHelper";
 
 // create safe SQL column names for raw SQL version
 // from https://github.com/prisma/prisma/issues/9765#issuecomment-1528729000
@@ -38,7 +39,7 @@ export type TripAPIResponse = Trip[];
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<TripAPIResponse>
+  res: NextApiResponse<TripAPIResponse | ApiErrorResponse>
 ) {
   const { routeId, dateTime } = req.query;
   if (
@@ -52,8 +53,14 @@ async function handler(
 
   const trips = await findOrderedTrips(routeId, dateTime);
 
-  if (!trips.length) {
-    return res.status(StatusCodes.OK).json([]);
+  if (!trips) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: `There was an error while searching for stops trips with route id ${routeId} on date ${dateTime}`,
+    });
+  }
+
+  if (!trips) {
+    return res.status(StatusCodes.OK).end();
   }
 
   return res.status(StatusCodes.OK).json(camelcaseKeys(trips));

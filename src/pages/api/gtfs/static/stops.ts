@@ -6,11 +6,13 @@ import { Stop } from "@prisma/client";
 import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes } from "http-status-codes";
+import { ApiErrorResponse } from "@/lib/FetchHelper";
 
 export type StopsAPIResponse = Stop[];
+
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<StopsAPIResponse>
+  res: NextApiResponse<StopsAPIResponse | ApiErrorResponse>
 ) {
   const { stopQuery = "" } = req.query;
 
@@ -36,6 +38,14 @@ async function handler(
           stop_id
     LIMIT 6;
  `;
+
+  if (!stops) {
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({
+        error: `There was an error while searching for stops with the query ${stopQuery}`,
+      });
+  }
 
   if (!stops.length) {
     return res.status(StatusCodes.OK).json([]);

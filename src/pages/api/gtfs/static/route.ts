@@ -6,11 +6,13 @@ import { Route } from "@prisma/client";
 import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes } from "http-status-codes";
+import { ApiErrorResponse } from "@/lib/FetchHelper";
 
 export type RouteAPIResponse = Route[];
+
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<RouteAPIResponse>
+  res: NextApiResponse<RouteAPIResponse | ApiErrorResponse>
 ) {
   const { routeName = "" } = req.query;
 
@@ -38,6 +40,12 @@ async function handler(
           substring(route_short_name, ${globQuery} ) DESC
     LIMIT 6;
  `;
+
+  if (!routes) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: `There was an error searching for routes with the query ${routeName}`,
+    });
+  }
 
   if (!routes.length) {
     return res.status(StatusCodes.OK).json([]);

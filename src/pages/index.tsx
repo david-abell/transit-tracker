@@ -118,8 +118,11 @@ export default function Home() {
   const { shape, shapeError, isLoadingShape } = useShape(tripId);
 
   // Realtime state
-  const { realtimeScheduledByTripId: tripUpdatesByTripId } =
-    useRealtime(tripId);
+  const {
+    realtimeScheduledByTripId: tripUpdatesByTripId,
+    isLoading: isLoadingRealTime,
+    error: realTimeError,
+  } = useRealtime(tripId);
 
   // derived state
   const isLoading =
@@ -130,7 +133,8 @@ export default function Home() {
     isLoadingStops ||
     isLoadingStopTimes ||
     isLoadingTrip ||
-    isLoadingShape;
+    isLoadingShape ||
+    isLoadingRealTime;
 
   const apiError =
     dbError ||
@@ -140,7 +144,20 @@ export default function Home() {
     stopsError ||
     stopTimesError ||
     shapeError ||
-    tripError;
+    tripError ||
+    realTimeError;
+
+  // console.log({
+  //   dbError,
+  //   destinationError,
+  //   routeError,
+  //   stopError,
+  //   stopsError,
+  //   stopTimesError,
+  //   shapeError,
+  //   tripError,
+  //   realTimeError,
+  // });
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {

@@ -7,12 +7,13 @@ import { LatLngTuple } from "leaflet";
 import { StatusCodes } from "http-status-codes";
 import { Shape } from "@prisma/client";
 import camelcaseKeys from "camelcase-keys";
+import { ApiErrorResponse } from "@/lib/FetchHelper";
 
 export type ShapeAPIResponse = LatLngTuple[];
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ShapeAPIResponse>
+  res: NextApiResponse<ShapeAPIResponse | ApiErrorResponse>
 ) {
   const { tripId } = req.query;
 
@@ -30,6 +31,12 @@ async function handler(
     INNER JOIN TRIP ON S.SHAPE_ID = TRIP.SHAPE_ID
     AND TRIP.TRIP_ID = ${tripId}
     ORDER BY S.SHAPE_PT_SEQUENCE;`;
+
+  if (!shapes) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: `There was an error while searching for shapes for trip id ${tripId}`,
+    });
+  }
   if (!shapes.length) {
     return res.status(StatusCodes.OK).json([]);
   }

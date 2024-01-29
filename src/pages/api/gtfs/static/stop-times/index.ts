@@ -9,6 +9,7 @@ import type { StopTime, Trip } from "@prisma/client";
 import { scheduledService, serviceException } from "@/lib/api/static/consts";
 
 import { StatusCodes } from "http-status-codes";
+import { ApiErrorResponse } from "@/lib/FetchHelper";
 
 export type StopTimesApiResponse = {
   stopTimesZero: StopTime[];
@@ -17,7 +18,7 @@ export type StopTimesApiResponse = {
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<StopTimesApiResponse>
+  res: NextApiResponse<StopTimesApiResponse | ApiErrorResponse>
 ) {
   const { routeId, dateTime } = req.query;
   if (

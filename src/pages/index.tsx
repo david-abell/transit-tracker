@@ -140,11 +140,11 @@ export default function Home() {
     dbError ||
     destinationError ||
     routeError ||
+    tripError ||
     stopError ||
     stopsError ||
     stopTimesError ||
     shapeError ||
-    tripError ||
     realTimeError;
 
   // console.log({

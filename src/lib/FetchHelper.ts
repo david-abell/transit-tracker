@@ -43,33 +43,42 @@ export const fetchHelper: FetchHelper = async (input: RequestInfo) => {
   const url: string = Array.isArray(input) ? input[0] : input;
 
   const response = await fetch(url);
-  let body: ApiResponse | ApiErrorResponse | undefined;
+  let body: ApiResponse | ApiErrorResponse | string | undefined;
 
   try {
-    body = (await response.json()) as ApiResponse | ApiErrorResponse;
-
-    if (body && "error" in body) {
-      throw new ApiError(response.status, body.error);
-    }
-
     if (!response.ok) {
+      body = await response.json();
+
+      if (typeof body === "string" && body.length) {
+        console.log(response.status, response.statusText);
+        throw new Error(`${response.status}: ${response.statusText}`);
+      }
+
+      // check for Api error
+      if (
+        typeof body === "object" &&
+        body !== null &&
+        !Array.isArray(body) &&
+        "error" in body
+      ) {
+        throw new ApiError(response.status, body.error);
+      }
+
       throw new ApiError(response.status, getReasonPhrase(response.status));
     }
 
+    body = (await response.json()) as ApiResponse | ApiErrorResponse;
+
     return body;
   } catch (error) {
-    console.log("caught error: ", body, error);
-
     if (error instanceof ApiError) {
       throw error;
     }
 
-    if (body !== undefined && "error" in body) {
-      throw new ApiError(
-        response.status,
-        body.error.length ? body.error : getReasonPhrase(response.status)
-      );
+    if (error instanceof Error && typeof body === "string") {
+      throw new ApiError(response.status, body);
     }
+
     throw new ApiError(response.status, getReasonPhrase(response.status));
   }
 };

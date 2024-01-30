@@ -13,7 +13,7 @@ const handler: ApiHandler<TripIdAPIResponse> = async (req, res) => {
   if (!tripId || typeof tripId !== "string") {
     return res.status(StatusCodes.BAD_REQUEST).end();
   }
-  console.log("body: ", req.body);
+
   const trip = await prisma.trip.findFirst({ where: { tripId } });
 
   if (!trip) {

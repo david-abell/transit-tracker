@@ -38,7 +38,7 @@ function toDegrees(radian: number) {
 
 export function getBearing(
   cooridinateStart: LatLngTuple,
-  cooridinateEnd: LatLngTuple
+  cooridinateEnd: LatLngTuple,
 ) {
   const latStart = toRadians(cooridinateStart[0]);
   const latEnd = toRadians(cooridinateEnd[0]);

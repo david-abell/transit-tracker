@@ -27,7 +27,7 @@ function withErrorHandler(handler: NextApiHandler) {
         }
       } else if (e instanceof Error) {
         console.error(
-          `\Unknown error: \nMessage: \n${e.message}\nStack:\n${e.stack}`
+          `\Unknown error: \nMessage: \n${e.message}\nStack:\n${e.stack}`,
         );
       }
 

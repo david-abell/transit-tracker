@@ -10,7 +10,7 @@ function useRouteId(routeId: string) {
   const { data, error, isLoading } = useSWR<SingleRouteAPIResponse, ApiError>(
     !!routeId ? [`/api/gtfs/static/route/${routeId}`] : null,
     fetchHelper,
-    skipRevalidationOptions
+    skipRevalidationOptions,
   );
 
   return {

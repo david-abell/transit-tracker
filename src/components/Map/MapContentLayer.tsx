@@ -81,7 +81,7 @@ function MapContentLayer({
 
   const [savedStops, setSavedStops] = useLocalStorage<SavedStop>(
     "savedSTops",
-    {}
+    {},
   );
 
   const addStopToSaved = (stopId: string, stopName: string | null) => {
@@ -147,7 +147,7 @@ function MapContentLayer({
 
   const isToday = DateTime.now().hasSame(
     parseDatetimeLocale(selectedDateTime),
-    "day"
+    "day",
   );
 
   const { vehiclePosition, bearing, vehicleError } = useVehiclePosition({
@@ -162,8 +162,8 @@ function MapContentLayer({
   const currentStops = stops
     ? stops
     : selectedStop
-    ? [selectedStop]
-    : undefined;
+      ? [selectedStop]
+      : undefined;
 
   return (
     <>
@@ -203,7 +203,7 @@ function MapContentLayer({
                       stopTimeUpdate.find(
                         ({ stopId, stopSequence: realtimeSequence }) =>
                           stopId === selectedStopId ||
-                          (stopSequence && realtimeSequence >= stopSequence)
+                          (stopSequence && realtimeSequence >= stopSequence),
                       )) ||
                     lastStopTimeUpdate;
 
@@ -212,11 +212,11 @@ function MapContentLayer({
 
                   const delayedArrivalTime = getDelayedTime(
                     departureTime,
-                    arrival?.delay || departure?.delay
+                    arrival?.delay || departure?.delay,
                   );
 
                   const prettyDelay = formatDelay(
-                    arrival?.delay || departure?.delay
+                    arrival?.delay || departure?.delay,
                   );
 
                   const isValidDestination =
@@ -234,7 +234,7 @@ function MapContentLayer({
                           !!arrivalTime &&
                           !isPastArrivalTime(
                             delayedArrivalTime || arrivalTime,
-                            selectedDateTime
+                            selectedDateTime,
                           ),
                         isTripSelected: !!tripId,
                         isCurrent: stopId === selectedStopId,
@@ -326,7 +326,7 @@ function MapContentLayer({
                       </Popup>
                     </Marker>
                   );
-                }
+                },
               )}
           </FeatureGroup>
         </LayersControl.Overlay>

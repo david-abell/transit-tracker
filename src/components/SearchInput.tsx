@@ -19,7 +19,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
 
   const handleSearchSelection = (
     e: React.MouseEvent<HTMLButtonElement>,
-    query: Route | Stop
+    query: Route | Stop,
   ) => {
     e.stopPropagation();
 
@@ -36,7 +36,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
   const handleSearchKeydown = (
     e: React.KeyboardEvent<
       HTMLButtonElement | HTMLInputElement | HTMLAnchorElement
-    >
+    >,
   ) => {
     if (!formRef.current) return;
     if (e.key === "Escape") {
@@ -75,10 +75,10 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
     isRoutes && isStops
       ? [...routes, ...stops]
       : isRoutes
-      ? routes
-      : isStops
-      ? stops
-      : [];
+        ? routes
+        : isStops
+          ? stops
+          : [];
 
   // onsubmit not working
 

@@ -126,7 +126,7 @@ then
 
 ### Deployment
 
-Deployment is automated with Github workflows ` push`` or  `merges` to main and nightly API checks to the TFI GTFS API. For live schedule updates a separate fly.io redis server must be created.
+Deployment is automated with Github workflows `push`` or `merges` to main and nightly API checks to the TFI GTFS API. For live schedule updates a separate fly.io redis server must be created.
 
 #### deploy to Fly.io
 

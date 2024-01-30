@@ -70,7 +70,7 @@ function useVehiclePosition({
 }: Props) {
   const lastStopTimeUpdate = useMemo(
     () => stopTimeUpdate && stopTimeUpdate.at(-1),
-    [stopTimeUpdate]
+    [stopTimeUpdate],
   );
 
   const arrivals = useMemo(
@@ -92,7 +92,7 @@ function useVehiclePosition({
             (stopTimeUpdate &&
               stopTimeUpdate.find(
                 ({ stopSequence: realtimeSequence }) =>
-                  stopSequence && realtimeSequence >= stopSequence
+                  stopSequence && realtimeSequence >= stopSequence,
                 // && scheduleRelationship !== "SKIPPED"
               )) ||
             lastStopTimeUpdate;
@@ -111,14 +111,14 @@ function useVehiclePosition({
             delayedArrivalTime: getDelayedTime(
               arrivalTime,
               arrival?.delay || departure?.delay,
-              true
+              true,
             ),
             coordinates: { stopLat, stopLon },
             stopSequence,
           };
         })
         .sort((a, b) => a.stopSequence - b.stopSequence),
-    [lastStopTimeUpdate, stopTimesByStopId, stopIds, stopTimeUpdate, stopsById]
+    [lastStopTimeUpdate, stopTimesByStopId, stopIds, stopTimeUpdate, stopsById],
   );
 
   // bail early if input requirements not met
@@ -135,7 +135,7 @@ function useVehiclePosition({
 
   const currentStopSequence = arrivals.findIndex(
     ({ arrivalTime, delayedArrivalTime }) =>
-      !isPastArrivalTime(delayedArrivalTime || arrivalTime)
+      !isPastArrivalTime(delayedArrivalTime || arrivalTime),
   );
 
   // bail early if two coordinates not possible
@@ -149,26 +149,26 @@ function useVehiclePosition({
   // check upcoming arrival times for stops with same arrival time and take last
   const allNextStops = arrivals.filter(
     ({ arrivalTime }) =>
-      arrivalTime === arrivals[currentStopSequence].arrivalTime
+      arrivalTime === arrivals[currentStopSequence].arrivalTime,
   );
 
   const nextStop = allNextStops.at(-1)!;
 
   const slicePercentage = getPercentageToArrival(
     lastStop.delayedArrivalTime || lastStop.arrivalTime,
-    nextStop.delayedArrivalTime || nextStop.arrivalTime
+    nextStop.delayedArrivalTime || nextStop.arrivalTime,
   );
 
   const sliced = lineSlice(
     [nextStop.coordinates.stopLat, nextStop.coordinates.stopLon],
     [lastStop.coordinates.stopLat, lastStop.coordinates.stopLon],
-    { type: "LineString", coordinates: shape as Position[] }
+    { type: "LineString", coordinates: shape as Position[] },
   );
 
   const chunks = lineChunk(sliced, 20, { units: "meters" });
 
   const nextShapeSlice = chunks.features.flatMap(
-    ({ geometry }) => geometry.coordinates
+    ({ geometry }) => geometry.coordinates,
   );
 
   // Check if slice is correct direction of travel

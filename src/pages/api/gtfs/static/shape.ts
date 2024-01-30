@@ -38,7 +38,7 @@ const handler: ApiHandler<ShapeAPIResponse> = async (req, res) => {
   }
 
   const shapePoints: LatLngTuple[] = camelcaseKeys(shapes).map(
-    ({ shapePtLat, shapePtLon }) => [shapePtLat, shapePtLon]
+    ({ shapePtLat, shapePtLon }) => [shapePtLat, shapePtLon],
   );
 
   return res.json(shapePoints);

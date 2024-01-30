@@ -16,7 +16,7 @@ function useStopTimes(tripId: string) {
       ? [`/api/gtfs/static/stop-times/${tripId}`, tripId]
       : null,
     fetchHelper,
-    skipRevalidationOptions
+    skipRevalidationOptions,
   );
 
   const stopTimesByStopId: Map<StopTime["stopId"], StopTime> = stopTimes
@@ -24,7 +24,7 @@ function useStopTimes(tripId: string) {
         stopTimes.map((data) => {
           const { stopId } = data;
           return [stopId, data];
-        })
+        }),
       )
     : new Map();
 

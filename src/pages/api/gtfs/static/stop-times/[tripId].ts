@@ -17,7 +17,7 @@ const handler: ApiHandler<StopTimeByStopIdApiResponse> = async (req, res) => {
 
   if (typeof tripId !== "string") {
     console.error(
-      `api/Stop-times: expected tripId to be a string, received ${typeof tripId}: ${typeof tripId}.`
+      `api/Stop-times: expected tripId to be a string, received ${typeof tripId}: ${typeof tripId}.`,
     );
     return res.status(StatusCodes.BAD_REQUEST).end();
   }

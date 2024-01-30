@@ -20,7 +20,7 @@ function useShape(tripId: string) {
         ]
       : null,
     fetchHelper,
-    skipRevalidationOptions
+    skipRevalidationOptions,
   );
 
   return {

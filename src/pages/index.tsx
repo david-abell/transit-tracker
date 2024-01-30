@@ -54,7 +54,7 @@ export default function Home() {
       }
       return router.push({ query: queries }, undefined, { shallow: false });
     },
-    [router]
+    [router],
   );
 
   const setQueryParams = useCallback(
@@ -70,7 +70,7 @@ export default function Home() {
         query: { ...previous, ...queries },
       });
     },
-    [router]
+    [router],
   );
 
   // user input state

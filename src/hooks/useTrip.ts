@@ -14,7 +14,7 @@ function useTrip(tripId: string) {
   } = useSWR<TripIdAPIResponse, ApiError>(
     !!tripId ? [`/api/gtfs/static/trips/${tripId}`] : null,
     fetchHelper,
-    skipRevalidationOptions
+    skipRevalidationOptions,
   );
 
   return {

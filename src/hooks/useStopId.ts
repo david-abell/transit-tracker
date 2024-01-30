@@ -12,7 +12,7 @@ function useStopId(stopId: string, destination = false) {
   } = useSWR<StopAPIResponse, ApiError>(
     !!stopId ? [`/api/gtfs/static/stops/${stopId}`, destination] : null,
     fetchHelper,
-    skipRevalidationOptions
+    skipRevalidationOptions,
   );
 
   return {

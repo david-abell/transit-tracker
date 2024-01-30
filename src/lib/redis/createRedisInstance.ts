@@ -14,8 +14,8 @@ const options: RedisOptions = {
     if (times > 3) {
       throw new Error(
         `[Redis] Could not connect after ${times} attempts. ${JSON.stringify(
-          options
-        )}`
+          options,
+        )}`,
       );
     }
 
@@ -37,7 +37,7 @@ export function createRedisInstance() {
     return redis;
   } catch (e) {
     console.error(
-      `[Redis] Could not create a Redis instance with options: ${options}`
+      `[Redis] Could not create a Redis instance with options: ${options}`,
     );
     throw new Error(`[Redis] Could not create a Redis instance`);
   }

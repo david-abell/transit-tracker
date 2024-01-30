@@ -23,10 +23,10 @@ export function stopMarkerIcon({
   const color = isCurrent
     ? "blue"
     : !isTripSelected
-    ? "blue"
-    : isUpcoming
-    ? "green"
-    : "grey";
+      ? "blue"
+      : isUpcoming
+        ? "green"
+        : "grey";
   return new Icon({
     iconUrl: new URL(`
     data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 54 62'%3E

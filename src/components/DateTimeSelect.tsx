@@ -9,7 +9,7 @@ type Props = {
 
 function DateTimeSelect({ selectedDateTime, setSelectedDateTime }: Props) {
   const handleSetSelectedDateTime = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setSelectedDateTime(e.target.value);
     const queries = router.query;

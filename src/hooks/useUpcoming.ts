@@ -18,7 +18,7 @@ function useTrips(stopId: string | null, selectedDateTime: string, page = 0) {
         ]
       : null,
     fetchHelper,
-    skipRevalidationOptions
+    skipRevalidationOptions,
   );
 
   return {

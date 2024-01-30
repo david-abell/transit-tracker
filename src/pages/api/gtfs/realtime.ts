@@ -20,7 +20,7 @@ export type RealtimeTripUpdateResponse = {
 
 const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   req: NextApiRequest,
-  res: NextApiResponse<RealtimeTripUpdateResponse | ApiErrorResponse>
+  res: NextApiResponse<RealtimeTripUpdateResponse | ApiErrorResponse>,
 ) => {
   const { tripIds } = req.query;
 
@@ -67,7 +67,7 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     if (idArray.length) {
       const storedTrips = await redis.hmget(tripUpdateKey, ...idArray);
       const parsedTrips: TripUpdate[] = storedTrips.flatMap((val) =>
-        val ? JSON.parse(val) : []
+        val ? JSON.parse(val) : [],
       );
 
       tripUpdates = parsedTrips.map((tripUpdate) => [
@@ -92,7 +92,7 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
 
   if (!response.ok) {
     console.error(
-      `Realtime response error: Status: ${response.status}, StatusText: ${response.statusText}`
+      `Realtime response error: Status: ${response.status}, StatusText: ${response.statusText}`,
     );
     throw new ApiError(StatusCodes.BAD_GATEWAY, ReasonPhrases.BAD_GATEWAY);
   }
@@ -146,6 +146,8 @@ function createTripKey(trip: TripUpdate["trip"]) {
     trip;
 
   return encodeURI(
-    [scheduleRelationship, routeId, directionId, startDate, startTime].join("-")
+    [scheduleRelationship, routeId, directionId, startDate, startTime].join(
+      "-",
+    ),
   );
 }

@@ -32,7 +32,7 @@ type ApiResponse =
 
 export type ApiHandler<T = ApiResponse> = (
   req: NextApiRequest,
-  res: NextApiResponse<T | ApiErrorResponse>
+  res: NextApiResponse<T | ApiErrorResponse>,
 ) => Promise<void | NextApiResponse<T | ApiErrorResponse>>;
 
 type FetchHelper = (args: RequestInfo, init?: RequestInit) => Promise<any>;

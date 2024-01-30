@@ -61,7 +61,7 @@ function TripSelect({
 
   const isToday = DateTime.now().hasSame(
     parseDatetimeLocale(selectedDateTime),
-    "day"
+    "day",
   );
 
   const hasRealtime =
@@ -121,8 +121,8 @@ function TripSelect({
               {showAllRoutes
                 ? "No upcoming trips found"
                 : selectedRoute
-                ? "No upcoming trips found. Try showing all routes instead."
-                : "No route selected. Try showing all routes instead."}
+                  ? "No upcoming trips found. Try showing all routes instead."
+                  : "No route selected. Try showing all routes instead."}
             </li>
           </>
         ) : (
@@ -153,7 +153,7 @@ function TripSelect({
                     stopTimeUpdate.find(
                       ({ stopId, stopSequence: realtimeSequence }) =>
                         stopId === selectedStopId ||
-                        (stopSequence && realtimeSequence >= stopSequence)
+                        (stopSequence && realtimeSequence >= stopSequence),
                     )) ||
                   stopTimeUpdate?.at(-1);
 
@@ -163,7 +163,7 @@ function TripSelect({
 
                 const delayedArrivalTime = getDelayedTime(
                   departureTime,
-                  arrival?.delay || departure?.delay
+                  arrival?.delay || departure?.delay,
                 );
 
                 const isCanceled = realtimeCanceledTripIds.has(tripId);
@@ -182,10 +182,10 @@ function TripSelect({
                 const tripStatus = isCanceled
                   ? "canceled"
                   : isEarly
-                  ? "early"
-                  : isDelayed
-                  ? "delayed"
-                  : "ontime";
+                    ? "early"
+                    : isDelayed
+                      ? "delayed"
+                      : "ontime";
 
                 return (
                   <li key={tripId + departureTime}>
@@ -231,7 +231,7 @@ function TripSelect({
                           {/* Delay */}
                           <Time
                             time={formatDelay(
-                              arrival?.delay || departure?.delay
+                              arrival?.delay || departure?.delay,
                             )}
                             column="delay"
                             status={tripStatus}
@@ -247,7 +247,7 @@ function TripSelect({
                     </button>
                   </li>
                 );
-              }
+              },
             )}
           </>
         )}

@@ -19,7 +19,7 @@ function useRoute(routeName: string) {
         ]
       : null,
     fetchHelper,
-    skipRevalidationOptions
+    skipRevalidationOptions,
   );
 
   return {

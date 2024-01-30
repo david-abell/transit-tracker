@@ -21,7 +21,7 @@ export async function importFile(filePath: string) {
 
   if (extension !== ".txt") {
     throw new Error(
-      `Expected .txt file extension for file ${filePath}, found extension ${extension}`
+      `Expected .txt file extension for file ${filePath}, found extension ${extension}`,
     );
   }
 
@@ -66,7 +66,7 @@ export async function importFile(filePath: string) {
         }
 
         consola.success(
-          `Processed ${totalLineCount} records from ${fileName}${extension}`
+          `Processed ${totalLineCount} records from ${fileName}${extension}`,
         );
         resolve(null);
       },
@@ -81,10 +81,10 @@ export async function importFile(filePath: string) {
 
 async function insertLines(
   formattedValues: (string | number | null)[][],
-  filename: string
+  filename: string,
 ) {
   const values = Prisma.join(
-    formattedValues.map((row) => Prisma.sql`(${Prisma.join(row)})`)
+    formattedValues.map((row) => Prisma.sql`(${Prisma.join(row)})`),
   );
 
   switch (filename) {

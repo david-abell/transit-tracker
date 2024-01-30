@@ -84,7 +84,7 @@ export async function downloadFiles(dirName: string) {
         clearLine(process.stdout, 1);
         cursorTo(process.stdout, 0);
         process.stdout.write(
-          `Received ${bytesToMb(receivedLength)} of ${contentLengthInMb}`
+          `Received ${bytesToMb(receivedLength)} of ${contentLengthInMb}`,
         );
       }
     }

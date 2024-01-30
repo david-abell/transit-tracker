@@ -45,14 +45,14 @@ function useStops({ stopQuery, routeId }: Props) {
   } = useSWR<StopsAPIResponse, ApiError>(
     !!shouldQuery ? [`/api/gtfs/static/${subRoute}?${params}`] : null,
     fetchHelper,
-    skipRevalidationOptions
+    skipRevalidationOptions,
   );
 
   const stopsById = new Map(
     stops?.map((data) => {
       const { stopId } = data;
       return [stopId, data];
-    })
+    }),
   );
 
   return {

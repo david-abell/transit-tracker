@@ -5,7 +5,7 @@ import { format, getDay } from "date-fns";
 // non standard format for input type="datetime"
 // 2023-06-01T13:31
 const LUXON_DATE_INPUT_TOKENS = "kkkk'-'LL'-'dd'T'T";
-import { DateTime, Settings } from "luxon";
+import { DateTime, Settings, type DateTimeMaybeValid } from "luxon";
 
 Settings.defaultZone = "Europe/Dublin";
 
@@ -16,7 +16,7 @@ export function parseDatetimeLocale(timestring: string) {
 // Parse timestring in format HH:MM:SS exa: 20:07:17
 export function stopTimeStringToDate(
   timeString: string,
-  referenceDate: string = ""
+  referenceDate: string = "",
 ) {
   const startOfReferenceDate =
     referenceDate && parseDatetimeLocale(referenceDate).startOf("day");
@@ -79,7 +79,7 @@ export function initDateTimeValue() {
 // add trip start time instead of new Date()
 export function isPastArrivalTime(
   arrivalTime: string,
-  referenceDate: string = ""
+  referenceDate: string = "",
 ) {
   const now = DateTime.now();
   const arrivalDate = referenceDate
@@ -93,7 +93,7 @@ export function isPastArrivalTime(
 export function getDelayedTime(
   timeString: string | null | undefined,
   delay: number | undefined,
-  precise: boolean = false
+  precise: boolean = false,
 ) {
   if (!timeString || delay === undefined) return null;
 
@@ -148,7 +148,7 @@ export const delayStatus = {
 
 export function getDelayStatus(
   stopTimeUpdate: StopTimeUpdate | undefined,
-  departure = false
+  departure = false,
 ) {
   if (!stopTimeUpdate) return "";
 
@@ -189,7 +189,7 @@ export function getTripStatus(
   stopTimes: StopTime[] | undefined,
   stopTimeUpdate: StopTimeUpdate[] | undefined,
   start: Stop["stopId"] | undefined,
-  end: Stop["stopId"] | undefined
+  end: Stop["stopId"] | undefined,
 ) {
   if (!trip || !stopTimes) return "";
   if (!stopTimes.length) return tripStatus.not;
@@ -244,7 +244,7 @@ export function getTripStatus(
 
 export function getDifferenceInSeconds(
   stopTimeOne: string,
-  stopTimeTwo: string
+  stopTimeTwo: string,
 ) {
   const dateOne = stopTimeStringToDate(stopTimeOne);
   const dateTwo = stopTimeStringToDate(stopTimeTwo);
@@ -255,9 +255,9 @@ export function getDifferenceInSeconds(
 
 export function getPercentageToArrival(
   beginTime: string,
-  destinationTime: string
+  destinationTime: string,
 ) {
-  let now = DateTime.now();
+  let now: DateTimeMaybeValid = DateTime.now();
   const beginDate = stopTimeStringToDate(beginTime);
 
   if (now < beginDate) {

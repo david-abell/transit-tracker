@@ -42,7 +42,7 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
   const departureTimeInSeconds = differenceInSeconds(date, startOfDate);
   const maxDepartureTimeInSeconds = differenceInSeconds(
     addHours(date, 3),
-    startOfDate
+    startOfDate,
   );
 
   // Split trips by direction
@@ -51,7 +51,7 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
 
   // Handle direction zero
   const serviceZeroIds = [...directionZeroTripsById.values()].map(
-    ({ serviceId }) => serviceId
+    ({ serviceId }) => serviceId,
   );
 
   const calendarZeroDates = serviceZeroIds.length
@@ -61,14 +61,14 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
   const servicesZeroAdded = calendarZeroDates
     .filter(
       ({ date, exceptionType }) =>
-        date === calendarDate && exceptionType === serviceException.added
+        date === calendarDate && exceptionType === serviceException.added,
     )
     .map(({ serviceId }) => serviceId);
 
   const servicesZeroRemoved = calendarZeroDates
     .filter(
       ({ date, exceptionType }) =>
-        date === calendarDate && exceptionType === serviceException.removed
+        date === calendarDate && exceptionType === serviceException.removed,
     )
     .map(({ serviceId }) => serviceId);
 
@@ -77,7 +77,7 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
     serviceZeroIds,
     calendarDay,
     servicesZeroAdded,
-    calendarDate
+    calendarDate,
   );
 
   const stopTimesZero = directionZeroTripsById.size
@@ -85,13 +85,13 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
         directionZeroTripsById,
         calendarZero,
         departureTimeInSeconds,
-        maxDepartureTimeInSeconds
+        maxDepartureTimeInSeconds,
       )
     : [];
 
   // Handle direction one
   const serviceOneIds = [...directionOneTripsById.values()].map(
-    ({ serviceId }) => serviceId
+    ({ serviceId }) => serviceId,
   );
 
   const calendarOneDates = serviceOneIds.length
@@ -101,14 +101,14 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
   const servicesOneAdded = calendarOneDates
     .filter(
       ({ date, exceptionType }) =>
-        date === calendarDate && exceptionType === serviceException.added
+        date === calendarDate && exceptionType === serviceException.added,
     )
     .map(({ serviceId }) => serviceId);
 
   const servicesOneRemoved = calendarOneDates
     .filter(
       ({ date, exceptionType }) =>
-        date === calendarDate && exceptionType === serviceException.removed
+        date === calendarDate && exceptionType === serviceException.removed,
     )
     .map(({ serviceId }) => serviceId);
 
@@ -117,7 +117,7 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
     serviceOneIds,
     calendarDay,
     servicesOneAdded,
-    calendarDate
+    calendarDate,
   );
 
   const stopTimesOne = directionOneTripsById.size
@@ -125,7 +125,7 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
         directionOneTripsById,
         calendarOne,
         departureTimeInSeconds,
-        maxDepartureTimeInSeconds
+        maxDepartureTimeInSeconds,
       )
     : [];
 
@@ -138,7 +138,7 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
 export default withErrorHandler(handler);
 
 function splitTripsByDirection(
-  trips: Trip[]
+  trips: Trip[],
 ): [Map<string, Trip>, Map<string, Trip>] {
   return trips.reduce<[Map<Trip["tripId"], Trip>, Map<string, Trip>]>(
     (acc, trip) => {
@@ -152,7 +152,7 @@ function splitTripsByDirection(
       }
       return acc;
     },
-    [new Map(), new Map()]
+    [new Map(), new Map()],
   );
 }
 
@@ -167,7 +167,7 @@ async function getServiceCalendar(
   serviceIds: string[] | undefined,
   calendarDay: string,
   servicesAdded: string[],
-  calendarDate: number
+  calendarDate: number,
 ) {
   return await prisma.calendar.findMany({
     select: { serviceId: true },
@@ -192,7 +192,7 @@ async function getStoptimes(
   directionTripsById: Map<string, Trip>,
   serviceCalendar: { serviceId: string }[],
   departureTimeInSeconds: number,
-  maxDepartureTimeInSeconds: number
+  maxDepartureTimeInSeconds: number,
 ) {
   return await prisma.stopTime.findMany({
     // take: 20,

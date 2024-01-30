@@ -9,14 +9,14 @@ type FocusableElement =
 export function getKeyboardFocusableElements(element: HTMLElement) {
   return [
     ...element.querySelectorAll<FocusableElement>(
-      'a, button, input, textarea, select, details,[tabindex]:not([tabindex="-1"])'
+      'a, button, input, textarea, select, details,[tabindex]:not([tabindex="-1"])',
     ),
   ].filter((el) => !el.hasAttribute("disabled"));
 }
 
 export function trapKeyboardFocus(
   event: React.KeyboardEvent<HTMLElement>,
-  element: HTMLElement
+  element: HTMLElement,
 ) {
   const focusables = getKeyboardFocusableElements(element);
   const firstFocusable = focusables[0];

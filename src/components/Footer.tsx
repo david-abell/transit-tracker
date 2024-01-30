@@ -56,7 +56,7 @@ function Footer({
   const displayStop = destination ?? lastStop;
 
   const pickupStopTime = stopTimes?.find(
-    ({ stopId }) => stopId === stop?.stopId
+    ({ stopId }) => stopId === stop?.stopId,
   );
   const dropOffStopTime =
     stopTimes?.find(({ stopId }) => stopId === destination?.stopId) ||
@@ -74,7 +74,7 @@ function Footer({
   // Realtime derived state
   const stopTimeUpdates = useMemo(
     () => trip && tripUpdatesByTripId.get(trip?.tripId)?.stopTimeUpdate,
-    [tripUpdatesByTripId, trip]
+    [tripUpdatesByTripId, trip],
   );
 
   const lastStopTimeUpdate = stopTimeUpdates?.at(-1);
@@ -84,21 +84,21 @@ function Footer({
       stopTimeUpdates?.find(
         ({ stopId: stopTimeStopId, stopSequence }) =>
           stop?.stopId === stopTimeStopId ||
-          (destination && stopSequence >= pickupStopSequence)
+          (destination && stopSequence >= pickupStopSequence),
       )) ||
     lastStopTimeUpdate;
 
   const realtimePickupArrivalTime = getDelayedTime(
     pickupDepartureTime,
     closestPickupStopUpdate?.arrival?.delay ||
-      closestPickupStopUpdate?.departure?.delay
+      closestPickupStopUpdate?.departure?.delay,
   );
 
   const pickupDelayStatus = getDelayStatus(closestPickupStopUpdate);
 
   const pickupDelay = formatDelay(
     closestPickupStopUpdate?.arrival?.delay ||
-      closestPickupStopUpdate?.departure?.delay
+      closestPickupStopUpdate?.departure?.delay,
   );
 
   const closestDropOffStopUpdate =
@@ -106,7 +106,7 @@ function Footer({
       stopTimeUpdates?.find(
         ({ stopId: stopTimeStopId, stopSequence }) =>
           destination?.stopId === stopTimeStopId ||
-          (pickupStopSequence && stopSequence >= dropOffStopSequence)
+          (pickupStopSequence && stopSequence >= dropOffStopSequence),
       )) ||
     lastStopTimeUpdate;
 
@@ -114,13 +114,13 @@ function Footer({
 
   const dropOffDelay = formatDelay(
     closestDropOffStopUpdate?.arrival?.delay ||
-      closestDropOffStopUpdate?.departure?.delay
+      closestDropOffStopUpdate?.departure?.delay,
   );
 
   const realtimeDropOffArrivalTime = getDelayedTime(
     dropOffArrivalTime,
     closestDropOffStopUpdate?.arrival?.delay ||
-      closestDropOffStopUpdate?.departure?.delay
+      closestDropOffStopUpdate?.departure?.delay,
   );
 
   const isPastPickup =
@@ -136,7 +136,7 @@ function Footer({
     stopTimes,
     stopTimeUpdates,
     stop?.stopId,
-    destination?.stopId
+    destination?.stopId,
   );
 
   return (

@@ -40,7 +40,7 @@ function useRealtime(tripIds: string | string[] | undefined) {
         ]
       : null,
     fetchHelper,
-    revalidateOptions
+    revalidateOptions,
   );
 
   const { addedTrips, tripUpdates } = data || {};
@@ -84,8 +84,8 @@ function useRealtime(tripIds: string | string[] | undefined) {
             ({ arrival, departure, stopId, stopSequence }) => [
               stopId,
               createAddedStopTime(arrival, departure, stopSequence),
-            ]
-          )
+            ],
+          ),
       )
     : new Map();
 
@@ -106,7 +106,7 @@ export default useRealtime;
 function createAddedStopTime(
   arrival: Time | undefined,
   departure: Time | undefined,
-  stopSequence: number
+  stopSequence: number,
 ): AddedStopTime {
   const arrivalTime = formatSecondsAsTimeString(arrival?.time);
   const departureTime = formatSecondsAsTimeString(departure?.time);

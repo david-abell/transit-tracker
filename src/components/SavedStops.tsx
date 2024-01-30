@@ -34,7 +34,7 @@ export default function Sidebar({
 
   const [savedStops, setSavedStops] = useLocalStorage<SavedStop>(
     "savedSTops",
-    {}
+    {},
   );
 
   const selectedStopId = searchParams.get("stopId") || "";
@@ -65,7 +65,7 @@ export default function Sidebar({
           }
         });
     },
-    [router, selectedStopId, setIsOpen, setShowTripModal]
+    [router, selectedStopId, setIsOpen, setShowTripModal],
   );
 
   return (

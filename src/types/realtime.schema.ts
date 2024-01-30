@@ -151,7 +151,7 @@ export const alertSchema = z.object({
       informedEntityRouteSchema,
       informedEntityTripSchema,
       informedEntityStopSchema,
-    ])
+    ]),
   ),
   cause: causeSchema,
   effect: effectSchema,

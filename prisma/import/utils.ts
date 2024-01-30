@@ -32,7 +32,7 @@ export async function readLastLine(logPath: string) {
   } catch (err) {
     if (err instanceof Error)
       console.error(
-        `Couldn't get previous last modified date for ${logPath} ${err?.message}`
+        `Couldn't get previous last modified date for ${logPath} ${err?.message}`,
       );
     throw new Error();
   } finally {
@@ -137,7 +137,7 @@ function castColumnValue(key: string, value: string | number | null) {
 }
 
 export function formatLine(
-  csvRecord: SnakeCaseModel
+  csvRecord: SnakeCaseModel,
 ): (string | number | null)[] {
   for (let [key, value] of Object.entries(csvRecord)) {
     value = castColumnValue(key, value);
@@ -201,11 +201,11 @@ export function formatLine(
     csvRecord.departure_time = padLeadingZeros(csvRecord.departure_time);
 
     csvRecord.arrival_timestamp = calculateSecondsFromMidnight(
-      csvRecord.arrival_time
+      csvRecord.arrival_time,
     );
 
     csvRecord.departure_timestamp = calculateSecondsFromMidnight(
-      csvRecord.departure_time
+      csvRecord.departure_time,
     );
 
     return [

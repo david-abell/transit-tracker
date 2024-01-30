@@ -5,7 +5,7 @@ import { format, getDay } from "date-fns";
 // non standard format for input type="datetime"
 // 2023-06-01T13:31
 const LUXON_DATE_INPUT_TOKENS = "kkkk'-'LL'-'dd'T'T";
-import { DateTime, Settings } from "luxon";
+import { DateTime, Settings, type DateTimeMaybeValid } from "luxon";
 
 Settings.defaultZone = "Europe/Dublin";
 
@@ -257,7 +257,7 @@ export function getPercentageToArrival(
   beginTime: string,
   destinationTime: string
 ) {
-  let now = DateTime.now();
+  let now: DateTimeMaybeValid = DateTime.now();
   const beginDate = stopTimeStringToDate(beginTime);
 
   if (now < beginDate) {

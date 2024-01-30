@@ -7,7 +7,7 @@ import {
 import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
 import { StopTimeUpdate } from "@/types/realtime";
 import { Stop, StopTime } from "@prisma/client";
-import { point } from "@turf/helpers";
+import { Position, point } from "@turf/helpers";
 import lineChunk from "@turf/line-chunk";
 import lineSlice from "@turf/line-slice";
 import rhumbDistance from "@turf/rhumb-distance";
@@ -162,7 +162,7 @@ function useVehiclePosition({
   const sliced = lineSlice(
     [nextStop.coordinates.stopLat, nextStop.coordinates.stopLon],
     [lastStop.coordinates.stopLat, lastStop.coordinates.stopLon],
-    { type: "LineString", coordinates: shape }
+    { type: "LineString", coordinates: shape as Position[] }
   );
 
   const chunks = lineChunk(sliced, 20, { units: "meters" });

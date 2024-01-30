@@ -1,8 +1,8 @@
 # syntax = docker/dockerfile:1
 
 # Adjust NODE_VERSION as desired
-ARG NODE_VERSION=18.17.0
-FROM node:${NODE_VERSION}-slim as base
+ARG NODE_VERSION=20
+FROM node:${NODE_VERSION}-bookworm-slim as base
 
 LABEL fly_launch_runtime="Next.js/Prisma"
 
@@ -43,6 +43,10 @@ FROM base
 
 # Copy built application
 COPY --from=build /app /app
+
+# Reinstall openssl for final layer
+RUN apt-get update -qq && \
+    apt-get install -y openssl 
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000

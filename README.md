@@ -112,7 +112,8 @@ For caching local live schedule data clone the REDIS server repo [fly-transit-re
 
 For local schedule data clone the PostgreSQL repo [https://github.com/david-abell/gtfs-to-postgres](https://github.com/david-abell/fly-transit-redis), install, follow instructions to build the docker container and populate the PostgreSQL database, and ensure that the container is running.
 
-create a `.env` file in the project root with `DATABASE_URL='PostgreSQL connection string`
+create a `.env` file in the project root with `DATABASE_URL='PostgreSQL connection string` in the format `postgresql://postgres-username:password@localhost:5432/database-name`
+
 
 ### Usage
 
@@ -123,6 +124,12 @@ then
   or
 
 - `npm run build && npm run start`
+
+#### Running as a local docker container
+
+To run as local docker container: 
+ - `docker build --tag 'transport-tracker' .`
+ - `docker run -p 3000:3000 -e "postgresql://postgres-username:password@host.docker.internal:5432/database-name" 'transport-tracker'`
 
 ### Deployment
 

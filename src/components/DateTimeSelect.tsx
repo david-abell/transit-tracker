@@ -1,6 +1,7 @@
 import { initDateTimeValue } from "@/lib/timeHelpers";
 import router from "next/router";
 import { Dispatch, SetStateAction } from "react";
+import { Button } from "./ui/button";
 
 type Props = {
   selectedDateTime: string;
@@ -36,18 +37,15 @@ function DateTimeSelect({ selectedDateTime, setSelectedDateTime }: Props) {
           value={selectedDateTime}
           onChange={(e) => handleSetSelectedDateTime(e)}
           id="date-time-select"
-          className="flex-1 rounded-l-lg rounded-r-none border border-gray-300 p-2.5 text-sm focus:border-blue-500 
-         focus:ring-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+          className="h-10 flex-1 rounded-l-lg rounded-r-none border p-2.5 text-sm"
         ></input>
-        <button
+        <Button
           aria-controls="date-time-select"
-          type="button"
           onClick={handleNowTime}
-          className="w-16 rounded-r-lg border border-blue-700 bg-blue-700 p-2.5 text-sm font-medium text-white 
-          hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          className="h-10 w-16 rounded-r-lg rounded-l-none border p-2.5 text-sm font-medium text-white"
         >
           Now!
-        </button>
+        </Button>
       </div>
     </div>
   );

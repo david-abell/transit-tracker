@@ -1,5 +1,6 @@
 import { useEffect, useRef, createContext, useCallback } from "react";
 import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
+import { Button } from "./ui/button";
 
 type Props = {
   title: string;
@@ -82,15 +83,13 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
           <div className="mb-auto h-full overflow-hidden">{children}</div>
         </DialogRefContext.Provider>
         <div className="flex gap-3">
-          <button
+          <Button
             onClick={handleClose}
             onKeyDown={handleKeydown}
-            className={`${
-              onProceed ? "mr-auto" : "mx-auto"
-            } rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}
+            className={`${onProceed ? "mr-auto" : "mx-auto"}`}
           >
             Close
-          </button>
+          </Button>
           {!!onProceed && (
             <button
               onClick={handleProceed}

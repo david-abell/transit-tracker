@@ -30,6 +30,7 @@ import useStops from "@/hooks/useStops";
 import useTrip from "@/hooks/useTrip";
 import Footer from "@/components/Footer";
 import DestinationSelect from "@/components/DestinationSelect";
+import { Button } from "@/components/ui/button";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -188,15 +189,9 @@ export default function Home() {
               setSelectedDateTime={setSelectedDateTime}
             />
 
-            <button
-              className={`md:text-md w-full rounded-md  border border-blue-700 bg-blue-700 p-2.5 
-              text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 
-              focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 lg:w-auto lg:flex-none`}
-              onClick={handleShowAllStops}
-              disabled={!routeId}
-            >
+            <Button onClick={handleShowAllStops} disabled={!routeId}>
               Show all stops
-            </button>
+            </Button>
 
             <button
               className={`md:text-md flex w-full  flex-row items-center justify-center gap-1 rounded-md border border-blue-700 

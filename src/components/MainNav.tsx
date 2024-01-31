@@ -54,12 +54,12 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
       ref={navRef}
       className="relative mx-auto flex min-h-[6rem] flex-row items-center justify-between
        gap-2.5 border-gray-200 p-4 
-       dark:border-gray-700 dark:bg-gray-800 md:max-w-screen-2xl lg:px-10"
+       dark:border-gray-700 md:max-w-screen-2xl lg:px-10"
     >
       {showMenu ? (
         <>
           {!!selectedRoute && (
-            <div className="flex items-baseline dark:text-white ">
+            <div className="flex items-baseline">
               {!!selectedRoute.routeShortName && (
                 <>
                   <span className="inline-block whitespace-nowrap text-base font-bold md:text-2xl">
@@ -84,13 +84,13 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
 
       {/* Menu list */}
       <div
-        className={`absolute left-0 top-full z-[1100] mr-auto w-full justify-between md:gap-2.5 lg:static lg:flex ${
+        className={`absolute left-0 top-full z-[1100] mr-auto bg-background w-full justify-between md:gap-2.5 lg:static lg:flex ${
           showMenu ? "" : "hidden"
         }`}
       >
         <ul
           id="navbar-hamburger"
-          className="mx-auto flex flex-col flex-wrap gap-4 px-4 pb-4 font-medium dark:border-gray-700 dark:bg-gray-800 lg:flex-row lg:pt-4"
+          className="mx-auto flex flex-col flex-wrap gap-4 px-4 pb-4 font-medium dark:border-gray-700 lg:flex-row lg:pt-4"
         >
           {Children.map(children, (child: ReactNode) => {
             if (isValidElement(child)) {

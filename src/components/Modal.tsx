@@ -66,9 +66,9 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
       onCancel={handleClose}
       onClick={handleClose}
       data-state={isOpen ? "open" : "closed"}
-      className="h-[100svh] max-h-[37.5rem] w-11/12 max-w-3xl overflow-hidden rounded-lg bg-slate-50 
+      className="h-[100svh] max-h-[37.5rem] w-11/12 max-w-3xl overflow-hidden rounded-lg bg-background
       p-0 data-[state=closed]:animate-[dialog-content-hide_200ms_forwards] 
-      data-[state=open]:animate-[dialog-content-show_200ms_forwards] backdrop:data-[state=closed]:animate-[dialog-overlay-hide_200ms_forwards] backdrop:data-[state=open]:animate-[dialog-overlay-show_200ms_forwards]  dark:bg-gray-800
+      data-[state=open]:animate-[dialog-content-show_200ms_forwards] backdrop:data-[state=closed]:animate-[dialog-overlay-hide_200ms_forwards] backdrop:data-[state=open]:animate-[dialog-overlay-show_200ms_forwards]
      dark:text-white"
     >
       <div

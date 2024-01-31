@@ -6,12 +6,12 @@ type Props = {
 
 function TripList({ children }: Props) {
   return (
-    <ul className="flex h-full max-h-[26rem] max-w-full flex-col overflow-y-scroll text-start [contain:paint] dark:bg-gray-800 ">
+    <ul className="flex h-full max-h-[26rem] max-w-full flex-col overflow-y-scroll text-start [contain:paint]">
       {/* Column headers */}
 
       <li
-        className={`sticky top-0 flex w-full justify-between gap-1 border-b-2 border-gray-400 py-2 pr-2 text-start
-                 text-lg font-medium dark:bg-gray-800 md:gap-2 md:pr-4`}
+        className={`sticky top-0 flex w-full justify-between bg-background gap-1 border-b-2 border-gray-400 py-2 pr-2 text-start
+                 text-lg font-medium md:gap-2 md:pr-4`}
       >
         {/* Route */}
         <span className="w-20 cursor-default md:w-28">Route</span>

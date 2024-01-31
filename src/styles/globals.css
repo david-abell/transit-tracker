@@ -246,8 +246,8 @@
   }
 
   .dark {
-    --background: var(--gray-50);
-    --foreground: 210 40% 98%;
+    --background: var(--gray-800);
+    --foreground: white;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
@@ -283,6 +283,24 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  [type="text"],
+  input:where(:not([type])),
+  [type="email"],
+  [type="url"],
+  [type="password"],
+  [type="number"],
+  [type="date"],
+  [type="datetime-local"],
+  [type="month"],
+  [type="search"],
+  [type="tel"],
+  [type="time"],
+  [type="week"],
+  [multiple],
+  textarea,
+  select {
+    @apply bg-popover text-popover-foreground;
   }
 }
 

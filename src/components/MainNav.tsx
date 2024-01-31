@@ -12,6 +12,7 @@ import {
 import { useMediaQuery } from "usehooks-ts";
 import SearchInput from "./SearchInput";
 import dynamic from "next/dynamic";
+import { Button } from "./ui/button";
 
 const ThemeToggle = dynamic(() => import("./ThemeToggle"), { ssr: false });
 
@@ -110,10 +111,10 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
       <ThemeToggle className="hidden lg:block" />
 
       {/* Hamburger button */}
-      <button
+      <Button
         onClick={() => setShowMenu((prev) => !prev)}
-        type="button"
-        className="inline-flex items-center p-2.5 text-sm text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 lg:hidden"
+        size="icon"
+        className="p-2.5 lg:hidden"
         aria-controls="navbar-hamburger"
         aria-expanded={showMenu}
       >
@@ -131,7 +132,7 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
             clipRule="evenodd"
           ></path>
         </svg>
-      </button>
+      </Button>
     </nav>
   );
 }

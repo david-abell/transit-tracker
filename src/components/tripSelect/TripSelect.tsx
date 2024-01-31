@@ -1,6 +1,7 @@
 import {
   formatDelay,
   getDelayedTime,
+  isPastArrivalTime,
   parseDatetimeLocale,
 } from "@/lib/timeHelpers";
 import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
@@ -129,6 +130,7 @@ function TripSelect({
           <>
             {trips.flatMap(
               ({
+                arrivalTime,
                 tripId,
                 departureTime,
                 stopSequence,
@@ -166,6 +168,10 @@ function TripSelect({
                   arrival?.delay || departure?.delay,
                 );
 
+                const hasDeparted = isPastArrivalTime(
+                  delayedArrivalTime ?? departureTime ?? arrivalTime ?? "",
+                );
+
                 const isCanceled = realtimeCanceledTripIds.has(tripId);
 
                 const isEarly =
@@ -193,12 +199,12 @@ function TripSelect({
                       type="button"
                       onClick={() => handleSelectedTrip(tripId, routeId)}
                       onKeyDown={handleKeydown}
-                      disabled={isCanceled}
+                      disabled={isCanceled || hasDeparted}
                       className={`flex w-full items-center justify-between gap-1 border-b border-gray-200 
                   py-2 pr-2 text-start font-medium dark:border-gray-600 md:gap-2 md:pr-4
                   ${
-                    isCanceled
-                      ? "cursor-not-allowed"
+                    isCanceled || hasDeparted
+                      ? "cursor-not-allowed bg-red-50 dark:bg-red-950"
                       : `cursor-pointer ring-inset hover:bg-gray-100 hover:text-blue-700 focus-visible:bg-gray-100 focus-visible:text-blue-700 focus-visible:outline-none focus-visible:ring-2
                        focus-visible:ring-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:hover:ring-gray-500 dark:focus-visible:bg-gray-600 dark:focus-visible:text-white dark:focus-visible:ring-gray-500`
                   }`}

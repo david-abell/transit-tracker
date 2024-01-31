@@ -119,7 +119,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
 
           <input
             id="search-select"
-            className={`text-md inline-block w-full appearance-none truncate rounded-none rounded-b-lg rounded-t-lg border border-gray-300 bg-gray-50 p-2.5 pl-8
+            className={`h-10 text-md inline-block w-full appearance-none truncate rounded-none rounded-b-lg rounded-t-lg border border-gray-300 p-2.5 pl-8
                text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white
                dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500 md:pl-10
                ${
@@ -139,7 +139,7 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
 
           {!!searchResults.length && (
             <ul
-              className="text-md absolute left-0 top-full z-[1200] block max-h-[calc(100dvh-6rem)] w-[calc(100dvw-2rem)] overflow-y-scroll rounded-b-lg border border-gray-300 bg-gray-50 text-gray-900 focus:border-blue-500
+              className="text-md absolute left-0 top-full z-[1200] block max-h-[calc(100dvh-6rem)] w-[calc(100dvw-2rem)] bg-background overflow-y-scroll rounded-b-lg border border-gray-300 text-gray-900 focus:border-blue-500
                focus:ring-blue-500  dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500 md:w-full"
             >
               {searchResults.map((item) => {

@@ -246,13 +246,13 @@
   }
 
   .dark {
-    --background: #1e293b;
+    --background: var(--gray-50);
     --foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --popover: #1e293b;
+    --popover: var(--gray-700);
     --popover-foreground: 210 40% 98%;
 
     --card: #1e293b;

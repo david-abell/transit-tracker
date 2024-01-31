@@ -29,6 +29,7 @@ import useStopTimes from "@/hooks/useStopTimes";
 import useStops from "@/hooks/useStops";
 import useTrip from "@/hooks/useTrip";
 import Footer from "@/components/Footer";
+import DestinationSelect from "@/components/DestinationSelect";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -164,8 +165,10 @@ export default function Home() {
     removeQueryParams(["tripId", "stopId", "destId"]);
   };
 
+  const testError = true;
+
   return (
-    <main className="flex min-h-[100svh] flex-col items-center justify-between bg-gray-50 text-slate-950 dark:bg-gray-800 dark:text-white">
+    <main className="flex min-h-[100svh] flex-col items-center justify-between text-slate-950 dark:bg-gray-800 dark:text-white">
       <div className="relative w-full">
         <div ref={NavRef}>
           <MainNav
@@ -173,14 +176,17 @@ export default function Home() {
             showMenu={showMobileMenu}
             setShowMenu={setShowMobileMenu}
           >
+            {!showMobileMenu && (
+              <div className="flex flex-row gap-2.5">
+                <DestinationSelect />
+                <SearchInput selectedRoute={selectedRoute} className="w-full" />
+              </div>
+            )}
+
             <DateTimeSelect
               selectedDateTime={selectedDateTime}
               setSelectedDateTime={setSelectedDateTime}
             />
-
-            {!showMobileMenu && (
-              <SearchInput selectedRoute={selectedRoute} className="w-full" />
-            )}
 
             <button
               className={`md:text-md w-full rounded-md  border border-blue-700 bg-blue-700 p-2.5 
@@ -248,7 +254,7 @@ export default function Home() {
 
       {/* Errors and loading messages */}
       {isLoading ? (
-        <Alert className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-gray-50 dark:border-gray-50 dark:bg-gray-800">
+        <Alert className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 dark:border-gray-50 dark:bg-gray-800">
           <AlertCircle className="h-4 w-4" />
           {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
           <AlertDescription className="bg-transparent">
@@ -258,7 +264,7 @@ export default function Home() {
       ) : !!apiError ? (
         <Alert
           variant="destructive"
-          className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-gray-50 dark:border-gray-50 dark:bg-gray-800"
+          className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 dark:border-gray-50 dark:bg-gray-800"
         >
           <AlertCircle className="h-4 w-4" />
           {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}

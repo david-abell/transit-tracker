@@ -53,7 +53,7 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
     <nav
       ref={navRef}
       className="relative mx-auto flex min-h-[6rem] flex-row items-center justify-between
-       gap-2.5 border-gray-200 bg-gray-50 p-4 
+       gap-2.5 border-gray-200 p-4 
        dark:border-gray-700 dark:bg-gray-800 md:max-w-screen-2xl lg:px-10"
     >
       {showMenu ? (
@@ -90,7 +90,7 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
       >
         <ul
           id="navbar-hamburger"
-          className="mx-auto flex flex-col flex-wrap gap-4 bg-gray-50 px-4 pb-4 font-medium dark:border-gray-700 dark:bg-gray-800 lg:flex-row lg:pt-4"
+          className="mx-auto flex flex-col flex-wrap gap-4 px-4 pb-4 font-medium dark:border-gray-700 dark:bg-gray-800 lg:flex-row lg:pt-4"
         >
           {Children.map(children, (child: ReactNode) => {
             if (isValidElement(child)) {

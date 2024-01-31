@@ -213,7 +213,7 @@
     --blue-900: 224.4 64.3% 32.9%;
     --blue-950: 226.2 57% 21%;
 
-    --background: 0 0% 100%;
+    --background: var(--gray-50);
     --foreground: #1e293b;
 
     --muted: 210 40% 96.1%;
@@ -246,7 +246,7 @@
   }
 
   .dark {
-    --background: var(--slate-50);
+    --background: #1e293b;
     --foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
@@ -284,30 +284,6 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
 }
 
 body.modal-open {

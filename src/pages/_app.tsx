@@ -4,8 +4,10 @@ import "@/styles/globals.css";
 import "@/styles/leaflet.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { useRouterReady } from "@/hooks/useRouterReady";
 
 export default function App({ Component, pageProps }: AppProps) {
+  const isRouterReady = useRouterReady();
   return (
     <ErrorBoundary>
       <Head>
@@ -18,7 +20,7 @@ export default function App({ Component, pageProps }: AppProps) {
         enableSystem
         disableTransitionOnChange
       >
-        <Component {...pageProps} />
+        {isRouterReady ? <Component {...pageProps} /> : null}
       </ThemeProvider>
     </ErrorBoundary>
   );

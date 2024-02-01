@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQueryState } from "nuqs";
 import useRealtime from "@/hooks/useRealtime";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
@@ -13,7 +14,7 @@ import {
   initDateTimeValue,
 } from "@/lib/timeHelpers";
 import Modal from "@/components/Modal";
-import { useRouter } from "next/router";
+
 import useRouteId from "@/hooks/useRouteId";
 import { useSearchParams } from "next/navigation";
 import MainNav from "@/components/MainNav";
@@ -35,44 +36,24 @@ import { Button } from "@/components/ui/button";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   // query params state
-  const routeId = searchParams.get("routeId") || "";
-  const tripId = searchParams.get("tripId") || "";
-  const stopId = searchParams.get("stopId") || "";
-  const destinationStopId = searchParams.get("destId") || "";
+  const [routeId, setRouteId] = useQueryState("routeId");
+  const [tripId, setTripId] = useQueryState("tripId");
+  const [stopId, setStopId] = useQueryState("stopId");
+  const [destId, setDestId] = useQueryState("destId");
 
   // Query string helpers
-  const removeQueryParams = useCallback(
-    (param: string | string[]) => {
-      const queries = router.query;
-      if (Array.isArray(param)) {
-        param.forEach((el) => delete queries[el]);
-      } else {
-        delete queries[param];
-      }
-      return router.push({ query: queries }, undefined, { shallow: false });
-    },
-    [router],
-  );
+  const removeQueryParams = () => {
+    setRouteId("");
+    setTripId("");
+    setStopId("");
+    setDestId("");
+  };
 
-  const setQueryParams = useCallback(
-    (queries: Record<string, string | boolean>, path = "/") => {
-      const previous = router.query;
-
-      if ("destId" in previous) {
-        delete previous.destId;
-      }
-
-      return router.push({
-        pathname: path,
-        query: { ...previous, ...queries },
-      });
-    },
-    [router],
-  );
+  // clear Destination stop on state change
+  useEffect(() => {
+    setDestId("");
+  }, [routeId, tripId, stopId, setDestId]);
 
   // user input state
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
@@ -102,7 +83,7 @@ export default function Home() {
     selectedStop: destinationStop,
     error: destinationError,
     isLoading: isLoadingDestination,
-  } = useStopId(destinationStopId, true);
+  } = useStopId(destId, true);
 
   const { selectedTrip, isLoadingTrip, tripError } = useTrip(tripId);
 
@@ -123,6 +104,16 @@ export default function Home() {
   } = useRealtime(tripId);
 
   // derived state
+  const selectedStopIndex =
+    (!!stops &&
+      !!stopId &&
+      stops.findIndex((stop) => (stop.stopId = stopId))) ||
+    -1;
+  const isStopIndex =
+    selectedStopIndex !== -1 && selectedStopIndex < stops!.length;
+  const destinationStops =
+    stops && isStopIndex ? stops.slice(selectedStopIndex + 1) : undefined;
+
   const isLoading =
     isLoadingDestination ||
     isLoadingRoute ||
@@ -147,23 +138,24 @@ export default function Home() {
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
     setShowTripModal(false);
     const currentRouteId = routeId;
+    setTripId(tripId);
     if (newRouteId && currentRouteId !== newRouteId) {
-      setQueryParams({ tripId, routeId: newRouteId });
-    } else {
-      setQueryParams({ tripId });
+      setRouteId(newRouteId);
     }
   };
 
   const handleSelectedStop = (stopId: string) => {
-    setQueryParams({ stopId }).then(() => setShowTripModal(true));
+    setStopId(stopId).then(() => setShowTripModal(true));
   };
 
   const handleDestinationStop = (stopId: string) => {
-    setQueryParams({ destId: stopId });
+    setDestId(stopId);
   };
 
   const handleShowAllStops = () => {
-    removeQueryParams(["tripId", "stopId", "destId"]);
+    setTripId("");
+    setStopId("");
+    setDestId("");
   };
 
   return (
@@ -177,7 +169,7 @@ export default function Home() {
           >
             {!showMobileMenu && (
               <div className="flex flex-row gap-2.5">
-                <DestinationSelect />
+                <DestinationSelect stops={destinationStops} />
                 <SearchInput selectedRoute={selectedRoute} className="w-full" />
               </div>
             )}

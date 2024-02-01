@@ -6,7 +6,7 @@ import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
 import { StopTimeByStopIdApiResponse } from "@/pages/api/gtfs/static/stop-times/[tripId]";
 
-function useStopTimes(tripId: string) {
+function useStopTimes(tripId: string | null) {
   const {
     data: stopTimes,
     isLoading,

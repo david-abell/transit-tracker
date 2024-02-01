@@ -4,7 +4,7 @@ import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
 import { StopAPIResponse } from "@/pages/api/gtfs/static/stops/[stopId]";
 
-function useStopId(stopId: string, destination = false) {
+function useStopId(stopId: string | null, destination = false) {
   const {
     data: selectedStop,
     error,

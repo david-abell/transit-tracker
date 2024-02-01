@@ -6,7 +6,7 @@ import { ApiError } from "next/dist/server/api-utils";
 
 import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 
-function useShape(tripId: string) {
+function useShape(tripId: string | null) {
   const {
     data: shape,
     error,

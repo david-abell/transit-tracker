@@ -26,17 +26,17 @@ type Props = {
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
   selectedDateTime: string;
   selectedRoute: Route | undefined;
+  selectedStopId: string | null;
 };
 
 function TripSelect({
   handleSelectedTrip,
   selectedDateTime,
   selectedRoute,
+  selectedStopId,
 }: Props) {
   const { dialog } = useContext(DialogRefContext);
   const [showAllRoutes, setShowAllRoutes] = useState(!selectedRoute);
-  const searchParams = useSearchParams();
-  const selectedStopId = searchParams.get("stopId");
 
   // const matchesLarge = useMediaQuery("(min-width: 768px)");
 

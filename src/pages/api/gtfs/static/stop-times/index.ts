@@ -23,7 +23,8 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
     !dateTime ||
     typeof dateTime !== "string"
   ) {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const trips = await prisma.trip.findMany({
@@ -31,7 +32,8 @@ const handler: ApiHandler<StopTimesApiResponse> = async (req, res) => {
   });
 
   if (!trips.length) {
-    return res.status(StatusCodes.NOT_FOUND).end();
+    res.status(StatusCodes.NOT_FOUND).end();
+    return;
   }
 
   // Time variables

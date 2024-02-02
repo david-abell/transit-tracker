@@ -12,7 +12,8 @@ export const handler: ApiHandler<StopAPIResponse> = async (req, res) => {
   const { stopId } = req.query;
 
   if (!stopId || typeof stopId !== "string") {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const stop = await prisma.stop.findFirst({ where: { stopId } });

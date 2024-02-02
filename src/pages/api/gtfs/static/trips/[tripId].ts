@@ -11,7 +11,8 @@ export type TripIdAPIResponse = Trip;
 const handler: ApiHandler<TripIdAPIResponse> = async (req, res) => {
   const { tripId } = req.query;
   if (!tripId || typeof tripId !== "string") {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const trip = await prisma.trip.findFirst({ where: { tripId } });

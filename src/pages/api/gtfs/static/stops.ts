@@ -13,7 +13,8 @@ const handler: ApiHandler<StopsAPIResponse> = async (req, res) => {
   const { stopQuery = "" } = req.query;
 
   if (!stopQuery || typeof stopQuery !== "string") {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const startsWithQuery = `${stopQuery.toLowerCase().trim()}%`;

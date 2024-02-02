@@ -27,7 +27,8 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   if (Array.isArray(tripIds)) {
     // shouldn't happen
     console.error("Shouldn't happen: tripIds was an array...");
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   console.log("realtime called:", new Date().toLocaleString());
@@ -44,7 +45,8 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   if (cachedAdded && cachedUpdates) {
     if (!tripIds) {
       console.error("No tripIds received");
-      return res.status(StatusCodes.BAD_REQUEST).end();
+      res.status(StatusCodes.BAD_REQUEST).end();
+      return;
     }
 
     let idArray: string[] = [];

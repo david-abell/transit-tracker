@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useQueryState } from "nuqs";
+import { parseAsString, useQueryState } from "nuqs";
 import useRealtime from "@/hooks/useRealtime";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
@@ -16,7 +16,6 @@ import {
 import Modal from "@/components/Modal";
 
 import useRouteId from "@/hooks/useRouteId";
-import { useSearchParams } from "next/navigation";
 import MainNav from "@/components/MainNav";
 import { useElementSize, useWindowSize } from "usehooks-ts";
 import SavedStops from "@/components/SavedStops";
@@ -32,6 +31,7 @@ import useTrip from "@/hooks/useTrip";
 import Footer from "@/components/Footer";
 import DestinationSelect from "@/components/DestinationSelect";
 import { Button } from "@/components/ui/button";
+import { Stop, StopTime } from "@prisma/client";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,7 +40,10 @@ export default function Home() {
   const [routeId, setRouteId] = useQueryState("routeId");
   const [tripId, setTripId] = useQueryState("tripId");
   const [stopId, setStopId] = useQueryState("stopId");
-  const [destId, setDestId] = useQueryState("destId");
+  const [destId, setDestId] = useQueryState(
+    "destId",
+    parseAsString.withDefault(""),
+  );
 
   // Query string helpers
   const removeQueryParams = () => {
@@ -104,15 +107,29 @@ export default function Home() {
   } = useRealtime(tripId);
 
   // derived state
-  const selectedStopIndex =
-    (!!stops &&
-      !!stopId &&
-      stops.findIndex((stop) => (stop.stopId = stopId))) ||
-    -1;
-  const isStopIndex =
-    selectedStopIndex !== -1 && selectedStopIndex < stops!.length;
-  const destinationStops =
-    stops && isStopIndex ? stops.slice(selectedStopIndex + 1) : undefined;
+
+  const destinationStops: [Stop, StopTime][] = useMemo(() => {
+    if (!stopTimes?.length || !stopId) return [];
+
+    const selectedStopIndex = stopTimes?.findIndex(
+      (time) => time.stopId === stopId,
+    );
+
+    if (selectedStopIndex === -1 || selectedStopIndex >= stopTimes.length)
+      return [];
+
+    const times = stopTimes.slice(selectedStopIndex + 1);
+
+    const orderedStops: [Stop, StopTime][] = [];
+
+    times?.forEach((stopTime) => {
+      const stop = stopsById.get(stopTime.stopId);
+      if (!stop) return;
+      orderedStops.push([stop, stopTime]);
+    });
+
+    return orderedStops;
+  }, [stopId, stopTimes, stopsById]);
 
   const isLoading =
     isLoadingDestination ||
@@ -144,13 +161,21 @@ export default function Home() {
     }
   };
 
-  const handleSelectedStop = (stopId: string) => {
-    setStopId(stopId).then(() => setShowTripModal(true));
-  };
+  const handleSelectedStop = useCallback(
+    (stopId: string) => {
+      setStopId(stopId);
 
-  const handleDestinationStop = (stopId: string) => {
-    setDestId(stopId);
-  };
+      setShowTripModal(true);
+    },
+    [setStopId],
+  );
+
+  const handleDestinationStop = useCallback(
+    (stopId: string) => {
+      setDestId(stopId);
+    },
+    [setDestId],
+  );
 
   const handleShowAllStops = () => {
     setTripId("");
@@ -169,7 +194,7 @@ export default function Home() {
           >
             {!showMobileMenu && (
               <div className="flex flex-row gap-2.5">
-                <DestinationSelect stops={destinationStops} />
+                <DestinationSelect stopList={destinationStops} />
                 <SearchInput selectedRoute={selectedRoute} className="w-full" />
               </div>
             )}
@@ -208,6 +233,8 @@ export default function Home() {
           <MapComponent
             shape={shape}
             selectedDateTime={selectedDateTime}
+            selectedStopId={stopId}
+            stopTimes={stopTimes}
             stopTimesByStopId={stopTimesByStopId}
             setShowSavedStops={setShowSavedStops}
             stops={stops}
@@ -230,6 +257,7 @@ export default function Home() {
           handleSelectedTrip={handleSelectedTrip}
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}
+          selectedStopId={stopId}
         />
       </Modal>
 

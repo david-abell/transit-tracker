@@ -7,8 +7,8 @@ import { ApiError } from "next/dist/server/api-utils";
 import { StopsAPIResponse } from "@/pages/api/gtfs/static/stops";
 
 type Props = {
-  stopQuery?: string;
-  routeId?: string;
+  stopQuery?: string | null;
+  routeId?: string | null;
 };
 
 function useStops({ stopQuery }: Props): {
@@ -26,32 +26,33 @@ function useStops({ routeId }: Props): {
 };
 
 function useStops({ stopQuery, routeId }: Props) {
-  let params: URLSearchParams | undefined;
+  let params = "";
 
   if (stopQuery) {
-    params = new URLSearchParams({ stopQuery });
+    params = new URLSearchParams({ stopQuery }).toString();
   } else if (routeId) {
-    params = new URLSearchParams({ routeId });
+    params = new URLSearchParams({ routeId }).toString();
   }
 
   const subRoute = stopQuery ? "stops" : "route-stops";
+  const url = `/api/gtfs/static/${subRoute}?${params}`;
 
-  const shouldQuery = params !== undefined;
+  const shouldQuery = !!params;
 
   const {
     data: stops,
     error,
     isLoading,
   } = useSWR<StopsAPIResponse, ApiError>(
-    !!shouldQuery ? [`/api/gtfs/static/${subRoute}?${params}`] : null,
-    fetchHelper,
+    () => (!!shouldQuery ? [url, params.toString()] : null),
+    !!shouldQuery ? fetchHelper : null,
     skipRevalidationOptions,
   );
 
   const stopsById = new Map(
-    stops?.map((data) => {
-      const { stopId } = data;
-      return [stopId, data];
+    stops?.map((stop) => {
+      const { stopId } = stop;
+      return [stopId, stop];
     }),
   );
 

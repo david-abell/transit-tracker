@@ -16,7 +16,7 @@ type Props = {
   container?: RefObject<HTMLElement>;
 };
 
-function DestinationSelect({ stopList, container }: Props) {
+function StopSelect({ stopList, container }: Props) {
   const [destId, setDestId] = useQueryState(
     "destId",
     parseAsString.withDefault(""),
@@ -52,4 +52,4 @@ function DestinationSelect({ stopList, container }: Props) {
   );
 }
 
-export default DestinationSelect;
+export default StopSelect;

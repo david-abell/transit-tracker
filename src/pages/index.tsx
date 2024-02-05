@@ -202,7 +202,21 @@ export default function Home() {
               </NavItem>
 
               <NavItem>
-                <StopSelect stopList={destinationStops} container={navRef} />
+                <StopSelect
+                  stopList={stops ?? []}
+                  container={navRef}
+                  variant="pickup"
+                  handler={handleSelectedStop}
+                />
+              </NavItem>
+
+              <NavItem>
+                <StopSelect
+                  stopList={destinationStops}
+                  container={navRef}
+                  variant="dropoff"
+                  handler={handleDestinationStop}
+                />
               </NavItem>
             </div>
 

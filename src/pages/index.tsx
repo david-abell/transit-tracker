@@ -48,10 +48,10 @@ export default function Home() {
 
   // Query string helpers
   const removeQueryParams = () => {
-    setRouteId("");
-    setTripId("");
-    setStopId("");
-    setDestId("");
+    setRouteId(null);
+    setTripId(null);
+    setStopId(null);
+    setDestId(null);
   };
 
   // clear Destination stop on state change
@@ -181,9 +181,9 @@ export default function Home() {
   );
 
   const handleShowAllStops = () => {
-    setTripId("");
-    setStopId("");
-    setDestId("");
+    setTripId(null);
+    setStopId(null);
+    setDestId(null);
   };
 
   return (
@@ -197,7 +197,10 @@ export default function Home() {
             navRef={navRef}
           >
             <NavItem>
-              <SearchInput selectedRoute={selectedRoute} />
+              <SearchInput
+                selectedRoute={selectedRoute}
+                removeQueryParams={removeQueryParams}
+              />
             </NavItem>
 
             <NavItem>

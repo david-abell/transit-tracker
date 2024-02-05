@@ -1,8 +1,6 @@
 import { prisma } from "@/lib/db";
 import withErrorHandler from "@/lib/withErrorHandler";
 
-import type { Stop } from "@prisma/client";
-
 import { StatusCodes } from "http-status-codes";
 import { ApiHandler } from "@/lib/FetchHelper";
 import { StopsAPIResponse } from "./stops";
@@ -11,11 +9,12 @@ const handler: ApiHandler<StopsAPIResponse> = async (req, res) => {
   const { routeId } = req.query;
 
   if (!routeId || typeof routeId !== "string") {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const stops = await prisma.stop.findMany({
-    where: { stopTime: { some: { trip: { routeId: routeId } } } },
+    where: { stopTime: { some: { trip: { routeId } } } },
   });
 
   if (!stops || !stops.length) {

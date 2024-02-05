@@ -141,7 +141,7 @@ function Footer({
 
   return (
     <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto p-4 lg:max-w-7xl lg:px-10">
-      <div className="dark:bg-gray-800/90 rounded-lg bg-gray-50/90 p-4 text-slate-950 dark:text-white">
+      <div className="rounded-lg bg-background/90 p-4">
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1" className="border-none">
             <AccordionTrigger className="[&>svg]:h-[28px] [&>svg]:w-[28px] py-0 no-underline">

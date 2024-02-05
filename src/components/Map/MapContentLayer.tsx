@@ -39,17 +39,21 @@ import { DateTime } from "luxon";
 import useRealtime from "@/hooks/useRealtime";
 import useStopId from "@/hooks/useStopId";
 import { SavedStop } from "../SavedStops";
-import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+
+type StopWithTimes = { stop: Stop; times?: StopTime[] };
 
 type Props = {
   height: number;
   selectedDateTime: string;
-  tripId: string;
+  tripId: string | null;
   handleSelectedStop: (stopId: string) => void;
   handleDestinationStop: (stopId: string) => void;
   shape: LatLngTuple[] | undefined;
   stopsById: Map<string, Stop>;
+  stopTimes: StopTime[] | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
+  selectedStopId: string | null;
   setShowSavedStops: Dispatch<SetStateAction<boolean>>;
   stops: Stop[] | undefined;
 };
@@ -59,24 +63,22 @@ function MapContentLayer({
   handleDestinationStop,
   height,
   selectedDateTime,
+  stopTimes,
   stopTimesByStopId,
   setShowSavedStops,
   shape,
   stops,
   stopsById,
+  selectedStopId,
   tripId,
 }: Props) {
   const map = useMap();
   const markerGroupRef = useRef<L.FeatureGroup>(null);
 
-  const searchParams = useSearchParams();
-
-  // query params state
-  const selectedStopId = searchParams.get("stopId") || "";
-
   const stopIds = useMemo(() => {
     return stops ? stops.map(({ stopId }) => stopId) : [];
   }, [stops]);
+
   const previousStopIds = usePrevious(stopIds);
 
   const [savedStops, setSavedStops] = useLocalStorage<SavedStop>(
@@ -84,7 +86,7 @@ function MapContentLayer({
     {},
   );
 
-  const addStopToSaved = (stopId: string, stopName: string | null) => {
+  const handleSaveStop = (stopId: string, stopName: string | null) => {
     setSavedStops((prev) => {
       const stops = { ...prev };
 
@@ -96,8 +98,11 @@ function MapContentLayer({
   };
 
   const { selectedStop } = useStopId(selectedStopId);
-  const selectedStoptime = stopTimesByStopId.get(selectedStopId);
 
+  const selectedStoptime = useMemo(
+    () => selectedStopId && stopTimesByStopId.get(selectedStopId),
+    [selectedStopId, stopTimesByStopId],
+  );
   useEffect(() => {
     if (stopIds.length && isEqual(stopIds, previousStopIds)) {
       return;
@@ -129,11 +134,20 @@ function MapContentLayer({
   const { realtimeScheduledByTripId, addedTripStopTimes, realtimeAddedTrips } =
     useRealtime(tripId);
 
-  const realtimeTrip = realtimeScheduledByTripId.get(tripId);
+  const realtimeTrip = useMemo(
+    () => !!tripId && realtimeScheduledByTripId.get(tripId),
+    [realtimeScheduledByTripId, tripId],
+  );
   const { stopTimeUpdate } = realtimeTrip || {};
   const lastStopTimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
 
-  const isAddedTrip = realtimeTrip?.trip.scheduleRelationship === "ADDED";
+  const isAddedTrip = useMemo(
+    () =>
+      !!realtimeTrip
+        ? realtimeTrip.trip.scheduleRelationship === "ADDED"
+        : false,
+    [realtimeTrip],
+  );
 
   // const addedTripStops =
   //   isAddedTrip &&
@@ -145,9 +159,9 @@ function MapContentLayer({
     setCount(count + 1);
   }, 1000);
 
-  const isToday = DateTime.now().hasSame(
-    parseDatetimeLocale(selectedDateTime),
-    "day",
+  const isToday = useMemo(
+    () => DateTime.now().hasSame(parseDatetimeLocale(selectedDateTime), "day"),
+    [selectedDateTime],
   );
 
   const { vehiclePosition, bearing, vehicleError } = useVehiclePosition({
@@ -155,190 +169,205 @@ function MapContentLayer({
     shape,
     stopIds,
     stopsById,
-    stopTimeUpdate: realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate,
+    stopTimeUpdate: tripId
+      ? realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate
+      : undefined,
     options: { skip: !isToday || isAddedTrip },
   });
 
-  const currentStops = stops
-    ? stops
-    : selectedStop
-      ? [selectedStop]
-      : undefined;
+  // Some stops are visited twice
+  // don't render them twice if no trip Selected
+  const stopList: StopWithTimes[] = useMemo(() => {
+    if (stopTimes?.length) {
+      const orderedStops: Map<string, StopWithTimes> = new Map();
+
+      stopTimes.forEach((stopTime) => {
+        const stop = stopsById.get(stopTime.stopId);
+        if (!stop) return;
+
+        if (orderedStops.has(stopTime.stopId)) {
+          const { stop, times } = orderedStops.get(stopTime.stopId)!;
+          orderedStops.set(stopTime.stopId, {
+            stop,
+            times: times?.concat(stopTime),
+          });
+        } else {
+          orderedStops.set(stopTime.stopId, { stop, times: [stopTime] });
+        }
+      });
+      return [...orderedStops.values()];
+    }
+
+    if (stops?.length) {
+      const orderedStops: Map<string, StopWithTimes> = new Map();
+      stops.forEach((stop) => {
+        if (!orderedStops.has(stop.stopId)) {
+          orderedStops.set(stop.stopId, { stop });
+        }
+      });
+      return [...orderedStops.values()];
+    }
+
+    if (selectedStop) {
+      return [{ stop: selectedStop }];
+    }
+
+    return [];
+  }, [selectedStop, stopTimes, stops, stopsById]);
 
   return (
-    <>
-      <LayersControl>
-        {/* Vehicle marker */}
-        <LayersControl.Overlay name="Estimated Vehicle Position" checked>
-          <LayerGroup>
-            {/* width required for icon not to be 0*0 px */}
-            <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>
-              {!vehicleError && (
-                <Bus position={vehiclePosition} rotationAngle={bearing} />
-              )}
-            </Pane>
-          </LayerGroup>
-        </LayersControl.Overlay>
+    <LayersControl>
+      {/* Vehicle marker */}
+      <LayersControl.Overlay name="Estimated Vehicle Position" checked>
+        <LayerGroup>
+          {/* width required for icon not to be 0*0 px */}
+          <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>
+            {!vehicleError && (
+              <Bus position={vehiclePosition} rotationAngle={bearing} />
+            )}
+          </Pane>
+        </LayerGroup>
+      </LayersControl.Overlay>
 
-        {/* Route stop markers */}
-        <LayersControl.Overlay name="Stops" checked>
-          <FeatureGroup ref={markerGroupRef}>
-            {currentStops &&
-              currentStops.flatMap(
-                ({ stopLat, stopLon, stopName, stopId, stopCode }) => {
-                  if (!stopLat || !stopLon) {
-                    return [];
-                  }
+      {/* Route stop markers */}
+      <LayersControl.Overlay name="Stops" checked>
+        <FeatureGroup ref={markerGroupRef}>
+          {stopList &&
+            stopList.map(({ stop, times }) => {
+              const { stopLat, stopLon, stopName, stopId, stopCode } = stop;
+              if (!stopLat || !stopLon) {
+                return [];
+              }
 
-                  const { arrivalTime, departureTime, stopSequence } =
-                    stopTimesByStopId.get(stopId) ||
-                    addedTripStopTimes.get(stopId) ||
-                    {};
+              const { arrivalTime, departureTime, stopSequence } =
+                times?.at(0) || {};
 
-                  // When trip selected show only stops on that trip
-                  if (tripId && !arrivalTime) return [];
+              const closestStopUpdate =
+                (stopTimeUpdate &&
+                  stopTimeUpdate.find(
+                    ({ stopId, stopSequence: realtimeSequence }) =>
+                      stopId === selectedStopId ||
+                      (stopSequence && realtimeSequence >= stopSequence),
+                  )) ||
+                lastStopTimeUpdate;
 
-                  const closestStopUpdate =
-                    (stopTimeUpdate &&
-                      stopTimeUpdate.find(
-                        ({ stopId, stopSequence: realtimeSequence }) =>
-                          stopId === selectedStopId ||
-                          (stopSequence && realtimeSequence >= stopSequence),
-                      )) ||
-                    lastStopTimeUpdate;
+              // arrival delay is sometimes very wrong from realtime api exa. -1687598071
+              const { arrival, departure } = closestStopUpdate || {};
 
-                  // arrival delay is sometimes very wrong from realtime api exa. -1687598071
-                  const { arrival, departure } = closestStopUpdate || {};
+              const delayedArrivalTime = getDelayedTime(
+                departureTime,
+                arrival?.delay || departure?.delay,
+              );
 
-                  const delayedArrivalTime = getDelayedTime(
-                    departureTime,
-                    arrival?.delay || departure?.delay,
-                  );
+              const prettyDelay = formatDelay(
+                arrival?.delay || departure?.delay,
+              );
 
-                  const prettyDelay = formatDelay(
-                    arrival?.delay || departure?.delay,
-                  );
+              const isValidDestination =
+                (selectedStoptime &&
+                  stopSequence &&
+                  selectedStoptime.stopSequence < stopSequence) ||
+                false;
 
-                  const isValidDestination =
-                    (selectedStoptime &&
-                      stopSequence &&
-                      selectedStoptime.stopSequence < stopSequence) ||
-                    false;
+              return (
+                <Marker
+                  key={"mm" + stopId + stopSequence}
+                  position={[stopLat, stopLon]}
+                  icon={stopMarkerIcon({
+                    isUpcoming:
+                      !!arrivalTime &&
+                      !isPastArrivalTime(
+                        delayedArrivalTime || arrivalTime,
+                        selectedDateTime,
+                      ),
+                    isTripSelected: !!tripId,
+                    isCurrent: stopId === selectedStopId,
+                  })}
 
-                  return (
-                    <Marker
-                      key={stopId}
-                      position={[stopLat, stopLon]}
-                      icon={stopMarkerIcon({
-                        isUpcoming:
-                          !!arrivalTime &&
-                          !isPastArrivalTime(
-                            delayedArrivalTime || arrivalTime,
-                            selectedDateTime,
-                          ),
-                        isTripSelected: !!tripId,
-                        isCurrent: stopId === selectedStopId,
-                      })}
+                  // eventHandlers={{
+                  //   click: () => handleSelectedStop(stopId),
+                  // }}
+                >
+                  <Popup interactive>
+                    <h3 className="text-lg font-bold">
+                      <span className="text-sm font-normal">Stop </span>
+                      <span className="text-sm font-normal">{stopId}</span>
+                      <br />
+                      <span className="text-sm font-normal">
+                        {stopCode ?? stopId}
+                      </span>
+                      <br />
+                      {stopName}
+                    </h3>
 
-                      // eventHandlers={{
-                      //   click: () => handleSelectedStop(stopId),
-                      // }}
-                    >
-                      <Popup>
-                        <h3 className="text-lg font-bold">
-                          <span className="text-sm font-normal">Stop </span>{" "}
-                          <span className="text-sm font-normal">
-                            {stopCode ?? stopId}
-                          </span>
-                          <br />
-                          {stopName}
-                        </h3>
-
-                        {!!arrivalTime && (
-                          <p className="!mb-0">
-                            <strong>Scheduled arrival</strong>:
-                            <span> {arrivalTime}</span>
+                    {!!arrivalTime && (
+                      <p className="!mb-0">
+                        <strong>Scheduled arrival</strong>:
+                        <span> {arrivalTime}</span>
+                      </p>
+                    )}
+                    {!!tripId && !!realtimeTrip && !!delayedArrivalTime && (
+                      <>
+                        <p className="tooltip-schedule-change !mt-0">
+                          <strong>Estimated arrival</strong>:{" "}
+                          {delayedArrivalTime}
+                        </p>
+                        {!!prettyDelay && (
+                          <p>
+                            <strong>Delayed by: </strong>
+                            <span className="text-red-900">{prettyDelay}</span>
                           </p>
                         )}
-                        {!!tripId && !!realtimeTrip && !!delayedArrivalTime && (
-                          <>
-                            <p className="tooltip-schedule-change !mt-0">
-                              <strong>Estimated arrival</strong>:{" "}
-                              {delayedArrivalTime}
-                            </p>
-                            {!!prettyDelay && (
-                              <p>
-                                <strong>Delayed by: </strong>
-                                <span className="text-red-900">
-                                  {prettyDelay}
-                                </span>
-                              </p>
-                            )}
-                          </>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleSelectedStop(stopId)}
-                          className="mx-auto my-2 block w-full rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
-                         focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700
-                          dark:focus:ring-blue-800"
+                      </>
+                    )}
+                    <div className="flex flex-col gap-2 mt-2">
+                      <Button onClick={() => handleSelectedStop(stopId)}>
+                        Upcoming trips
+                      </Button>
+                      {!!selectedStopId && isValidDestination && (
+                        <Button onClick={() => handleDestinationStop(stopId)}>
+                          set Destination
+                        </Button>
+                      )}
+                      <Button
+                        onClick={() => handleSaveStop(stopId, stopName)}
+                        className="flex flex-row justify-between gap-1"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          className="inline-block h-5 w-5 text-yellow-400"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          xmlns="http://www.w3.org/2000/svg"
                         >
-                          Upcoming trips
-                        </button>
-                        {!!selectedStopId && isValidDestination && (
-                          <button
-                            type="button"
-                            onClick={() => handleDestinationStop(stopId)}
-                            className="mx-auto my-2 block w-full rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
-                         focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700
-                          dark:focus:ring-blue-800"
-                          >
-                            set Destination
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => addStopToSaved(stopId, stopName)}
-                          className="mx-auto my-2 flex w-full flex-row justify-center gap-1 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800
-                         focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700
-                          dark:focus:ring-blue-800"
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                        <span>save to favourites</span>
+                        <svg
+                          aria-hidden="true"
+                          className="inline-block h-5 w-5 text-yellow-400"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          xmlns="http://www.w3.org/2000/svg"
                         >
-                          <svg
-                            aria-hidden="true"
-                            className="inline-block h-5 w-5 text-yellow-400"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                          </svg>
-                          <span>Add to favorites</span>
-                          <svg
-                            aria-hidden="true"
-                            className="inline-block h-5 w-5 text-yellow-400"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                          </svg>
-                        </button>
-                      </Popup>
-                    </Marker>
-                  );
-                },
-              )}
-          </FeatureGroup>
-        </LayersControl.Overlay>
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                      </Button>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+        </FeatureGroup>
+      </LayersControl.Overlay>
 
-        {/* Trip line shape */}
-        {!!shape && (
-          <LayersControl.Overlay name="Route Path" checked>
-            <Polyline pathOptions={{ color: "firebrick" }} positions={shape} />
-          </LayersControl.Overlay>
-        )}
-      </LayersControl>
-    </>
+      {/* Trip line shape */}
+      {!!shape && (
+        <LayersControl.Overlay name="Route Path" checked>
+          <Polyline pathOptions={{ color: "firebrick" }} positions={shape} />
+        </LayersControl.Overlay>
+      )}
+    </LayersControl>
   );
 }
 

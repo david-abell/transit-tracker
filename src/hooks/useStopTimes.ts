@@ -4,14 +4,13 @@ import { StopTime } from "@prisma/client";
 import { fetchHelper } from "@/lib/FetchHelper";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
-import { StopTimeByStopIdApiResponse } from "@/pages/api/gtfs/static/stop-times/[tripId]";
 
-function useStopTimes(tripId: string) {
+function useStopTimes(tripId: string | null) {
   const {
     data: stopTimes,
     isLoading,
     error,
-  } = useSWR<StopTimeByStopIdApiResponse, ApiError>(
+  } = useSWR<StopTime[], ApiError>(
     !!tripId && tripId
       ? [`/api/gtfs/static/stop-times/${tripId}`, tripId]
       : null,

@@ -26,17 +26,17 @@ type Props = {
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
   selectedDateTime: string;
   selectedRoute: Route | undefined;
+  selectedStopId: string | null;
 };
 
 function TripSelect({
   handleSelectedTrip,
   selectedDateTime,
   selectedRoute,
+  selectedStopId,
 }: Props) {
   const { dialog } = useContext(DialogRefContext);
   const [showAllRoutes, setShowAllRoutes] = useState(!selectedRoute);
-  const searchParams = useSearchParams();
-  const selectedStopId = searchParams.get("stopId");
 
   // const matchesLarge = useMediaQuery("(min-width: 768px)");
 
@@ -107,7 +107,7 @@ function TripSelect({
           <li className="relative h-full w-full">
             <Alert
               variant="destructive"
-              className="pointer-events-none absolute top-16 w-full  -translate-y-1/2 border-gray-400 bg-gray-50 dark:border-gray-50 dark:bg-gray-800"
+              className="pointer-events-none absolute top-16 w-full -translate-y-1/2 border-gray-400 dark:border-gray-50"
             >
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Trips failed to load.</AlertTitle>

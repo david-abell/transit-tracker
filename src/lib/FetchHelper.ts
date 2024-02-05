@@ -5,7 +5,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { TripIdAPIResponse } from "@/pages/api/gtfs/static/trips/[tripId]";
 import { RouteAPIResponse } from "@/pages/api/gtfs/static/route";
 import { StopTimesApiResponse } from "@/pages/api/gtfs/static/stop-times";
-import { StopTimeByStopIdApiResponse } from "@/pages/api/gtfs/static/stop-times/[tripId]";
 import { SingleRouteAPIResponse } from "@/pages/api/gtfs/static/route/[routeId]";
 import { StopAPIResponse } from "@/pages/api/gtfs/static/stops/[stopId]";
 import { CalendarAPIResponse } from "@/pages/api/gtfs/static/calendar";
@@ -14,12 +13,13 @@ import { StopsAPIResponse } from "@/pages/api/gtfs/static/stops";
 import { TripAPIResponse } from "@/pages/api/gtfs/static/trips";
 import { UpcomingTripsAPIResponse } from "@/pages/api/gtfs/static/upcoming";
 import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
+import { StopTime } from "@prisma/client";
 
 type ApiResponse =
   | SingleRouteAPIResponse
   | RouteAPIResponse
   | StopTimesApiResponse
-  | StopTimeByStopIdApiResponse
+  | StopTime[]
   | StopsAPIResponse
   | StopAPIResponse
   | TripIdAPIResponse
@@ -50,7 +50,6 @@ export const fetchHelper: FetchHelper = async (input: RequestInfo) => {
       body = await response.json();
 
       if (typeof body === "string" && body.length) {
-        console.log(response.status, response.statusText);
         throw new Error(`${response.status}: ${response.statusText}`);
       }
 

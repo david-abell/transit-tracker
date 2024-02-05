@@ -6,20 +6,20 @@ import { StatusCodes } from "http-status-codes";
 import type { StopTime } from "@prisma/client";
 import { ApiHandler } from "@/lib/FetchHelper";
 
-export type StopTimeByStopIdApiResponse = StopTime[];
-
-const handler: ApiHandler<StopTimeByStopIdApiResponse> = async (req, res) => {
+const handler: ApiHandler<StopTime[]> = async (req, res) => {
   const { tripId } = req.query;
 
   if (!tripId?.length) {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   if (typeof tripId !== "string") {
     console.error(
       `api/Stop-times: expected tripId to be a string, received ${typeof tripId}: ${typeof tripId}.`,
     );
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const stopTimes = await prisma.stopTime.findMany({

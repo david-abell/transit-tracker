@@ -14,7 +14,8 @@ const handler: ApiHandler<ShapeAPIResponse> = async (req, res) => {
   const { tripId } = req.query;
 
   if (!tripId || typeof tripId !== "string") {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const shapes = await prisma.$queryRaw<Shape[]>`

@@ -1,7 +1,8 @@
 "use-client";
 import Image from "next/image";
 import { Inter } from "next/font/google";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { parseAsString, useQueryState } from "nuqs";
 import useRealtime from "@/hooks/useRealtime";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
@@ -13,9 +14,8 @@ import {
   initDateTimeValue,
 } from "@/lib/timeHelpers";
 import Modal from "@/components/Modal";
-import { useRouter } from "next/router";
+
 import useRouteId from "@/hooks/useRouteId";
-import { useSearchParams } from "next/navigation";
 import MainNav from "@/components/MainNav";
 import { useElementSize, useWindowSize } from "usehooks-ts";
 import SavedStops from "@/components/SavedStops";
@@ -29,48 +29,35 @@ import useStopTimes from "@/hooks/useStopTimes";
 import useStops from "@/hooks/useStops";
 import useTrip from "@/hooks/useTrip";
 import Footer from "@/components/Footer";
+import DestinationSelect from "@/components/DestinationSelect";
+import { Button } from "@/components/ui/button";
+import { Stop, StopTime } from "@prisma/client";
+import NavItem from "@/components/NavItem";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   // query params state
-  const routeId = searchParams.get("routeId") || "";
-  const tripId = searchParams.get("tripId") || "";
-  const stopId = searchParams.get("stopId") || "";
-  const destinationStopId = searchParams.get("destId") || "";
+  const [routeId, setRouteId] = useQueryState("routeId");
+  const [tripId, setTripId] = useQueryState("tripId");
+  const [stopId, setStopId] = useQueryState("stopId");
+  const [destId, setDestId] = useQueryState(
+    "destId",
+    parseAsString.withDefault(""),
+  );
 
   // Query string helpers
-  const removeQueryParams = useCallback(
-    (param: string | string[]) => {
-      const queries = router.query;
-      if (Array.isArray(param)) {
-        param.forEach((el) => delete queries[el]);
-      } else {
-        delete queries[param];
-      }
-      return router.push({ query: queries }, undefined, { shallow: false });
-    },
-    [router],
-  );
+  const removeQueryParams = () => {
+    setRouteId("");
+    setTripId("");
+    setStopId("");
+    setDestId("");
+  };
 
-  const setQueryParams = useCallback(
-    (queries: Record<string, string | boolean>, path = "/") => {
-      const previous = router.query;
-
-      if ("destId" in previous) {
-        delete previous.destId;
-      }
-
-      return router.push({
-        pathname: path,
-        query: { ...previous, ...queries },
-      });
-    },
-    [router],
-  );
+  // clear Destination stop on state change
+  useEffect(() => {
+    setDestId("");
+  }, [routeId, tripId, stopId, setDestId]);
 
   // user input state
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
@@ -81,7 +68,9 @@ export default function Home() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const { height: windowHeight } = useWindowSize();
-  const [NavRef, { height: navHeight }] = useElementSize();
+  const [navContainer, { height: navHeight }] =
+    useElementSize<HTMLDivElement>();
+  const navRef = useRef<HTMLDivElement>(null);
 
   // static schedule data
   const {
@@ -100,7 +89,7 @@ export default function Home() {
     selectedStop: destinationStop,
     error: destinationError,
     isLoading: isLoadingDestination,
-  } = useStopId(destinationStopId, true);
+  } = useStopId(destId, true);
 
   const { selectedTrip, isLoadingTrip, tripError } = useTrip(tripId);
 
@@ -121,6 +110,30 @@ export default function Home() {
   } = useRealtime(tripId);
 
   // derived state
+
+  const destinationStops: [Stop, StopTime][] = useMemo(() => {
+    if (!stopTimes?.length || !stopId) return [];
+
+    const selectedStopIndex = stopTimes?.findIndex(
+      (time) => time.stopId === stopId,
+    );
+
+    if (selectedStopIndex === -1 || selectedStopIndex >= stopTimes.length)
+      return [];
+
+    const times = stopTimes.slice(selectedStopIndex + 1);
+
+    const orderedStops: [Stop, StopTime][] = [];
+
+    times?.forEach((stopTime) => {
+      const stop = stopsById.get(stopTime.stopId);
+      if (!stop) return;
+      orderedStops.push([stop, stopTime]);
+    });
+
+    return orderedStops;
+  }, [stopId, stopTimes, stopsById]);
+
   const isLoading =
     isLoadingDestination ||
     isLoadingRoute ||
@@ -145,76 +158,100 @@ export default function Home() {
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
     setShowTripModal(false);
     const currentRouteId = routeId;
+    setTripId(tripId);
     if (newRouteId && currentRouteId !== newRouteId) {
-      setQueryParams({ tripId, routeId: newRouteId });
-    } else {
-      setQueryParams({ tripId });
+      setRouteId(newRouteId);
     }
   };
 
-  const handleSelectedStop = (stopId: string) => {
-    setQueryParams({ stopId }).then(() => setShowTripModal(true));
-  };
+  const handleSelectedStop = useCallback(
+    (stopId: string) => {
+      setStopId(stopId);
 
-  const handleDestinationStop = (stopId: string) => {
-    setQueryParams({ destId: stopId });
-  };
+      setShowTripModal(true);
+    },
+    [setStopId],
+  );
+
+  const handleDestinationStop = useCallback(
+    (stopId: string) => {
+      setDestId(stopId);
+    },
+    [setDestId],
+  );
 
   const handleShowAllStops = () => {
-    removeQueryParams(["tripId", "stopId", "destId"]);
+    setTripId("");
+    setStopId("");
+    setDestId("");
   };
 
   return (
-    <main className="flex min-h-[100svh] flex-col items-center justify-between bg-gray-50 text-slate-950 dark:bg-gray-800 dark:text-white">
+    <main className="flex min-h-[100svh] flex-col items-center justify-between text-slate-950 dark:text-white">
       <div className="relative w-full">
-        <div ref={NavRef}>
+        <div ref={navContainer}>
           <MainNav
             selectedRoute={selectedRoute}
             showMenu={showMobileMenu}
             setShowMenu={setShowMobileMenu}
+            navRef={navRef}
           >
-            <DateTimeSelect
-              selectedDateTime={selectedDateTime}
-              setSelectedDateTime={setSelectedDateTime}
-            />
+            <div className="flex flex-col row-span-2 gap-2.5 max-w-[600px] max-md:w-full">
+              <NavItem>
+                <SearchInput selectedRoute={selectedRoute} />
+              </NavItem>
 
-            {!showMobileMenu && (
-              <SearchInput selectedRoute={selectedRoute} className="w-full" />
-            )}
+              <NavItem>
+                <DestinationSelect
+                  stopList={destinationStops}
+                  container={navRef}
+                />
+              </NavItem>
+            </div>
 
-            <button
-              className={`md:text-md w-full rounded-md  border border-blue-700 bg-blue-700 p-2.5 
-              text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 
-              focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 lg:w-auto lg:flex-none`}
-              onClick={handleShowAllStops}
-              disabled={!routeId}
-            >
-              Show all stops
-            </button>
+            <NavItem className="lg:row-span-2 ">
+              <DateTimeSelect
+                selectedDateTime={selectedDateTime}
+                setSelectedDateTime={setSelectedDateTime}
+                className=""
+              />
+            </NavItem>
 
-            <button
-              className={`md:text-md flex w-full  flex-row items-center justify-center gap-1 rounded-md border border-blue-700 
-              bg-blue-700 p-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4
-              focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 lg:w-auto lg:flex-none`}
-              onClick={() => setShowSavedStops(true)}
-            >
-              <svg
-                aria-hidden="true"
-                className="inline-block h-5 w-5 text-yellow-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
+            <NavItem>
+              <Button
+                className="lg:w-36 w-full"
+                onClick={() => setShowSavedStops(true)}
               >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-              </svg>
-              <span>Favorite stops</span>
-            </button>
+                <svg
+                  aria-hidden="true"
+                  className="inline-block h-5 w-5 text-yellow-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+                <span>Favourites</span>
+              </Button>
+            </NavItem>
+
+            <NavItem>
+              <Button
+                onClick={handleShowAllStops}
+                disabled={!routeId}
+                className="lg:w-36 w-full"
+              >
+                Show all stops
+              </Button>
+            </NavItem>
           </MainNav>
         </div>
         <div className="relative">
           <MapComponent
             shape={shape}
             selectedDateTime={selectedDateTime}
+            selectedStopId={stopId}
+            stopTimes={stopTimes}
             stopTimesByStopId={stopTimesByStopId}
             setShowSavedStops={setShowSavedStops}
             stops={stops}
@@ -237,6 +274,7 @@ export default function Home() {
           handleSelectedTrip={handleSelectedTrip}
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}
+          selectedStopId={stopId}
         />
       </Modal>
 
@@ -248,7 +286,7 @@ export default function Home() {
 
       {/* Errors and loading messages */}
       {isLoading ? (
-        <Alert className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-gray-50 dark:border-gray-50 dark:bg-gray-800">
+        <Alert className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 dark:border-gray-50">
           <AlertCircle className="h-4 w-4" />
           {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
           <AlertDescription className="bg-transparent">
@@ -258,7 +296,7 @@ export default function Home() {
       ) : !!apiError ? (
         <Alert
           variant="destructive"
-          className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 bg-gray-50 dark:border-gray-50 dark:bg-gray-800"
+          className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 dark:border-gray-50"
         >
           <AlertCircle className="h-4 w-4" />
           {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}

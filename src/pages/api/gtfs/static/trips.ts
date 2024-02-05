@@ -43,7 +43,8 @@ const handler: ApiHandler<TripAPIResponse> = async (req, res) => {
     !dateTime ||
     typeof dateTime !== "string"
   ) {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const trips = await findOrderedTrips(routeId, dateTime);
@@ -55,7 +56,7 @@ const handler: ApiHandler<TripAPIResponse> = async (req, res) => {
   }
 
   if (!trips) {
-    return res.status(StatusCodes.OK).end();
+    return res.status(StatusCodes.OK).json([]);
   }
 
   return res.status(StatusCodes.OK).json(camelcaseKeys(trips));

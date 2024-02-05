@@ -71,7 +71,7 @@ export default function Sidebar({
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       {/* <SheetTrigger>Open</SheetTrigger> */}
-      <SheetContent className="bg-gray-50 text-slate-950 dark:bg-gray-800 dark:text-white">
+      <SheetContent>
         <SheetHeader>
           <SheetTitle>Favorite Stops</SheetTitle>
           <div>
@@ -102,7 +102,7 @@ export default function Sidebar({
                       <button
                         type="button"
                         onClick={() => removeStop(stopId)}
-                        className="flex items-center border-b border-gray-200 bg-gray-50 p-1.5 text-gray-400 ring-inset hover:bg-gray-100 hover:text-red-900 focus-visible:ring-2 focus-visible:ring-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-red-600"
+                        className="flex items-center border-b border-gray-200 p-1.5 ring-inset hover:bg-gray-100 hover:text-red-900 focus-visible:ring-2 focus-visible:ring-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-red-600"
                       >
                         <span className="sr-only">Delete item</span>
                         <svg

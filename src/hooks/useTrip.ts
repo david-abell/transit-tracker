@@ -6,7 +6,7 @@ import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
 import { TripIdAPIResponse } from "@/pages/api/gtfs/static/trips/[tripId]";
 
-function useTrip(tripId: string) {
+function useTrip(tripId: string | null) {
   const {
     data: selectedTrip,
     error,

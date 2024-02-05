@@ -12,7 +12,8 @@ const handler: ApiHandler<CalendarAPIResponse> = async (req, res) => {
   const { serviceId } = req.query;
 
   if (!serviceId || typeof serviceId !== "string") {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const service = await prisma.calendar.findFirst({ where: { serviceId } });

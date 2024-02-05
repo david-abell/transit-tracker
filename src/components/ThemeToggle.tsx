@@ -1,29 +1,24 @@
 "use-client";
-import { useEffect } from "react";
-import { useDarkMode } from "usehooks-ts";
+import { useTheme } from "next-themes";
+import { Button } from "./ui/button";
 
 type Props = { className?: string };
 
 export default function ThemeToggle({ className = "" }: Props) {
-  const { isDarkMode, toggle, enable, disable } = useDarkMode(false);
+  const { setTheme, theme } = useTheme();
 
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-      // enable();
-    } else document.documentElement.classList.remove("dark");
-    // disable();
-  }, [disable, enable, isDarkMode]);
+  const handleSetTheme = () => {
+    if (theme === "light") {
+      setTheme("dark");
+    } else {
+      setTheme("light");
+    }
+  };
 
   return (
     <div className={className}>
-      <button
-        id="theme-toggle"
-        type="button"
-        onClick={toggle}
-        className="rounded-lg p-2.5 text-sm text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-      >
-        {isDarkMode ? (
+      <Button id="theme-toggle" size="icon" onClick={handleSetTheme}>
+        {theme === "dark" ? (
           <svg
             id="theme-toggle-dark-icon"
             className="h-5 w-5"
@@ -48,7 +43,7 @@ export default function ThemeToggle({ className = "" }: Props) {
             ></path>
           </svg>
         )}
-      </button>
+      </Button>
     </div>
   );
 }

@@ -13,7 +13,8 @@ const handler: ApiHandler<RouteAPIResponse> = async (req, res) => {
   const { routeName = "" } = req.query;
 
   if (!routeName || typeof routeName !== "string") {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const likeShortNameQuery = `${routeName}%`;

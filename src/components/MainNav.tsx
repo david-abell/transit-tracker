@@ -1,17 +1,15 @@
 "use-client";
-import { Route } from "@prisma/client";
+import { Route, Stop, StopTime } from "@prisma/client";
 import {
   ReactNode,
-  Children,
-  isValidElement,
   useEffect,
-  useRef,
   Dispatch,
   SetStateAction,
+  RefObject,
 } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import SearchInput from "./SearchInput";
 import dynamic from "next/dynamic";
+import { Button } from "./ui/button";
 
 const ThemeToggle = dynamic(() => import("./ThemeToggle"), { ssr: false });
 
@@ -20,11 +18,18 @@ type Props = {
   selectedRoute: Route | undefined;
   showMenu: boolean;
   setShowMenu: Dispatch<SetStateAction<boolean>>;
+  navRef: RefObject<HTMLElement>;
 };
 
-function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
-  const navRef = useRef<HTMLElement>(null);
+function MainNav({
+  children,
+  selectedRoute,
+  showMenu,
+  setShowMenu,
+  navRef,
+}: Props) {
   const isMediumScreen = useMediaQuery("(min-width: 768px)");
+  const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
   useEffect(() => {
     const ref = navRef.current;
@@ -41,7 +46,7 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside, true);
     };
-  }, [setShowMenu, showMenu]);
+  }, [navRef, setShowMenu, showMenu]);
 
   useEffect(() => {
     if (isMediumScreen) {
@@ -53,16 +58,16 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
     <nav
       ref={navRef}
       className="relative mx-auto flex min-h-[6rem] flex-row items-center justify-between
-       gap-2.5 border-gray-200 bg-gray-50 p-4 
-       dark:border-gray-700 dark:bg-gray-800 md:max-w-screen-2xl lg:px-10"
+       gap-4 border-gray-200 p-4 
+       dark:border-gray-700 md:max-w-screen-2xl lg:px-10"
     >
-      {showMenu ? (
+      {!isLargeScreen && (
         <>
           {!!selectedRoute && (
-            <div className="flex items-baseline dark:text-white ">
+            <div className="flex items-baseline">
               {!!selectedRoute.routeShortName && (
                 <>
-                  <span className="inline-block whitespace-nowrap text-base font-bold md:text-2xl">
+                  <span className="inline-block whitespace-nowrap font-bold text-xl">
                     {selectedRoute.routeShortName}
                   </span>
                   <span>&nbsp;-&nbsp;</span>
@@ -73,47 +78,30 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
               </h2>
             </div>
           )}
-          <ThemeToggle className="ml-auto" />
         </>
-      ) : (
-        <SearchInput
-          selectedRoute={selectedRoute}
-          className={"mr-auto flex-1 lg:hidden"}
-        />
       )}
 
       {/* Menu list */}
       <div
-        className={`absolute left-0 top-full z-[1100] mr-auto w-full justify-between md:gap-2.5 lg:static lg:flex ${
+        className={`absolute left-0 top-full z-[1100] mr-auto bg-background w-full justify-between md:gap-2.5 lg:static lg:flex ${
           showMenu ? "" : "hidden"
         }`}
       >
         <ul
           id="navbar-hamburger"
-          className="mx-auto flex flex-col flex-wrap gap-4 bg-gray-50 px-4 pb-4 font-medium dark:border-gray-700 dark:bg-gray-800 lg:flex-row lg:pt-4"
+          className="mx-auto flex flex-col lg:grid grid-rows-4 w-full lg:grid-rows-2 grid-flow-col flex-wrap gap-4 font-medium dark:border-gray-700 lg:flex-row max-lg:p-4"
         >
-          {Children.map(children, (child: ReactNode) => {
-            if (isValidElement(child)) {
-              return (
-                <li
-                  key={child.key}
-                  className="mr-2 flex w-full items-center justify-center last:mr-auto lg:w-auto"
-                >
-                  {child}
-                </li>
-              );
-            }
-          })}
+          {children}
         </ul>
       </div>
 
-      <ThemeToggle className="hidden lg:block" />
+      <ThemeToggle className="ml-auto lg:mb-auto" />
 
       {/* Hamburger button */}
-      <button
+      <Button
         onClick={() => setShowMenu((prev) => !prev)}
-        type="button"
-        className="inline-flex items-center p-2.5 text-sm text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 lg:hidden"
+        size="icon"
+        className="p-2.5 lg:hidden"
         aria-controls="navbar-hamburger"
         aria-expanded={showMenu}
       >
@@ -131,7 +119,7 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
             clipRule="evenodd"
           ></path>
         </svg>
-      </button>
+      </Button>
     </nav>
   );
 }

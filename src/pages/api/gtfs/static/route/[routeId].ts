@@ -13,7 +13,8 @@ const handler: ApiHandler<SingleRouteAPIResponse> = async (req, res) => {
   const { routeId = "" } = req.query;
 
   if (!routeId || typeof routeId !== "string") {
-    return res.status(StatusCodes.BAD_REQUEST).end();
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
   }
 
   const route = await prisma.route.findFirst({

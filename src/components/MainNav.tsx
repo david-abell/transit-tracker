@@ -63,7 +63,7 @@ function MainNav({
     >
       {!isLargeScreen && (
         <>
-          {!!selectedRoute && (
+          {!!selectedRoute ? (
             <div className="flex items-baseline">
               {!!selectedRoute.routeShortName && (
                 <>
@@ -73,9 +73,19 @@ function MainNav({
                   <span>&nbsp;-&nbsp;</span>
                 </>
               )}
-              <h2 className="text-lg font-medium lg:pl-2.5">
+              <h1 className="text-lg font-medium lg:pl-2.5">
                 {selectedRoute?.routeLongName ?? ""}
-              </h2>
+              </h1>
+            </div>
+          ) : (
+            <div>
+              <h1 className="text-lg font-medium lg:pl-2.5">
+                Welcome to the Irish bus tracker.
+              </h1>
+              <p>
+                Please use the menu to search for public transport routes and
+                stops
+              </p>
             </div>
           )}
         </>
@@ -89,7 +99,7 @@ function MainNav({
       >
         <ul
           id="navbar-hamburger"
-          className="mx-auto flex flex-col lg:grid grid-rows-4 w-full lg:grid-rows-2 grid-flow-col flex-wrap gap-4 font-medium dark:border-gray-700 lg:flex-row max-lg:p-4"
+          className="mx-auto flex flex-col lg:grid grid-cols-3 grid-rows-4 w-full lg:grid-rows-2 grid-flow-col flex-wrap gap-4 font-medium dark:border-gray-700 lg:flex-row max-lg:p-4"
         >
           {children}
         </ul>

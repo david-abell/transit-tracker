@@ -6,7 +6,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import useRealtime from "@/hooks/useRealtime";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
-import TripSelect from "@/components/tripSelect/TripSelect";
+import TripModal from "@/components/tripModal/TripModal";
 import DateTimeSelect from "@/components/DateTimeSelect";
 import {
   formatDelay,
@@ -29,7 +29,7 @@ import useStopTimes from "@/hooks/useStopTimes";
 import useStops from "@/hooks/useStops";
 import useTrip from "@/hooks/useTrip";
 import Footer from "@/components/Footer";
-import DestinationSelect from "@/components/DestinationSelect";
+import StopSelect from "@/components/StopSelect";
 import { Button } from "@/components/ui/button";
 import { Stop, StopTime } from "@prisma/client";
 import NavItem from "@/components/NavItem";
@@ -196,24 +196,32 @@ export default function Home() {
             setShowMenu={setShowMobileMenu}
             navRef={navRef}
           >
-            <div className="flex flex-col row-span-2 gap-2.5 max-w-[600px] max-md:w-full">
-              <NavItem>
-                <SearchInput selectedRoute={selectedRoute} />
-              </NavItem>
+            <NavItem>
+              <SearchInput selectedRoute={selectedRoute} />
+            </NavItem>
 
-              <NavItem>
-                <DestinationSelect
-                  stopList={destinationStops}
-                  container={navRef}
-                />
-              </NavItem>
-            </div>
+            <NavItem>
+              <StopSelect
+                stopList={stops ?? []}
+                container={navRef}
+                variant="pickup"
+                handler={handleSelectedStop}
+              />
+            </NavItem>
 
-            <NavItem className="lg:row-span-2 ">
+            <NavItem>
+              <StopSelect
+                stopList={destinationStops}
+                container={navRef}
+                variant="dropoff"
+                handler={handleDestinationStop}
+              />
+            </NavItem>
+
+            <NavItem>
               <DateTimeSelect
                 selectedDateTime={selectedDateTime}
                 setSelectedDateTime={setSelectedDateTime}
-                className=""
               />
             </NavItem>
 
@@ -270,7 +278,7 @@ export default function Home() {
         title={`${selectedStop ? selectedStop.stopName : ""}`}
         onClose={() => setShowTripModal(false)}
       >
-        <TripSelect
+        <TripModal
           handleSelectedTrip={handleSelectedTrip}
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}

@@ -123,8 +123,8 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
 
         <input
           id="search-select"
-          className={`h-10 text-md inline-block w-full appearance-none truncate rounded-none rounded-b-lg rounded-t-lg border border-gray-300 p-2.5 pl-8
-               text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:focus:border-blue-500 dark:focus:ring-blue-500 md:pl-10
+          className={`text-md appearance-none truncate rounded-b-lg rounded-t-lg p-2.5 pl-8 md:pl-10
+               h-10 w-full rounded-md border border-input bg-popover text-md ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1
                ${
                  searchQuery ? "rounded-b-none focus-within:rounded-b-none" : ""
                }`}

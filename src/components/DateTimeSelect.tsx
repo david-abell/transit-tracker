@@ -2,13 +2,19 @@ import { initDateTimeValue } from "@/lib/timeHelpers";
 import router from "next/router";
 import { Dispatch, SetStateAction } from "react";
 import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
 
 type Props = {
   selectedDateTime: string;
   setSelectedDateTime: Dispatch<SetStateAction<string>>;
+  className?: string;
 };
 
-function DateTimeSelect({ selectedDateTime, setSelectedDateTime }: Props) {
+function DateTimeSelect({
+  selectedDateTime,
+  setSelectedDateTime,
+  className,
+}: Props) {
   const handleSetSelectedDateTime = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -27,26 +33,24 @@ function DateTimeSelect({ selectedDateTime, setSelectedDateTime }: Props) {
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center lg:flex-none">
+    <div className={cn("flex lg:max-w-72 w-full", className)}>
       <label htmlFor="date-time-select" className="sr-only">
         When are you traveling?{" "}
       </label>
-      <div className="flex w-full">
-        <input
-          type="datetime-local"
-          value={selectedDateTime}
-          onChange={(e) => handleSetSelectedDateTime(e)}
-          id="date-time-select"
-          className="h-10 flex-1 rounded-l-lg rounded-r-none border p-2.5 text-sm"
-        ></input>
-        <Button
-          aria-controls="date-time-select"
-          onClick={handleNowTime}
-          className="h-10 w-16 rounded-r-lg rounded-l-none border p-2.5 text-sm font-medium text-white"
-        >
-          Now!
-        </Button>
-      </div>
+      <input
+        type="datetime-local"
+        value={selectedDateTime}
+        onChange={(e) => handleSetSelectedDateTime(e)}
+        id="date-time-select"
+        className="h-10 flex-1 rounded-l-lg rounded-r-none border p-2.5 text-sm"
+      ></input>
+      <Button
+        aria-controls="date-time-select"
+        onClick={handleNowTime}
+        className="h-10 w-16 rounded-r-lg rounded-l-none"
+      >
+        Now!
+      </Button>
     </div>
   );
 }

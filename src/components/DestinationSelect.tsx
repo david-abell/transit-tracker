@@ -9,12 +9,14 @@ import {
 } from "@/components/ui/select";
 import { Stop, StopTime } from "@prisma/client";
 import { useQueryState, parseAsString } from "nuqs";
+import { RefObject, useEffect, useRef } from "react";
 
 type Props = {
   stopList: [Stop, StopTime][];
+  container?: RefObject<HTMLElement>;
 };
 
-function DestinationSelect({ stopList }: Props) {
+function DestinationSelect({ stopList, container }: Props) {
   const [destId, setDestId] = useQueryState(
     "destId",
     parseAsString.withDefault(""),
@@ -26,10 +28,10 @@ function DestinationSelect({ stopList }: Props) {
       value={destId}
       disabled={!stopList.length}
     >
-      <SelectTrigger className="w-[280px]">
+      <SelectTrigger>
         <SelectValue placeholder="Select a destination" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent container={container?.current || undefined}>
         {stopList.flatMap(
           ([{ stopCode, stopName, stopId }, { arrivalTime }]) => {
             if (!stopName) return [];

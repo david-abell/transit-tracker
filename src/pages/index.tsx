@@ -29,7 +29,7 @@ import useStopTimes from "@/hooks/useStopTimes";
 import useStops from "@/hooks/useStops";
 import useTrip from "@/hooks/useTrip";
 import Footer from "@/components/Footer";
-import DestinationSelect from "@/components/DestinationSelect";
+import DestinationSelect from "@/components/StopSelect";
 import { Button } from "@/components/ui/button";
 import { Stop, StopTime } from "@prisma/client";
 import NavItem from "@/components/NavItem";

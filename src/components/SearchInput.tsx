@@ -6,14 +6,22 @@ import { useRouter } from "next/router";
 import useStops from "@/hooks/useStops";
 
 import { cn } from "@/lib/utils";
+import { parseAsString, useQueryState } from "nuqs";
 
 type Props = {
   selectedRoute: Route | undefined;
   className?: string;
+  removeQueryParams: () => void;
 };
 
-function SearchInput({ selectedRoute, className = "" }: Props) {
-  const router = useRouter();
+function SearchInput({
+  selectedRoute,
+  className = "",
+  removeQueryParams,
+}: Props) {
+  const [, setRouteId] = useQueryState("routeId");
+  const [, setStopId] = useQueryState("stopId");
+
   const [searchQuery, setSearchQuery] = useState("");
   const { routes } = useRoute(searchQuery);
   const { stops } = useStops({ stopQuery: searchQuery });
@@ -26,11 +34,13 @@ function SearchInput({ selectedRoute, className = "" }: Props) {
     e.stopPropagation();
 
     if ("stopId" in query) {
-      router.push({ pathname: "/", query: { stopId: query.stopId } });
-    } else {
-      router.push({ pathname: "/", query: { routeId: query.routeId } });
+      removeQueryParams();
+      setStopId(query.stopId);
     }
-
+    if ("routeId" in query) {
+      removeQueryParams();
+      setRouteId(query.routeId);
+    }
     setSearchQuery("");
   };
 

@@ -33,8 +33,8 @@ const QUERY_KEY = {
 } as const;
 
 const PLACEHOLDER_TEXT = {
-  pickup: "Select a pickup stop or choose on map",
-  dropoff: "Select a destination stop or choose on map",
+  pickup: "Select a pickup stop or use the map",
+  dropoff: "Select a destination stop or use the map",
 } as const;
 
 function StopSelect({

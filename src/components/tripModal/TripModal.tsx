@@ -29,7 +29,7 @@ type Props = {
   selectedStopId: string | null;
 };
 
-function TripSelect({
+function TripModal({
   handleSelectedTrip,
   selectedDateTime,
   selectedRoute,
@@ -262,4 +262,4 @@ function TripSelect({
   );
 }
 
-export default TripSelect;
+export default TripModal;

@@ -6,7 +6,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import useRealtime from "@/hooks/useRealtime";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
-import TripSelect from "@/components/tripModal/TripSelect";
+import TripModal from "@/components/tripModal/TripModal";
 import DateTimeSelect from "@/components/DateTimeSelect";
 import {
   formatDelay,
@@ -270,7 +270,7 @@ export default function Home() {
         title={`${selectedStop ? selectedStop.stopName : ""}`}
         onClose={() => setShowTripModal(false)}
       >
-        <TripSelect
+        <TripModal
           handleSelectedTrip={handleSelectedTrip}
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}

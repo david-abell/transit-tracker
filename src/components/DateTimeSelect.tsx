@@ -33,7 +33,7 @@ function DateTimeSelect({
   };
 
   return (
-    <div className={cn("flex lg:max-w-72 w-full", className)}>
+    <div className={cn("flex w-full", className)}>
       <label htmlFor="date-time-select" className="sr-only">
         When are you traveling?{" "}
       </label>

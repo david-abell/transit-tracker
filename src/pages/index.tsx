@@ -196,35 +196,32 @@ export default function Home() {
             setShowMenu={setShowMobileMenu}
             navRef={navRef}
           >
-            <div className="flex flex-col row-span-2 gap-2.5 max-w-[600px] max-md:w-full">
-              <NavItem>
-                <SearchInput selectedRoute={selectedRoute} />
-              </NavItem>
+            <NavItem>
+              <SearchInput selectedRoute={selectedRoute} />
+            </NavItem>
 
-              <NavItem>
-                <StopSelect
-                  stopList={stops ?? []}
-                  container={navRef}
-                  variant="pickup"
-                  handler={handleSelectedStop}
-                />
-              </NavItem>
+            <NavItem>
+              <StopSelect
+                stopList={stops ?? []}
+                container={navRef}
+                variant="pickup"
+                handler={handleSelectedStop}
+              />
+            </NavItem>
 
-              <NavItem>
-                <StopSelect
-                  stopList={destinationStops}
-                  container={navRef}
-                  variant="dropoff"
-                  handler={handleDestinationStop}
-                />
-              </NavItem>
-            </div>
+            <NavItem>
+              <StopSelect
+                stopList={destinationStops}
+                container={navRef}
+                variant="dropoff"
+                handler={handleDestinationStop}
+              />
+            </NavItem>
 
-            <NavItem className="lg:row-span-2 ">
+            <NavItem>
               <DateTimeSelect
                 selectedDateTime={selectedDateTime}
                 setSelectedDateTime={setSelectedDateTime}
-                className=""
               />
             </NavItem>
 

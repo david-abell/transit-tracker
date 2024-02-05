@@ -1,7 +1,7 @@
 "use-client";
 import Image from "next/image";
 import { Inter } from "next/font/google";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseAsString, useQueryState } from "nuqs";
 import useRealtime from "@/hooks/useRealtime";
 import MapComponent from "@/components/Map";
@@ -67,7 +67,9 @@ export default function Home() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const { height: windowHeight } = useWindowSize();
-  const [NavRef, { height: navHeight }] = useElementSize();
+  const [navContainer, { height: navHeight }] =
+    useElementSize<HTMLDivElement>();
+  const navRef = useRef<HTMLDivElement>(null);
 
   // static schedule data
   const {
@@ -186,34 +188,36 @@ export default function Home() {
   return (
     <main className="flex min-h-[100svh] flex-col items-center justify-between text-slate-950 dark:text-white">
       <div className="relative w-full">
-        <div ref={NavRef}>
+        <div ref={navContainer}>
           <MainNav
             selectedRoute={selectedRoute}
             showMenu={showMobileMenu}
             setShowMenu={setShowMobileMenu}
+            destinationStops={destinationStops}
+            navRef={navRef}
           >
-            {!showMobileMenu && (
-              <div className="flex flex-row gap-2.5">
-                <DestinationSelect stopList={destinationStops} />
-                <SearchInput selectedRoute={selectedRoute} className="w-full" />
-              </div>
-            )}
-
             <DateTimeSelect
               selectedDateTime={selectedDateTime}
               setSelectedDateTime={setSelectedDateTime}
             />
+            <div className="flex flex-col row-span-2 order-1 gap-2.5 min-w-[18rem] max-md:w-full">
+              <SearchInput selectedRoute={selectedRoute} />
+              <DestinationSelect
+                stopList={destinationStops}
+                container={navRef}
+              />
+            </div>
 
             <Button
               onClick={handleShowAllStops}
               disabled={!routeId}
-              className="flex w-full flex-row items-center justify-center gap-1 lg:w-auto lg:flex-none"
+              className="max-md:w-full lg:max-w-72 order-3"
             >
               Show all stops
             </Button>
 
             <Button
-              className="flex w-full flex-row items-center justify-center gap-1 lg:w-auto lg:flex-none"
+              className="max-md:w-full lg:max-w-72 order-4"
               onClick={() => setShowSavedStops(true)}
             >
               <svg

@@ -1,18 +1,20 @@
 "use-client";
-import { Route } from "@prisma/client";
+import { Route, Stop, StopTime } from "@prisma/client";
 import {
   ReactNode,
   Children,
   isValidElement,
   useEffect,
-  useRef,
   Dispatch,
   SetStateAction,
+  Fragment,
+  RefObject,
 } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import SearchInput from "./SearchInput";
 import dynamic from "next/dynamic";
 import { Button } from "./ui/button";
+import DestinationSelect from "./DestinationSelect";
 
 const ThemeToggle = dynamic(() => import("./ThemeToggle"), { ssr: false });
 
@@ -21,11 +23,20 @@ type Props = {
   selectedRoute: Route | undefined;
   showMenu: boolean;
   setShowMenu: Dispatch<SetStateAction<boolean>>;
+  destinationStops: [Stop, StopTime][];
+  navRef: RefObject<HTMLElement>;
 };
 
-function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
-  const navRef = useRef<HTMLElement>(null);
+function MainNav({
+  children,
+  selectedRoute,
+  showMenu,
+  setShowMenu,
+  destinationStops,
+  navRef,
+}: Props) {
   const isMediumScreen = useMediaQuery("(min-width: 768px)");
+  const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
   useEffect(() => {
     const ref = navRef.current;
@@ -42,7 +53,7 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside, true);
     };
-  }, [setShowMenu, showMenu]);
+  }, [navRef, setShowMenu, showMenu]);
 
   useEffect(() => {
     if (isMediumScreen) {
@@ -53,7 +64,7 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
   return (
     <nav
       ref={navRef}
-      className="relative mx-auto flex min-h-[6rem] flex-row items-center justify-between
+      className="relative mx-auto flex min-h-[8rem] flex-row items-center justify-between
        gap-2.5 border-gray-200 p-4 
        dark:border-gray-700 md:max-w-screen-2xl lg:px-10"
     >
@@ -77,10 +88,15 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
           <ThemeToggle className="ml-auto" />
         </>
       ) : (
-        <SearchInput
-          selectedRoute={selectedRoute}
-          className={"mr-auto flex-1 lg:hidden"}
-        />
+        <>
+          <div className="flex flex-col gap-2.5 min-w-[18rem] mr-auto flex-1 lg:hidden">
+            <SearchInput selectedRoute={selectedRoute} />
+            <DestinationSelect
+              stopList={destinationStops}
+              disabled={isLargeScreen}
+            />
+          </div>
+        </>
       )}
 
       {/* Menu list */}
@@ -91,17 +107,17 @@ function MainNav({ children, selectedRoute, showMenu, setShowMenu }: Props) {
       >
         <ul
           id="navbar-hamburger"
-          className="mx-auto flex flex-col flex-wrap gap-4 px-4 pb-4 font-medium dark:border-gray-700 lg:flex-row lg:pt-4"
+          className="mx-auto grid grid-rows-5 w-full lg:grid-rows-2 grid-flow-col flex-wrap gap-4 px-4 pb-4 font-medium dark:border-gray-700 lg:flex-row lg:pt-4"
         >
           {Children.map(children, (child: ReactNode) => {
             if (isValidElement(child)) {
               return (
-                <li
+                <Fragment
                   key={child.key}
-                  className="mr-2 flex w-full items-center justify-center last:mr-auto lg:w-auto"
+                  // className="flex w-full items-start justify-center lg:w-auto"
                 >
                   {child}
-                </li>
+                </Fragment>
               );
             }
           })}

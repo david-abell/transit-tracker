@@ -6,7 +6,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import useRealtime from "@/hooks/useRealtime";
 import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
-import TripSelect from "@/components/tripSelect/TripSelect";
+import TripSelect from "@/components/tripModal/TripSelect";
 import DateTimeSelect from "@/components/DateTimeSelect";
 import {
   formatDelay,

@@ -35,6 +35,9 @@ import { Button } from "@/components/ui/button";
 import { Stop, StopTime } from "@prisma/client";
 import NavItem from "@/components/NavItem";
 import GlobalAlert from "@/components/GlobalAlert";
+import DestinationSelect, {
+  StopAndStopTime,
+} from "@/components/DestinationSelect";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -118,7 +121,7 @@ export default function Home() {
 
   // derived state
 
-  const destinationStops: [Stop, StopTime][] = useMemo(() => {
+  const destinationStops: StopAndStopTime[] = useMemo(() => {
     if (!stopTimes?.length || !stopId) return [];
 
     const selectedStopIndex = stopTimes?.findIndex(
@@ -130,12 +133,12 @@ export default function Home() {
 
     const times = stopTimes.slice(selectedStopIndex + 1);
 
-    const orderedStops: [Stop, StopTime][] = [];
+    const orderedStops: StopAndStopTime[] = [];
 
     times?.forEach((stopTime) => {
       const stop = stopsById.get(stopTime.stopId);
       if (!stop) return;
-      orderedStops.push([stop, stopTime]);
+      orderedStops.push({ stop, stopTime });
     });
 
     return orderedStops;
@@ -212,23 +215,23 @@ export default function Home() {
               <SearchInput
                 selectedRoute={selectedRoute}
                 removeQueryParams={removeQueryParams}
+                setStopId={handleSelectedStop}
               />
             </NavItem>
 
             <NavItem>
               <StopSelect
-                stopList={stops ?? []}
-                container={navRef}
+                stopList={stops}
                 variant="pickup"
                 handler={handleSelectedStop}
+                stopId={stopId}
               />
             </NavItem>
 
             <NavItem>
-              <StopSelect
+              <DestinationSelect
+                stopId={destId}
                 stopList={destinationStops}
-                container={navRef}
-                variant="dropoff"
                 handler={handleDestinationStop}
               />
             </NavItem>

@@ -12,15 +12,16 @@ type Props = {
   selectedRoute: Route | undefined;
   className?: string;
   removeQueryParams: () => void;
+  setStopId: (stopId: string) => void;
 };
 
 function SearchInput({
   selectedRoute,
   className = "",
   removeQueryParams,
+  setStopId,
 }: Props) {
   const [, setRouteId] = useQueryState("routeId");
-  const [, setStopId] = useQueryState("stopId");
 
   const [searchQuery, setSearchQuery] = useState("");
   const { routes } = useRoute(searchQuery);
@@ -106,7 +107,7 @@ function SearchInput({
     <form
       ref={formRef}
       className={cn(
-        "flex flex-1 flex-col items-center justify-center text-center w-full",
+        "z-[1300] flex flex-1 flex-col items-center justify-center text-center w-full",
         className,
       )}
       // onSubmit={handleOnSubmit}
@@ -151,7 +152,7 @@ function SearchInput({
 
         {!!searchResults.length && (
           <ul
-            className="text-md absolute left-0 top-full z-[1200] block max-h-[calc(100dvh-6rem)] w-[calc(100dvw-2rem)] bg-popover overflow-y-scroll rounded-b-lg border border-gray-300 focus:border-blue-500
+            className="text-md absolute left-0 top-full block max-h-[calc(100dvh-6rem)] w-[calc(100dvw-2rem)] bg-popover overflow-y-scroll rounded-b-lg border border-gray-300 focus:border-blue-500
                focus:ring-blue-500  dark:border-gray-600 dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500 md:w-full"
           >
             {searchResults.map((item) => {

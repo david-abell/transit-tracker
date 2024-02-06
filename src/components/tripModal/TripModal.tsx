@@ -68,14 +68,6 @@ function TripModal({
   const hasRealtime =
     isToday && !!selectedRoute && realtimeRouteIds.has(selectedRoute.routeId);
 
-  // trap keyboard focus inside form for arrow and tab key input
-  const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (!dialog) return;
-    if (e.key !== "Escape") {
-      trapKeyboardFocus(e, dialog);
-    }
-  };
-
   // Some trips have duplicate blockIds and arrival times and need to be skipped
   let duplicateTrips = new Set();
 
@@ -198,7 +190,6 @@ function TripModal({
                     <button
                       type="button"
                       onClick={() => handleSelectedTrip(tripId, routeId)}
-                      onKeyDown={handleKeydown}
                       disabled={isCanceled || hasDeparted}
                       className={`flex w-full items-center justify-between gap-1 border-b border-gray-200 
                   py-2 pr-2 text-start font-medium dark:border-gray-600 md:gap-2 md:pr-4

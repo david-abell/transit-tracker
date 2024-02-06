@@ -25,16 +25,22 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
     const dialog = ref.current;
     if (!dialog) return;
 
-    if (isOpen && dialog) {
+    let animationTimer: ReturnType<typeof setTimeout> | undefined;
+
+    if (isOpen) {
       dialog.showModal();
       document.body.classList.add("modal-open"); // prevent bg scroll
     } else {
-      // wait for close animation
-      setTimeout(() => {
+      if (animationTimer) {
+        clearTimeout(animationTimer);
+      }
+      // wait for close animation since dialog.close is not animatable
+      animationTimer = setTimeout(() => {
         dialog.close();
         document.body.classList.remove("modal-open");
       }, 200);
     }
+    return () => clearTimeout(animationTimer);
   }, [isOpen]);
 
   const handleProceed = () => {
@@ -56,7 +62,9 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
   const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     if (!ref.current) return;
 
-    if (e.key !== "Escape") {
+    if (e.key === "Escape") {
+      handleClose();
+    } else {
       trapKeyboardFocus(e, ref.current);
     }
   };

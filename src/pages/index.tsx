@@ -27,6 +27,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import useShape from "@/hooks/useShape";
 import useStopTimes from "@/hooks/useStopTimes";
 import useStops from "@/hooks/useStops";
+import useWarmup from "@/hooks/useWarmup";
 import useTrip from "@/hooks/useTrip";
 import Footer from "@/components/Footer";
 import StopSelect from "@/components/StopSelect";
@@ -71,6 +72,9 @@ export default function Home() {
   const [navContainer, { height: navHeight }] =
     useElementSize<HTMLDivElement>();
   const navRef = useRef<HTMLDivElement>(null);
+
+  // trigger database warmup with a cheap onetime query
+  const { isLoading: isDBLoading, error: dbError } = useWarmup();
 
   // static schedule data
   const {
@@ -135,6 +139,7 @@ export default function Home() {
   }, [stopId, stopTimes, stopsById]);
 
   const isLoading =
+    isDBLoading ||
     isLoadingDestination ||
     isLoadingRoute ||
     isLoadingStop ||
@@ -145,6 +150,7 @@ export default function Home() {
     isLoadingRealTime;
 
   const apiError =
+    dbError ||
     destinationError ||
     routeError ||
     tripError ||
@@ -153,6 +159,9 @@ export default function Home() {
     stopTimesError ||
     shapeError ||
     realTimeError;
+
+  const isLandingPageGreeting =
+    !isDBLoading && !apiError && !routeId && !tripId && !stopId && !destId;
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
@@ -301,7 +310,7 @@ export default function Home() {
           <AlertCircle className="h-4 w-4" />
           {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
           <AlertDescription className="bg-transparent">
-            {"Loading..."}
+            {isDBLoading ? "Database 🔥warming🔥 in progress" : "Loading..."}
           </AlertDescription>
         </Alert>
       ) : !!apiError ? (

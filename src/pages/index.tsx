@@ -212,26 +212,26 @@ export default function Home() {
               <SearchInput
                 selectedRoute={selectedRoute}
                 removeQueryParams={removeQueryParams}
+                setStopId={handleSelectedStop}
               />
             </NavItem>
 
             <NavItem>
               <StopSelect
-                stopList={stops ?? []}
-                container={navRef}
+                stopList={stops}
                 variant="pickup"
                 handler={handleSelectedStop}
+                stopId={stopId}
               />
             </NavItem>
 
-            <NavItem>
+            {/* <NavItem>
               <StopSelect
                 stopList={destinationStops}
-                container={navRef}
                 variant="dropoff"
                 handler={handleDestinationStop}
               />
-            </NavItem>
+            </NavItem> */}
 
             <NavItem>
               <DateTimeSelect

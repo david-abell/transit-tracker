@@ -1,22 +1,6 @@
-import Select, {
-  ActionMeta,
-  OnChangeValue,
-  SelectInstance,
-  SingleValue,
-} from "react-select";
-import { Stop, StopTime } from "@prisma/client";
-import { useQueryState, parseAsString } from "nuqs";
-import { RefObject, useEffect, useState } from "react";
-
-type PickupVariantProps = {
-  stopList: Stop[] | undefined;
-  variant: "pickup";
-};
-
-type DropoffVariantProps = {
-  stopList: [Stop, StopTime][] | undefined;
-  variant: "dropoff";
-};
+import Select from "react-select";
+import { Stop } from "@prisma/client";
+import { useEffect, useState } from "react";
 
 type Props = {
   handler: (stopId: string) => void;
@@ -25,18 +9,7 @@ type Props = {
   variant: "pickup";
 };
 
-const QUERY_KEY = {
-  pickup: "stopId",
-  dropoff: "destId",
-} as const;
-
-const PLACEHOLDER_TEXT = {
-  pickup: "Select a pickup stop or use the map",
-  dropoff: "Select a destination stop or use the map",
-} as const;
-
-function StopSelect({ stopList, variant = "pickup", handler, stopId }: Props) {
-  const queryKey = QUERY_KEY[variant];
+function StopSelect({ stopList, handler, stopId }: Props) {
   const [selectedOption, setSelectedOption] = useState<Stop | null>(null);
 
   useEffect(() => {
@@ -61,10 +34,13 @@ function StopSelect({ stopList, variant = "pickup", handler, stopId }: Props) {
   const handleOptionLabel = ({ stopCode, stopId, stopName }: Stop) => {
     return `${stopCode || stopId}: ${stopName ?? "Un-named stop"}`;
   };
-  const handleOptionValue = ({ stopCode, stopId, stopName }: Stop) => stopId;
+  const handleOptionValue = ({ stopId }: Stop) => stopId;
+
+  const disabled = !stopList?.length;
 
   return (
     <Select
+      isDisabled={disabled}
       defaultValue={null}
       value={selectedOption}
       onChange={handleChange}
@@ -75,43 +51,11 @@ function StopSelect({ stopList, variant = "pickup", handler, stopId }: Props) {
       placeholder={
         selectedOption
           ? selectedOption.stopName || "Unnamed stops"
-          : "Select a pickup stop or use the map"
+          : disabled
+            ? ""
+            : "Select a pickup stop or use the map"
       }
-    >
-      {/* <SelectTrigger>
-        <SelectValue placeholder={PLACEHOLDER_TEXT[variant]} />
-      </SelectTrigger> */}
-      {/* <SelectContent container={container?.current || undefined}> */}
-      {/* {variant === "pickup"
-          ? (stopList as Stop[]).flatMap(({ stopCode, stopName, stopId }) => {
-              if (!stopName) return [];
-              return (
-                <SelectItem
-                  className="capitalize"
-                  value={stopId}
-                  key={variant + stopId + stopName}
-                >
-                  {stopCode ?? stopId}: {stopName}
-                </SelectItem>
-              );
-            })
-          : (stopList as [Stop, StopTime][]).flatMap(
-              ([{ stopCode, stopName, stopId }, { arrivalTime }]) => {
-                if (!stopName) return [];
-                return (
-                  <SelectItem
-                    className="capitalize"
-                    value={stopId}
-                    key={variant + stopId + stopName + arrivalTime}
-                  >
-                    {stopCode ?? stopId}: {stopName} -{" "}
-                    <span>{arrivalTime ?? ""}</span>
-                  </SelectItem>
-                );
-              },
-            )} */}
-      {/* </SelectContent> */}
-    </Select>
+    ></Select>
   );
 }
 

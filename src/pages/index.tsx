@@ -309,7 +309,11 @@ export default function Home() {
 
       {/* Errors and loading messages */}
       <GlobalAlert visible={isDBLoading || isLoading}>
-        {isDBLoading ? "Database warming in progress 🔥🔥🔥" : "Loading..."}
+        {isDBLoading
+          ? "Database warming in progress 🔥🔥🔥"
+          : isLoadingRealTime
+            ? "Loading realtime data"
+            : "Loading..."}
       </GlobalAlert>
 
       <GlobalAlert visible={!!apiError} variant="destructive">

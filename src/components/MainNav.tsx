@@ -82,10 +82,6 @@ function MainNav({
               <h1 className="text-lg font-medium lg:pl-2.5">
                 Welcome to the Irish bus tracker.
               </h1>
-              <p>
-                Please use the menu to search for public transport routes and
-                stops
-              </p>
             </div>
           )}
         </>

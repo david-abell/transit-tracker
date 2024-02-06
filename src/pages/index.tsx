@@ -17,11 +17,11 @@ import Modal from "@/components/Modal";
 
 import useRouteId from "@/hooks/useRouteId";
 import MainNav from "@/components/MainNav";
-import { useElementSize, useWindowSize } from "usehooks-ts";
+import { useElementSize, useMediaQuery, useWindowSize } from "usehooks-ts";
 import SavedStops from "@/components/SavedStops";
 import useStopId from "@/hooks/useStopId";
 
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Menu, MenuSquare } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import useShape from "@/hooks/useShape";
@@ -34,6 +34,7 @@ import StopSelect from "@/components/StopSelect";
 import { Button } from "@/components/ui/button";
 import { Stop, StopTime } from "@prisma/client";
 import NavItem from "@/components/NavItem";
+import GlobalAlert from "@/components/GlobalAlert";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -71,6 +72,8 @@ export default function Home() {
   const { height: windowHeight } = useWindowSize();
   const [navContainer, { height: navHeight }] =
     useElementSize<HTMLDivElement>();
+  const isLargeScreen = useMediaQuery("(min-width: 1024px)");
+
   const navRef = useRef<HTMLDivElement>(null);
 
   // trigger database warmup with a cheap onetime query
@@ -305,28 +308,19 @@ export default function Home() {
       />
 
       {/* Errors and loading messages */}
-      {isLoading ? (
-        <Alert className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 dark:border-gray-50">
-          <AlertCircle className="h-4 w-4" />
-          {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
-          <AlertDescription className="bg-transparent">
-            {isDBLoading ? "Database 🔥warming🔥 in progress" : "Loading..."}
-          </AlertDescription>
-        </Alert>
-      ) : !!apiError ? (
-        <Alert
-          variant="destructive"
-          className="pointer-events-none absolute bottom-24 left-1/2 z-[9999] w-max max-w-full -translate-x-1/2 border-gray-400 dark:border-gray-50"
-        >
-          <AlertCircle className="h-4 w-4" />
-          {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
-          <AlertDescription className="bg-transparent">
-            {apiError.message}
-          </AlertDescription>
-        </Alert>
-      ) : (
-        ""
-      )}
+      <GlobalAlert visible={isDBLoading || isLoading}>
+        {isDBLoading ? "Database warming in progress 🔥🔥🔥" : "Loading..."}
+      </GlobalAlert>
+
+      <GlobalAlert visible={!!apiError} variant="destructive">
+        {apiError?.message || "An Unknown error occurred."}
+      </GlobalAlert>
+
+      <GlobalAlert visible={isLandingPageGreeting}>
+        Ready to go! Use the menu to search for a bus name like{" "}
+        <b>Ballycullen Road</b>, route number like <b>15</b> or a specific stop
+        code like <b>4495</b>.
+      </GlobalAlert>
 
       <Footer
         destination={destinationStop}

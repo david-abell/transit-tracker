@@ -58,7 +58,7 @@ export default function Home() {
 
   // clear Destination stop on state change
   useEffect(() => {
-    setDestId("");
+    setDestId(null);
   }, [routeId, tripId, stopId, setDestId]);
 
   // user input state

@@ -3,12 +3,16 @@ import { Alert, AlertDescription, AlertVariants } from "./ui/alert";
 import { ReactNode } from "react";
 
 type Props = {
-  visible: boolean;
+  visible?: boolean;
   variant?: AlertVariants;
   children: ReactNode;
 };
 
-export function GlobalAlert({ children, visible, variant = "default" }: Props) {
+export function GlobalAlert({
+  children,
+  visible = true,
+  variant = "default",
+}: Props) {
   if (!visible) return null;
 
   return (

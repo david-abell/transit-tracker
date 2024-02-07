@@ -311,23 +311,25 @@ export default function Home() {
       />
 
       {/* Errors and loading messages */}
-      <GlobalAlert visible={isDBLoading || isLoading}>
-        {isDBLoading
-          ? "Database warming in progress 🔥🔥🔥"
-          : isLoadingRealTime
-            ? "Loading realtime data"
-            : "Loading..."}
-      </GlobalAlert>
-
-      <GlobalAlert visible={!!apiError} variant="destructive">
-        {apiError?.message || "An Unknown error occurred."}
-      </GlobalAlert>
-
-      <GlobalAlert visible={isLandingPageGreeting}>
-        Ready to go! Use the menu to search for a bus name like{" "}
-        <b>Ballycullen Road</b>, route number like <b>15</b> or a specific stop
-        code like <b>4495</b>.
-      </GlobalAlert>
+      {isDBLoading || isLoading ? (
+        <GlobalAlert visible={isDBLoading || isLoading}>
+          {isDBLoading
+            ? "Database warming in progress 🔥🔥🔥"
+            : isLoadingRealTime
+              ? "Loading realtime data"
+              : "Loading..."}
+        </GlobalAlert>
+      ) : apiError ? (
+        <GlobalAlert visible={!!apiError} variant="destructive">
+          {apiError?.message || "An Unknown error occurred."}
+        </GlobalAlert>
+      ) : (
+        <GlobalAlert visible={isLandingPageGreeting}>
+          Ready to go! Use the menu to search for a bus name like{" "}
+          <b>Ballycullen Road</b>, route number like <b>15</b> or a specific
+          stop code like <b>4495</b>.
+        </GlobalAlert>
+      )}
 
       <Footer
         destination={destinationStop}

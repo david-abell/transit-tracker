@@ -62,8 +62,9 @@ model Route {
 
 model Shape {
   shapeId           String  @map("shape_id")
-  shapePtLat        Decimal @map("shape_pt_lat") @db.Decimal
-  shapePtLon        Decimal @map("shape_pt_lon") @db.Decimal
+  // Lying to Prisma here to get type returns as number since numeric type in postgres is now getting returned as Decimal.js...
+  shapePtLat        Float  @map("shape_pt_lat")
+  shapePtLon        Float  @map("shape_pt_lon")
   shapePtSequence   Int     @map("shape_pt_sequence")
   shapeDistTraveled Float?  @map("shape_dist_traveled") @db.Real
   id                Int     @id @default(autoincrement())
@@ -100,8 +101,9 @@ model Stop {
   stopId   String     @id @map("stop_id")
   stopCode String?    @map("stop_code")
   stopName String?    @map("stop_name")
-  stopLat  Decimal?   @map("stop_lat") @db.Decimal
-  stopLon  Decimal?   @map("stop_lon") @db.Decimal
+  // These are actually decimals in postgres...but query raw
+  stopLat  Float?   @map("stop_lat")
+  stopLon  Float?   @map("stop_lon")
   stopTime StopTime[]
 
   @@map("stop")

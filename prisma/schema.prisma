@@ -19,13 +19,13 @@ model Agency {
 
 model Calendar {
   serviceId    String         @id @map("service_id")
-  monday       Int
-  tuesday      Int
-  wednesday    Int
-  thursday     Int
-  friday       Int
-  saturday     Int
-  sunday       Int
+  monday       Int            @db.SmallInt
+  tuesday      Int            @db.SmallInt
+  wednesday    Int            @db.SmallInt
+  thursday     Int            @db.SmallInt
+  friday       Int            @db.SmallInt
+  saturday     Int            @db.SmallInt
+  sunday       Int            @db.SmallInt
   startDate    Int            @map("start_date")
   endDate      Int            @map("end_date")
   calendarDate CalendarDate[]
@@ -39,7 +39,7 @@ model Calendar {
 model CalendarDate {
   serviceId     String   @map("service_id")
   date          Int
-  exceptionType Int      @map("exception_type")
+  exceptionType Int      @map("exception_type") @db.SmallInt
   id            Int      @id @default(autoincrement())
   calendar      Calendar @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
 
@@ -53,7 +53,7 @@ model Route {
   agencyId       String? @map("agency_id")
   routeShortName String? @map("route_short_name")
   routeLongName  String? @map("route_long_name")
-  routeType      Int     @map("route_type")
+  routeType      Int     @map("route_type") @db.SmallInt
   agency         Agency? @relation(fields: [agencyId], references: [agencyId], onDelete: NoAction, onUpdate: NoAction)
   trip           Trip[]
 
@@ -61,12 +61,12 @@ model Route {
 }
 
 model Shape {
-  shapeId           String @map("shape_id")
-  shapePtLat        Float  @map("shape_pt_lat")
-  shapePtLon        Float  @map("shape_pt_lon")
-  shapePtSequence   Int    @map("shape_pt_sequence")
-  shapeDistTraveled Float? @map("shape_dist_traveled")
-  id                Int    @id @default(autoincrement())
+  shapeId           String  @map("shape_id")
+  shapePtLat        Decimal @map("shape_pt_lat") @db.Decimal
+  shapePtLon        Decimal @map("shape_pt_lon") @db.Decimal
+  shapePtSequence   Int     @map("shape_pt_sequence")
+  shapeDistTraveled Float?  @map("shape_dist_traveled") @db.Real
+  id                Int     @id @default(autoincrement())
 
   @@index([shapeId], map: "idx_shapes_shape_id")
   @@map("shape")
@@ -79,32 +79,30 @@ model StopTime {
   departureTime      String? @map("departure_time")
   departureTimestamp Int?    @map("departure_timestamp")
   stopId             String  @map("stop_id")
-  stopSequence       Int     @map("stop_sequence")
+  stopSequence       Int     @map("stop_sequence") @db.SmallInt
   stopHeadsign       String? @map("stop_headsign")
-  pickupType         Int?    @map("pickup_type")
-  dropOffType        Int?    @map("drop_off_type")
-  timepoint          Int?
+  pickupType         Int?    @map("pickup_type") @db.SmallInt
+  dropOffType        Int?    @map("drop_off_type") @db.SmallInt
+  timepoint          Int?    @db.SmallInt
   id                 Int     @id @default(autoincrement())
   stop               Stop    @relation(fields: [stopId], references: [stopId], onDelete: NoAction, onUpdate: NoAction)
   trip               Trip    @relation(fields: [tripId], references: [tripId], onDelete: NoAction, onUpdate: NoAction)
 
-  @@index([departureTimestamp], map: "idx_stop_times_departure_timestamp")
   @@index([arrivalTimestamp], map: "idx_stop_times_arrival_timestamp")
-  @@index([tripId], map: "idx_stop_times_trip_id")
+  @@index([departureTimestamp], map: "idx_stop_times_departure_timestamp")
   @@index([stopId], map: "idx_stop_times_stop_id")
   @@index([arrivalTimestamp, stopId, tripId], map: "idx_stop_times_stop_id_arrival_timestamp_trip")
+  @@index([tripId], map: "idx_stop_times_trip_id")
   @@map("stop_time")
 }
 
 model Stop {
-  stopId      String     @id @map("stop_id")
-  stopCode    String?    @map("stop_code")
-  stopName    String?    @map("stop_name")
-  stopLat     Float?     @map("stop_lat")
-  stopLon     Float?     @map("stop_lon")
-  stopTime    StopTime[]
-  // stops       Stop       @relation("stopsTostops", fields: [stopId], references: [stopId], onDelete: NoAction, onUpdate: NoAction)
-  // other_stops Stop?      @relation("stopsTostops")
+  stopId   String     @id @map("stop_id")
+  stopCode String?    @map("stop_code")
+  stopName String?    @map("stop_name")
+  stopLat  Decimal?   @map("stop_lat") @db.Decimal
+  stopLon  Decimal?   @map("stop_lon") @db.Decimal
+  stopTime StopTime[]
 
   @@map("stop")
 }
@@ -115,17 +113,24 @@ model Trip {
   tripId        String     @id @map("trip_id")
   tripHeadsign  String?    @map("trip_headsign")
   tripShortName String?    @map("trip_short_name")
-  directionId   Int?       @map("direction_id")
+  directionId   Int?       @map("direction_id") @db.SmallInt
   blockId       String?    @map("block_id")
   shapeId       String?    @map("shape_id")
   stopTime      StopTime[]
-  calendar      Calendar   @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
   route         Route      @relation(fields: [routeId], references: [routeId], onDelete: NoAction, onUpdate: NoAction)
+  calendar      Calendar   @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([shapeId], map: "idx_trips_shape_id")
   @@index([serviceId], map: "idx_trips_service_id")
   @@index([routeId], map: "idx_trips_route_id")
-  @@index([directionId], map: "idx_trips_direction_id")
+  // @@index([directionId], map: "idx_trips_direction_id")
   @@index([blockId], map: "idx_trips_block_id")
   @@map("trip")
+}
+
+model ApiUpdateLog {
+  last_modified_date DateTime @db.Timestamptz(6)
+  expires            DateTime @db.Timestamptz(6)
+  id                 Int      @id @default(autoincrement())
+  @@map("api_update_log")
 }

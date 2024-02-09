@@ -326,7 +326,7 @@ export default function Home() {
       ) : (
         <GlobalAlert visible={isLandingPageGreeting}>
           Ready to go! Use the menu to search for a bus name like{" "}
-          <b>Ballycullen Road</b>, route number like <b>15</b> or a specific
+          <b>Ballycullen Road</b>, a route number like <b>15</b>, or a specific
           stop code like <b>4495</b>.
         </GlobalAlert>
       )}

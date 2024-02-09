@@ -190,13 +190,15 @@ function TripModal({
                     <button
                       type="button"
                       onClick={() => handleSelectedTrip(tripId, routeId)}
-                      disabled={isCanceled || hasDeparted}
+                      disabled={isCanceled}
                       className={`flex w-full items-center justify-between gap-1 border-b border-gray-200 
                   py-2 pr-2 text-start font-medium dark:border-gray-600 md:gap-2 md:pr-4
                   ${
-                    isCanceled || hasDeparted
+                    isCanceled
                       ? "cursor-not-allowed bg-red-50 dark:bg-red-950"
-                      : `cursor-pointer ring-inset hover:bg-gray-100 hover:text-blue-700 focus-visible:bg-gray-100 focus-visible:text-blue-700 focus-visible:outline-none focus-visible:ring-2
+                      : hasDeparted
+                        ? "bg-yellow-100 dark:bg-yellow-700"
+                        : `cursor-pointer ring-inset hover:bg-gray-100 hover:text-blue-700 focus-visible:bg-gray-100 focus-visible:text-blue-700 focus-visible:outline-none focus-visible:ring-2
                        focus-visible:ring-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:hover:ring-gray-500 dark:focus-visible:bg-gray-600 dark:focus-visible:text-white dark:focus-visible:ring-gray-500`
                   }`}
                     >

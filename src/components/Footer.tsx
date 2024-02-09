@@ -53,7 +53,7 @@ function Footer({
     isLoading: isLoadingLastStop,
   } = useStopId(lastStopId, true);
 
-  const displayStop = destination ?? lastStop;
+  const destinationStop = destination ?? lastStop;
 
   const pickupStopTime = stopTimes?.find(
     ({ stopId }) => stopId === stop?.stopId,
@@ -194,12 +194,10 @@ function Footer({
                   {/* Pickup Data */}
                   <div className="dark:bg-gray-800/90 col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white/90 p-2  text-gray-900 dark:text-white">
                     <span>
-                      {!!displayStop && (
+                      {!!stop?.stopId && (
                         <p>
-                          <b>
-                            {displayStop.stopCode || displayStop.stopId || ""}
-                          </b>{" "}
-                          {displayStop.stopName || displayStop.stopName || ""}
+                          <b>{stop.stopCode || stop.stopId || ""}</b>{" "}
+                          {stop.stopName || stop.stopName || ""}
                         </p>
                       )}
                     </span>
@@ -235,10 +233,12 @@ function Footer({
                   {/* Destination data */}
                   <div className="dark:bg-gray-800/90 col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white/90 p-2 text-gray-900 dark:text-white">
                     <span>
-                      {!!displayStop && (
+                      {!!destinationStop && (
                         <p>
-                          <b>{displayStop.stopCode ?? displayStop.stopId}</b>{" "}
-                          {displayStop.stopName}
+                          <b>
+                            {destinationStop.stopCode ?? destinationStop.stopId}
+                          </b>{" "}
+                          {destinationStop.stopName}
                         </p>
                       )}
                     </span>

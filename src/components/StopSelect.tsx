@@ -47,7 +47,7 @@ function StopSelect({ stopList, handler, stopId }: Props) {
       options={stopList}
       getOptionLabel={handleOptionLabel}
       getOptionValue={handleOptionValue}
-      className="z-[1200] min-w-[8rem] w-full"
+      className="min-w-[8rem] w-full"
       placeholder={
         selectedOption
           ? selectedOption.stopName || "Unnamed stops"

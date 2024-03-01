@@ -110,7 +110,9 @@ function MainNav({
         onClick={() => setShowMenu((prev) => !prev)}
         size="icon"
         className={`p-2.5 lg:hidden ${
-          isAnimating ? "attention-pulse focus-within:animate-none" : ""
+          isAnimating && !showMenu
+            ? "attention-pulse focus-within:animate-none"
+            : ""
         }`}
         aria-controls="navbar-hamburger"
         aria-expanded={showMenu}

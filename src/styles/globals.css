@@ -349,3 +349,22 @@ body.modal-open {
     transform: scale(0.95);
   }
 }
+
+.attention-pulse {
+  --animate-color: hsl(var(--green-600));
+  animation: pulse 2s infinite;
+}
+
+.dark .attention-pulse {
+  --animate-color: hsl(var(--secondary));
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--animate-color);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px var(--animate-color);
+  }
+}

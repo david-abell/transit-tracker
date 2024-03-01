@@ -19,10 +19,12 @@ type Props = {
   showMenu: boolean;
   setShowMenu: Dispatch<SetStateAction<boolean>>;
   navRef: RefObject<HTMLElement>;
+  isAnimating: boolean;
 };
 
 function MainNav({
   children,
+  isAnimating,
   selectedRoute,
   showMenu,
   setShowMenu,
@@ -107,13 +109,15 @@ function MainNav({
       <Button
         onClick={() => setShowMenu((prev) => !prev)}
         size="icon"
-        className="p-2.5 lg:hidden"
+        className={`p-2.5 lg:hidden ${
+          isAnimating ? "attention-pulse focus-within:animate-none" : ""
+        }`}
         aria-controls="navbar-hamburger"
         aria-expanded={showMenu}
       >
         <span className="sr-only">Open main menu</span>
         <svg
-          className="h-6 w-6"
+          className={"h-6 w-6"}
           aria-hidden="true"
           fill="currentColor"
           viewBox="0 0 20 20"

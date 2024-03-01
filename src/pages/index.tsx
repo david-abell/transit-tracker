@@ -166,7 +166,7 @@ export default function Home() {
     shapeError ||
     realTimeError;
 
-  const isLandingPageGreeting =
+  const isNewUser =
     !isDBLoading && !apiError && !routeId && !tripId && !stopId && !destId;
 
   // event handlers
@@ -206,12 +206,19 @@ export default function Home() {
       <div className="relative w-full">
         <div ref={navContainer}>
           <MainNav
+            isAnimating={isNewUser}
             selectedRoute={selectedRoute}
             showMenu={showMobileMenu}
             setShowMenu={setShowMobileMenu}
             navRef={navRef}
           >
-            <NavItem>
+            <NavItem
+              className={
+                isNewUser
+                  ? "attention-pulse focus-within:animate-none rounded-sm"
+                  : ""
+              }
+            >
               <SearchInput
                 selectedRoute={selectedRoute}
                 removeQueryParams={removeQueryParams}
@@ -324,7 +331,7 @@ export default function Home() {
           {apiError?.message || "An Unknown error occurred."}
         </GlobalAlert>
       ) : (
-        <GlobalAlert visible={isLandingPageGreeting}>
+        <GlobalAlert visible={isNewUser}>
           Ready to go! Use the menu to search for a bus name like{" "}
           <b>Ballycullen Road</b>, a route number like <b>15</b>, or a specific
           stop code like <b>4495</b>.

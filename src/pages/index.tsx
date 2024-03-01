@@ -332,9 +332,8 @@ export default function Home() {
         </GlobalAlert>
       ) : (
         <GlobalAlert visible={isNewUser}>
-          Ready to go! Use the menu to search for a bus name like{" "}
-          <b>Ballycullen Road</b>, a route number like <b>15</b>, or a specific
-          stop code like <b>4495</b>.
+          Use the menu to search for a bus name like <b>Ballycullen Road</b>, a
+          route number like <b>15</b>, or a specific stop code like <b>4495</b>.
         </GlobalAlert>
       )}
 

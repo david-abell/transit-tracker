@@ -100,7 +100,7 @@ function SearchInput({
         getOptionValue={handleOptionValue}
         formatGroupLabel={GroupLabel}
         formatOptionLabel={formatOptionLabel}
-        className="z-[1300] min-w-[8rem] w-full"
+        className="min-w-[8rem] w-full"
         placeholder={"Search for a transport route or stop"}
         styles={selectStyles}
       ></Select>

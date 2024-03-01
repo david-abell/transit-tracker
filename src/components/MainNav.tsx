@@ -57,7 +57,7 @@ function MainNav({
   return (
     <nav
       ref={navRef}
-      className="relative mx-auto flex min-h-[6rem] flex-row items-center justify-between
+      className="z-[1200] relative mx-auto flex min-h-[6rem] flex-row items-center justify-between
        gap-4 border-gray-200 p-4 
        dark:border-gray-700 md:max-w-screen-2xl lg:px-10"
     >
@@ -89,7 +89,7 @@ function MainNav({
 
       {/* Menu list */}
       <div
-        className={`absolute left-0 top-full z-[1100] mr-auto bg-background w-full justify-between md:gap-2.5 lg:static lg:flex ${
+        className={`absolute left-0 top-full mr-auto bg-background w-full justify-between md:gap-2.5 lg:static lg:flex ${
           showMenu ? "" : "hidden"
         }`}
       >

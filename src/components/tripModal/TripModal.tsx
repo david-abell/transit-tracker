@@ -39,6 +39,8 @@ function TripModal({
 }: Props) {
   const { dialog } = useContext(DialogRefContext);
   const [showAllRoutes, setShowAllRoutes] = useState(!selectedRoute);
+  const [showCanceled, setShowCanceled] = useState(!selectedRoute);
+  const [showDeparted, setShowDeparted] = useState(!selectedRoute);
 
   // const matchesLarge = useMediaQuery("(min-width: 768px)");
 
@@ -51,6 +53,7 @@ function TripModal({
   const trips = showAllRoutes
     ? upcomingTrips
     : upcomingTrips?.filter((trip) => trip.routeId === selectedRoute?.routeId);
+
   const tripIds = upcomingTrips?.map(({ tripId }) => tripId);
 
   const {
@@ -79,17 +82,6 @@ function TripModal({
 
   return (
     <div className="flex h-full w-full flex-col gap-4 text-start text-sm font-medium text-gray-900  dark:text-white ">
-      {
-        <form className="flex w-full flex-row items-center gap-5 bg-slate-50 text-lg dark:bg-slate-800">
-          <label htmlFor="show-trips-checkbox">Show all routes</label>
-          <Switch
-            id="show-trips-checkbox"
-            checked={showAllRoutes}
-            onCheckedChange={() => setShowAllRoutes(!showAllRoutes)}
-          />
-        </form>
-      }
-
       <TripList>
         {isLoadingUpcoming ? (
           <li role="status" className="animate-pulse text-center">
@@ -170,7 +162,15 @@ function TripModal({
                   delayedArrivalTime ?? departureTime ?? arrivalTime ?? "",
                 );
 
+                if (!showDeparted && hasDeparted) {
+                  return [];
+                }
+
                 const isCanceled = realtimeCanceledTripIds.has(tripId);
+
+                if (!showCanceled && isCanceled) {
+                  return [];
+                }
 
                 const isEarly =
                   !isCanceled &&
@@ -257,6 +257,27 @@ function TripModal({
           </>
         )}
       </TripList>
+
+      <form className="flex w-full flex-row items-center justify-start md:justify-center flex-wrap gap-2 md:gap-4 bg-slate-50 text-lg dark:bg-slate-800">
+        <label htmlFor="show-trips-checkbox">All routes</label>
+        <Switch
+          id="show-trips-checkbox"
+          checked={showAllRoutes}
+          onCheckedChange={() => setShowAllRoutes(!showAllRoutes)}
+        />
+        <label htmlFor="show-trips-checkbox">Departed</label>
+        <Switch
+          id="show-departed-checkbox"
+          checked={showDeparted}
+          onCheckedChange={() => setShowDeparted((prev) => !prev)}
+        />
+        <label htmlFor="show-canceled-checkbox">Canceled</label>
+        <Switch
+          id="show-canceled-checkbox"
+          checked={showCanceled}
+          onCheckedChange={() => setShowCanceled((prev) => !prev)}
+        />
+      </form>
     </div>
   );
 }

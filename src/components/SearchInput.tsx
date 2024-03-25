@@ -83,8 +83,6 @@ function SearchInput({
     }
   };
 
-  console.log({ inputText, searchText, routes, stops });
-
   return (
     <>
       <Select<Readonly<Stop> | Readonly<Route>, false, GroupedOption>

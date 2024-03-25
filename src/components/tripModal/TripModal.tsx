@@ -7,7 +7,7 @@ import {
 import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
 import { TripUpdate } from "@/types/realtime";
 import { Route, StopTime, Trip } from "@prisma/client";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { DialogRefContext } from "../Modal";
 import useUpcoming from "@/hooks/useUpcoming";
 import { useSearchParams } from "next/navigation";
@@ -24,6 +24,7 @@ import { AlertCircle } from "lucide-react";
 
 type Props = {
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
+  onApiLoading: (val: boolean) => void;
   selectedDateTime: string;
   selectedRoute: Route | undefined;
   selectedStopId: string | null;
@@ -31,6 +32,7 @@ type Props = {
 
 function TripModal({
   handleSelectedTrip,
+  onApiLoading,
   selectedDateTime,
   selectedRoute,
   selectedStopId,
@@ -59,6 +61,10 @@ function TripModal({
     realtimeRouteIds,
     realtimeCanceledTripIds,
   } = useRealtime(tripIds);
+
+  useEffect(() => {
+    onApiLoading(isLoadingRealtime || isLoadingUpcoming);
+  }, [isLoadingRealtime, isLoadingUpcoming, onApiLoading]);
 
   const isToday = DateTime.now().hasSame(
     parseDatetimeLocale(selectedDateTime),

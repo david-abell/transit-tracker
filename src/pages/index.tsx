@@ -75,7 +75,7 @@ export default function Home() {
   const { height: windowHeight } = useWindowSize();
   const [navContainer, { height: navHeight }] =
     useElementSize<HTMLDivElement>();
-  const isLargeScreen = useMediaQuery("(min-width: 1024px)");
+  // const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
   const navRef = useRef<HTMLDivElement>(null);
 
@@ -115,6 +115,13 @@ export default function Home() {
     error: realTimeError,
   } = useRealtime(tripId);
 
+  const [isChildApiLoading, setIsChildApiLoading] = useState(false);
+
+  const onApiLoading = useCallback(
+    (val: boolean) => setIsChildApiLoading(val),
+    [setIsChildApiLoading],
+  );
+
   // derived state
 
   const destinationStops: StopAndStopTime[] = useMemo(() => {
@@ -149,7 +156,8 @@ export default function Home() {
     isLoadingStopTimes ||
     isLoadingTrip ||
     isLoadingShape ||
-    isLoadingRealtime;
+    isLoadingRealtime ||
+    isChildApiLoading;
 
   const apiError =
     dbError ||
@@ -304,6 +312,7 @@ export default function Home() {
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}
           selectedStopId={stopId}
+          onApiLoading={onApiLoading}
         />
       </Modal>
 

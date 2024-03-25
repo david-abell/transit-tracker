@@ -21,10 +21,12 @@ import { Switch } from "@/components/ui/switch";
 import TripList from "./TripList";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Button } from "../ui/button";
 
 type Props = {
   handleSelectedTrip: (tripId: string, routeId?: string) => void;
-  onApiLoading: (val: boolean) => void;
+  handleTimeChange: (e?: React.ChangeEvent<HTMLInputElement>) => void;
+  handleApiLoading: (val: boolean) => void;
   selectedDateTime: string;
   selectedRoute: Route | undefined;
   selectedStopId: string | null;
@@ -32,7 +34,8 @@ type Props = {
 
 function TripModal({
   handleSelectedTrip,
-  onApiLoading,
+  handleTimeChange,
+  handleApiLoading,
   selectedDateTime,
   selectedRoute,
   selectedStopId,
@@ -66,8 +69,8 @@ function TripModal({
   } = useRealtime(tripIds);
 
   useEffect(() => {
-    onApiLoading(isLoadingRealtime || isLoadingUpcoming);
-  }, [isLoadingRealtime, isLoadingUpcoming, onApiLoading]);
+    handleApiLoading(isLoadingRealtime || isLoadingUpcoming);
+  }, [isLoadingRealtime, isLoadingUpcoming, handleApiLoading]);
 
   const isToday = DateTime.now().hasSame(
     parseDatetimeLocale(selectedDateTime),
@@ -259,6 +262,13 @@ function TripModal({
       </TripList>
 
       <form className="flex w-full flex-row items-center justify-start md:justify-center flex-wrap gap-2 md:gap-4 bg-slate-50 text-lg dark:bg-slate-800">
+        <Button
+          aria-controls="date-time-select"
+          onClick={() => handleTimeChange()}
+          className="text-base"
+        >
+          Refresh current time
+        </Button>
         <label htmlFor="show-trips-checkbox">All routes</label>
         <Switch
           id="show-trips-checkbox"

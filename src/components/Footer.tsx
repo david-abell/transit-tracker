@@ -50,7 +50,7 @@ function Footer({
   const {
     selectedStop: lastStop,
     error: lastStopError,
-    isLoading: isLoadingLastStop,
+    isLoadingStop: isLoadingLastStop,
   } = useStopId(lastStopId, true);
 
   const destinationStop = destination ?? lastStop;

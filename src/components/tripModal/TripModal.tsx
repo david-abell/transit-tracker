@@ -41,7 +41,7 @@ function TripModal({
   // const matchesLarge = useMediaQuery("(min-width: 768px)");
 
   const {
-    isLoading: isUpcomingLoading,
+    isLoadingUpcoming,
     error: upcomingError,
     upcomingTrips,
   } = useUpcoming(selectedStopId, selectedDateTime);
@@ -53,7 +53,7 @@ function TripModal({
 
   const {
     error: realtimeError,
-    isLoading: isRealtimeLoading,
+    isLoadingRealtime,
     realtimeAddedTrips,
     realtimeScheduledByTripId,
     realtimeRouteIds,
@@ -85,7 +85,7 @@ function TripModal({
       }
 
       <TripList>
-        {isUpcomingLoading ? (
+        {isLoadingUpcoming ? (
           <li role="status" className="animate-pulse text-center">
             <span className="mt-2 pb-4 text-xl">Loading trips...</span>
             <span className="mb-4 h-7 bg-gray-200 dark:bg-gray-700"></span>

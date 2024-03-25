@@ -1,37 +1,17 @@
-import { initDateTimeValue } from "@/lib/timeHelpers";
-import router from "next/router";
-import { Dispatch, SetStateAction } from "react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 
 type Props = {
   selectedDateTime: string;
-  setSelectedDateTime: Dispatch<SetStateAction<string>>;
+  handleTimeChange: (e?: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
 };
 
 function DateTimeSelect({
-  selectedDateTime,
-  setSelectedDateTime,
+  handleTimeChange,
   className,
+  selectedDateTime,
 }: Props) {
-  const handleSetSelectedDateTime = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    setSelectedDateTime(e.target.value);
-    const queries = router.query;
-    delete queries["tripId"];
-    router.push({ query: queries }, undefined, { shallow: false });
-  };
-
-  const handleNowTime = () => {
-    const now = initDateTimeValue();
-    setSelectedDateTime(now);
-    const queries = router.query;
-    delete queries["tripId"];
-    router.push({ query: queries }, undefined, { shallow: false });
-  };
-
   return (
     <div className={cn("flex w-full", className)}>
       <label htmlFor="date-time-select" className="sr-only">
@@ -40,13 +20,13 @@ function DateTimeSelect({
       <input
         type="datetime-local"
         value={selectedDateTime}
-        onChange={(e) => handleSetSelectedDateTime(e)}
+        onChange={(e) => handleTimeChange(e)}
         id="date-time-select"
         className="h-10 flex-1 rounded-l-lg rounded-r-none border p-2.5 text-sm"
       ></input>
       <Button
         aria-controls="date-time-select"
-        onClick={handleNowTime}
+        onClick={() => handleTimeChange()}
         className="h-10 w-16 rounded-r-lg rounded-l-none"
       >
         Now!

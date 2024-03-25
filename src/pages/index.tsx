@@ -122,6 +122,19 @@ export default function Home() {
     [setIsChildApiLoading],
   );
 
+  const onTimeChange = useCallback(
+    (e?: React.ChangeEvent<HTMLInputElement>) => {
+      if (e) {
+        setSelectedDateTime(e.target.value);
+      } else {
+        const now = initDateTimeValue();
+        setSelectedDateTime(now);
+      }
+      setTripId(null);
+    },
+    [setTripId],
+  );
+
   // derived state
 
   const destinationStops: StopAndStopTime[] = useMemo(() => {
@@ -250,7 +263,7 @@ export default function Home() {
             <NavItem>
               <DateTimeSelect
                 selectedDateTime={selectedDateTime}
-                setSelectedDateTime={setSelectedDateTime}
+                handleTimeChange={onTimeChange}
               />
             </NavItem>
 
@@ -308,11 +321,12 @@ export default function Home() {
         onClose={() => setShowTripModal(false)}
       >
         <TripModal
+          handleTimeChange={onTimeChange}
           handleSelectedTrip={handleSelectedTrip}
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}
           selectedStopId={stopId}
-          onApiLoading={onApiLoading}
+          handleApiLoading={onApiLoading}
         />
       </Modal>
 

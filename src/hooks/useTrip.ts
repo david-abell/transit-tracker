@@ -10,7 +10,7 @@ function useTrip(tripId: string | null) {
   const {
     data: selectedTrip,
     error,
-    isLoading,
+    isValidating,
   } = useSWR<TripIdAPIResponse, ApiError>(
     !!tripId ? [`/api/gtfs/static/trips/${tripId}`] : null,
     fetchHelper,
@@ -19,7 +19,7 @@ function useTrip(tripId: string | null) {
 
   return {
     tripError: error,
-    isLoadingTrip: isLoading,
+    isLoadingTrip: isValidating,
     selectedTrip,
   };
 }

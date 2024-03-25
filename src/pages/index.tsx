@@ -80,25 +80,21 @@ export default function Home() {
   const navRef = useRef<HTMLDivElement>(null);
 
   // trigger database warmup with a cheap onetime query
-  const { isLoading: isDBLoading, error: dbError } = useWarmup();
+  const { isWarmingDB, error: dbError } = useWarmup();
 
   // static schedule data
   const {
     route: selectedRoute,
     error: routeError,
-    isLoading: isLoadingRoute,
+    isLoadingRoute,
   } = useRouteId(routeId);
 
-  const {
-    selectedStop,
-    error: stopError,
-    isLoading: isLoadingStop,
-  } = useStopId(stopId);
+  const { selectedStop, error: stopError, isLoadingStop } = useStopId(stopId);
 
   const {
     selectedStop: destinationStop,
     error: destinationError,
-    isLoading: isLoadingDestination,
+    isLoadingStop: isLoadingDestination,
   } = useStopId(destId, true);
 
   const { selectedTrip, isLoadingTrip, tripError } = useTrip(tripId);
@@ -115,7 +111,7 @@ export default function Home() {
   // Realtime state
   const {
     realtimeScheduledByTripId: tripUpdatesByTripId,
-    isLoading: isLoadingRealTime,
+    isLoadingRealtime,
     error: realTimeError,
   } = useRealtime(tripId);
 
@@ -145,7 +141,7 @@ export default function Home() {
   }, [stopId, stopTimes, stopsById]);
 
   const isLoading =
-    isDBLoading ||
+    isWarmingDB ||
     isLoadingDestination ||
     isLoadingRoute ||
     isLoadingStop ||
@@ -153,7 +149,7 @@ export default function Home() {
     isLoadingStopTimes ||
     isLoadingTrip ||
     isLoadingShape ||
-    isLoadingRealTime;
+    isLoadingRealtime;
 
   const apiError =
     dbError ||
@@ -167,7 +163,7 @@ export default function Home() {
     realTimeError;
 
   const isNewUser =
-    !isDBLoading && !apiError && !routeId && !tripId && !stopId && !destId;
+    !isWarmingDB && !apiError && !routeId && !tripId && !stopId && !destId;
 
   // event handlers
   const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
@@ -318,11 +314,11 @@ export default function Home() {
       />
 
       {/* Errors and loading messages */}
-      {isDBLoading || isLoading ? (
-        <GlobalAlert visible={isDBLoading || isLoading}>
-          {isDBLoading
+      {isWarmingDB || isLoading ? (
+        <GlobalAlert visible={isWarmingDB || isLoading}>
+          {isWarmingDB
             ? "Database warming in progress 🔥🔥🔥"
-            : isLoadingRealTime
+            : isLoadingRealtime
               ? "Loading realtime data"
               : "Loading..."}
         </GlobalAlert>

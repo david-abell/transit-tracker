@@ -8,7 +8,7 @@ function useStopId(stopId: string | null, destination = false) {
   const {
     data: selectedStop,
     error,
-    isLoading,
+    isValidating,
   } = useSWR<StopAPIResponse, ApiError>(
     !!stopId ? [`/api/gtfs/static/stops/${stopId}`, destination] : null,
     fetchHelper,
@@ -17,7 +17,7 @@ function useStopId(stopId: string | null, destination = false) {
 
   return {
     error,
-    isLoading,
+    isLoadingStop: isValidating,
     selectedStop,
   };
 }

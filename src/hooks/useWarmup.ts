@@ -10,7 +10,7 @@ function useWarmup() {
 
   return {
     error,
-    isLoading,
+    isWarmingDB: isLoading,
   };
 }
 

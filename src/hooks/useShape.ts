@@ -10,7 +10,7 @@ function useShape(tripId: string | null) {
   const {
     data: shape,
     error,
-    isLoading,
+    isValidating,
   } = useSWR<ShapeAPIResponse, ApiError>(
     !!tripId
       ? [
@@ -25,7 +25,7 @@ function useShape(tripId: string | null) {
 
   return {
     shapeError: error,
-    isLoadingShape: isLoading,
+    isLoadingShape: isValidating,
     shape,
   };
 }

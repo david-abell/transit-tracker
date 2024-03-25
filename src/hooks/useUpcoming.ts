@@ -7,7 +7,10 @@ import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
 
 function useTrips(stopId: string | null, selectedDateTime: string, page = 0) {
-  const { data, error, isLoading } = useSWR<UpcomingTripsAPIResponse, ApiError>(
+  const { data, error, isValidating } = useSWR<
+    UpcomingTripsAPIResponse,
+    ApiError
+  >(
     !!stopId
       ? [
           `/api/gtfs/static/upcoming?${new URLSearchParams({
@@ -23,7 +26,7 @@ function useTrips(stopId: string | null, selectedDateTime: string, page = 0) {
 
   return {
     error,
-    isLoading,
+    isLoadingUpcoming: isValidating,
     upcomingTrips: data?.upcomingTrips,
   };
 }

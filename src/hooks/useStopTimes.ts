@@ -8,7 +8,7 @@ import { ApiError } from "next/dist/server/api-utils";
 function useStopTimes(tripId: string | null) {
   const {
     data: stopTimes,
-    isLoading,
+    isValidating,
     error,
   } = useSWR<StopTime[], ApiError>(
     !!tripId && tripId
@@ -29,7 +29,7 @@ function useStopTimes(tripId: string | null) {
 
   return {
     stopTimesError: error,
-    isLoadingStopTimes: isLoading,
+    isLoadingStopTimes: isValidating,
     stopTimesByStopId,
     stopTimes,
   };

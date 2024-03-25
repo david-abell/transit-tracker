@@ -42,7 +42,7 @@ function useStops({ stopQuery, routeId }: Props) {
   const {
     data: stops,
     error,
-    isLoading,
+    isValidating,
   } = useSWR<StopsAPIResponse, ApiError>(
     () => (!!shouldQuery ? [url, params.toString()] : null),
     !!shouldQuery ? fetchHelper : null,
@@ -58,7 +58,7 @@ function useStops({ stopQuery, routeId }: Props) {
 
   return {
     stopsError: error,
-    isLoadingStops: isLoading,
+    isLoadingStops: isValidating,
     stops,
     stopsById,
   };

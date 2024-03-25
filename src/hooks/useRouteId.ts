@@ -8,7 +8,10 @@ import { SingleRouteAPIResponse } from "@/pages/api/gtfs/static/route/[routeId]"
 function useRouteId(routeId: string | null) {
   const url = `/api/gtfs/static/route/${routeId}`;
 
-  const { data, error, isLoading } = useSWR<SingleRouteAPIResponse, ApiError>(
+  const { data, error, isValidating } = useSWR<
+    SingleRouteAPIResponse,
+    ApiError
+  >(
     () => (!!routeId ? [url, routeId] : null),
     fetchHelper,
     skipRevalidationOptions,
@@ -16,7 +19,7 @@ function useRouteId(routeId: string | null) {
 
   return {
     error,
-    isLoading,
+    isLoadingRoute: isValidating,
     route: data,
   };
 }

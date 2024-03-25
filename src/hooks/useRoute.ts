@@ -9,7 +9,7 @@ function useRoute(routeName: string) {
   const {
     data: routes,
     error,
-    isLoading,
+    isValidating,
   } = useSWR<RouteAPIResponse, ApiError>(
     !!routeName
       ? [
@@ -24,7 +24,7 @@ function useRoute(routeName: string) {
 
   return {
     error,
-    isLoading,
+    isLoadingRoute: isValidating,
     routes,
   };
 }

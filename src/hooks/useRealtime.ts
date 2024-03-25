@@ -27,7 +27,7 @@ type AddedStopTime = Pick<
 >;
 
 function useRealtime(tripIds: string | string[] | undefined | null) {
-  const { data, error, isLoading, mutate } = useSWR<
+  const { data, error, isValidating, mutate } = useSWR<
     RealtimeTripUpdateResponse,
     ApiError
   >(
@@ -92,7 +92,7 @@ function useRealtime(tripIds: string | string[] | undefined | null) {
   return {
     addedTripStopTimes,
     error,
-    isLoading,
+    isLoadingRealtime: isValidating,
     realtimeAddedTrips,
     realtimeCanceledTripIds,
     realtimeScheduledByTripId,

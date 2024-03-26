@@ -4,7 +4,7 @@ import { format, getDay } from "date-fns";
 
 // non standard format for input type="datetime"
 // 2023-06-01T13:31
-const LUXON_DATE_INPUT_TOKENS = "kkkk'-'LL'-'dd'T'T";
+const LUXON_DATE_INPUT_TOKENS = "kkkk'-'LL'-'dd'T'TT";
 import { DateTime, Settings, type DateTimeMaybeValid } from "luxon";
 
 Settings.defaultZone = "Europe/Dublin";

@@ -329,7 +329,7 @@ function MapContentLayer({
                         </p>
                       </>
                     )}
-                    <div className="flex flex-col gap-2 mt-2">
+                    <div className="flex flex-col gap-2 mt-4">
                       <Button onClick={() => handleSelectedStop(stopId)}>
                         Upcoming trips
                       </Button>

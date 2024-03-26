@@ -162,19 +162,31 @@ function Footer({
                     {!!trip && <> - towards {trip.tripHeadsign}</>}
                   </span>
 
-                  <span>Status: {tripStatus}</span>
-
                   {tripStatus === "completed" ? (
-                    ""
+                    "Completed"
                   ) : isPastPickup ? (
-                    <span>
-                      {dropOffDelayStatus ? dropOffDelayStatus + ": " : ""}
-                      {dropOffDelay ?? ""}
+                    <span
+                      className={
+                        tripStatus === "early"
+                          ? "text-green-700"
+                          : tripStatus === "delayed"
+                            ? "text-red-900"
+                            : ""
+                      }
+                    >
+                      {dropOffDelay ?? ""} {dropOffDelayStatus || tripStatus}
                     </span>
                   ) : (
-                    <span>
-                      {!!pickupDelayStatus ? pickupDelayStatus + ": " : ""}
-                      {pickupDelay ?? ""}
+                    <span
+                      className={
+                        tripStatus === "early"
+                          ? "text-green-700"
+                          : tripStatus === "delayed"
+                            ? "text-red-900"
+                            : ""
+                      }
+                    >
+                      {pickupDelay ?? ""} {pickupDelayStatus || tripStatus}
                     </span>
                   )}
                 </div>

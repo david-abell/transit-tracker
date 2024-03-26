@@ -140,7 +140,7 @@ export function formatDelay(delayInSeconds: number | undefined) {
 }
 
 export const delayStatus = {
-  delay: "delay",
+  delay: "late",
   early: "early",
   "on-time": "on-time",
   canceled: "canceled",

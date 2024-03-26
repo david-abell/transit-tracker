@@ -130,9 +130,8 @@ export default function Home() {
         const now = initDateTimeValue();
         setSelectedDateTime(now);
       }
-      setTripId(null);
     },
-    [setTripId],
+    [],
   );
 
   // derived state

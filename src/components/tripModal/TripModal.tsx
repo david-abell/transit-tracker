@@ -267,7 +267,7 @@ function TripModal({
           onClick={() => handleTimeChange()}
           className="text-base"
         >
-          Refresh current time
+          Update
         </Button>
         <label htmlFor="show-trips-checkbox">All routes</label>
         <Switch

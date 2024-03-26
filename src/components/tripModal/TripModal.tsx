@@ -268,18 +268,20 @@ function TripModal({
           checked={showAllRoutes}
           onCheckedChange={() => setShowAllRoutes(!showAllRoutes)}
         />
-        <label htmlFor="show-trips-checkbox">Departed</label>
-        <Switch
-          id="show-departed-checkbox"
-          checked={showDeparted}
-          onCheckedChange={() => setShowDeparted((prev) => !prev)}
-        />
-        <label htmlFor="show-canceled-checkbox">Canceled</label>
-        <Switch
-          id="show-canceled-checkbox"
-          checked={showCanceled}
-          onCheckedChange={() => setShowCanceled((prev) => !prev)}
-        />
+        <div className="flex flex-row gap-2 md:gap-4">
+          <label htmlFor="show-trips-checkbox">Departed</label>
+          <Switch
+            id="show-departed-checkbox"
+            checked={showDeparted}
+            onCheckedChange={() => setShowDeparted((prev) => !prev)}
+          />
+          <label htmlFor="show-canceled-checkbox">Canceled</label>
+          <Switch
+            id="show-canceled-checkbox"
+            checked={showCanceled}
+            onCheckedChange={() => setShowCanceled((prev) => !prev)}
+          />
+        </div>
       </form>
     </div>
   );

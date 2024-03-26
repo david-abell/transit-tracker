@@ -263,6 +263,12 @@ function MapContentLayer({
                 arrival?.delay || departure?.delay,
               );
 
+              const isEarly = arrival?.delay
+                ? arrival?.delay < 0
+                : departure?.delay
+                  ? departure.delay < 0
+                  : false;
+
               const isValidDestination =
                 (selectedStoptime &&
                   stopSequence &&
@@ -312,10 +318,18 @@ function MapContentLayer({
                           <strong>Estimated arrival</strong>:{" "}
                           {delayedArrivalTime}
                         </p>
-                        {!!prettyDelay && (
-                          <p>
-                            <strong>Delayed by: </strong>
-                            <span className="text-red-900">{prettyDelay}</span>
+                        {!!prettyDelay && isEarly && (
+                          <p className="text-lg">
+                            <span className="text-green-900">
+                              {prettyDelay}
+                            </span>{" "}
+                            early
+                          </p>
+                        )}
+                        {!!prettyDelay && !isEarly && (
+                          <p className="text-lg">
+                            <span className="text-red-900">{prettyDelay}</span>{" "}
+                            late
                           </p>
                         )}
                       </>

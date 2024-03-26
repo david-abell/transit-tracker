@@ -295,16 +295,11 @@ function MapContentLayer({
                   // }}
                 >
                   <Popup interactive>
-                    <h3 className="text-lg font-bold">
-                      <span className="text-sm font-normal">Stop </span>
-                      <span className="text-sm font-normal">{stopId}</span>
-                      <br />
-                      <span className="text-sm font-normal">
-                        {stopCode ?? stopId}
-                      </span>
-                      <br />
-                      {stopName}
-                    </h3>
+                    <p>
+                      <span className="">Stop </span>
+                      {stopCode ?? stopId}
+                    </p>
+                    <h3 className="text-lg font-bold">{stopName}</h3>
 
                     {!!arrivalTime && (
                       <p className="!mb-0">
@@ -314,10 +309,6 @@ function MapContentLayer({
                     )}
                     {!!tripId && !!realtimeTrip && !!delayedArrivalTime && (
                       <>
-                        <p className="tooltip-schedule-change !mt-0">
-                          <strong>Estimated arrival</strong>:{" "}
-                          {delayedArrivalTime}
-                        </p>
                         {!!prettyDelay && isEarly && (
                           <p className="text-lg">
                             <span className="text-green-900">
@@ -332,6 +323,10 @@ function MapContentLayer({
                             late
                           </p>
                         )}
+                        <p className="tooltip-schedule-change !mt-0">
+                          <strong>Estimated arrival</strong>:{" "}
+                          {delayedArrivalTime}
+                        </p>
                       </>
                     )}
                     <div className="flex flex-col gap-2 mt-2">

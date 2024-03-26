@@ -5,6 +5,9 @@ import { Button } from "./ui/button";
 type Props = {
   title: string;
   isOpen: boolean;
+  onOpen?: () => void;
+  onOptional?: () => void;
+  onOptionalText?: string;
   onProceed?: () => void;
   onClose: () => void;
   children: React.ReactNode;
@@ -18,7 +21,16 @@ export const DialogRefContext = createContext<DialogRefContext>({
   dialog: null,
 });
 
-function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
+function Modal({
+  isOpen,
+  children,
+  title,
+  onProceed,
+  onClose,
+  onOpen,
+  onOptional,
+  onOptionalText,
+}: Props) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -28,6 +40,10 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
     let animationTimer: ReturnType<typeof setTimeout> | undefined;
 
     if (isOpen) {
+      if (onOpen) {
+        onOpen();
+      }
+
       dialog.showModal();
       document.body.classList.add("modal-open"); // prevent bg scroll
     } else {
@@ -41,7 +57,7 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
       }, 200);
     }
     return () => clearTimeout(animationTimer);
-  }, [isOpen]);
+  }, [isOpen, onOpen]);
 
   const handleProceed = () => {
     if (!onProceed) return;
@@ -91,6 +107,15 @@ function Modal({ isOpen, children, title, onProceed, onClose }: Props) {
           <div className="mb-auto h-full overflow-hidden">{children}</div>
         </DialogRefContext.Provider>
         <div className="flex gap-3">
+          {onOptional && (
+            <Button
+              onClick={onOptional}
+              onKeyDown={handleKeydown}
+              className="ml-auto"
+            >
+              {onOptionalText ?? "Update"}
+            </Button>
+          )}
           <Button
             onClick={handleClose}
             onKeyDown={handleKeydown}

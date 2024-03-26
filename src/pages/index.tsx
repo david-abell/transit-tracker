@@ -319,6 +319,8 @@ export default function Home() {
         isOpen={showTripModal}
         title={`${selectedStop ? selectedStop.stopName : ""}`}
         onClose={() => setShowTripModal(false)}
+        onOptional={() => onTimeChange()}
+        onOptionalText="Refresh"
       >
         <TripModal
           handleTimeChange={onTimeChange}

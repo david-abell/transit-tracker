@@ -262,13 +262,6 @@ function TripModal({
       </TripList>
 
       <form className="flex w-full flex-row items-center justify-start md:justify-center flex-wrap gap-2 md:gap-4 bg-slate-50 text-lg dark:bg-slate-800">
-        <Button
-          aria-controls="date-time-select"
-          onClick={() => handleTimeChange()}
-          className="text-base"
-        >
-          Update
-        </Button>
         <label htmlFor="show-trips-checkbox">All routes</label>
         <Switch
           id="show-trips-checkbox"

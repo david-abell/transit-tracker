@@ -124,7 +124,7 @@ export default function Home() {
 
   const onTimeChange = useCallback(
     (e?: React.ChangeEvent<HTMLInputElement>) => {
-      if (e) {
+      if (e?.target?.value) {
         setSelectedDateTime(e.target.value);
       } else {
         const now = initDateTimeValue();

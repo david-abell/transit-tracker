@@ -21,6 +21,7 @@ export type Arrival = {
   delayedArrivalTime: string | null;
   stopSequence: number;
   stop: Stop;
+  stopUpdate: StopTimeUpdate | undefined;
 };
 
 type Props = {
@@ -114,6 +115,7 @@ function useVehiclePosition({
             ),
             coordinates: [stop.stopLat, stop.stopLon],
             stopSequence,
+            stopUpdate: closestStopUpdate,
             stop,
           };
         })

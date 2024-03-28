@@ -74,7 +74,9 @@ function Bus({
       >
         <Popup>
           <span>Next Stop: {nextStop.stop.stopCode}</span>
-          <h3 className="text-lg font-bold">{nextStop.stop.stopName ?? ""}</h3>
+          <h3 className="text-lg font-bold !mt-0">
+            {nextStop.stop.stopName ?? ""}
+          </h3>
           <p>
             <b>Scheduled arrival: </b> {nextStop.arrivalTime}
           </p>

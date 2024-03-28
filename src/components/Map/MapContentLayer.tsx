@@ -319,6 +319,10 @@ function MapContentLayer({
                     )}
                     {!!tripId && !!realtimeTrip && !!delayedArrivalTime && (
                       <>
+                        <p className="tooltip-schedule-change !mt-0">
+                          <strong>Estimated arrival</strong>:{" "}
+                          {delayedArrivalTime}
+                        </p>
                         {!!prettyDelay && isEarly && (
                           <p className="text-lg">
                             <span className="text-green-900">
@@ -335,10 +339,6 @@ function MapContentLayer({
                             late
                           </p>
                         )}
-                        <p className="tooltip-schedule-change !mt-0">
-                          <strong>Estimated arrival</strong>:{" "}
-                          {delayedArrivalTime}
-                        </p>
                       </>
                     )}
                     <div className="flex flex-col gap-2 mt-4">

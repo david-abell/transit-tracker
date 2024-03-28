@@ -329,7 +329,9 @@ function MapContentLayer({
                         )}
                         {!!prettyDelay && !isEarly && (
                           <p className="text-lg">
-                            <span className="text-red-900">{prettyDelay}</span>{" "}
+                            <span className="text-red-700 dark:text-red-500">
+                              {prettyDelay}
+                            </span>{" "}
                             late
                           </p>
                         )}

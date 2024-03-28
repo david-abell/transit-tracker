@@ -54,6 +54,7 @@ type Props = {
   stopTimes: StopTime[] | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
   selectedStopId: string | null;
+  selectedDestinationStopId: string | null;
   setShowSavedStops: Dispatch<SetStateAction<boolean>>;
   stops: Stop[] | undefined;
 };
@@ -70,6 +71,7 @@ function MapContentLayer({
   stops,
   stopsById,
   selectedStopId,
+  selectedDestinationStopId,
   tripId,
 }: Props) {
   const map = useMap();
@@ -287,7 +289,9 @@ function MapContentLayer({
                         selectedDateTime,
                       ),
                     isTripSelected: !!tripId,
-                    isCurrent: stopId === selectedStopId,
+                    isCurrent:
+                      stopId === selectedStopId ||
+                      stopId === selectedDestinationStopId,
                   })}
 
                   // eventHandlers={{

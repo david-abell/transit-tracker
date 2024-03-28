@@ -300,6 +300,7 @@ export default function Home() {
             shape={shape}
             selectedDateTime={selectedDateTime}
             selectedStopId={stopId}
+            selectedDestinationStopId={destId}
             stopTimes={stopTimes}
             stopTimesByStopId={stopTimesByStopId}
             setShowSavedStops={setShowSavedStops}

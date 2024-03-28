@@ -1,4 +1,4 @@
-type Status = "early" | "canceled" | "delayed" | "ontime";
+type Status = "early" | "canceled" | "delayed" | "ontime" | "departed";
 type Column = "scheduled" | "arriving" | "delay";
 type Props = {
   time: string | null | undefined;
@@ -8,8 +8,9 @@ type Props = {
 
 const textClasses = {
   early: "text-green-700 dark:text-green-500",
-  canceled: "text-red-700 dark:text-red-500",
+  canceled: "text-red-700 dark:text-white",
   delayed: "text-red-700 dark:text-red-500",
+  departed: "",
   ontime: "",
 } as const;
 
@@ -17,6 +18,7 @@ const srText = {
   scheduled: "scheduled",
   arriving: "arriving",
   delay: "delay",
+  departed: "departed",
 } as const;
 
 function Time({ time, column, status = "ontime" }: Props) {

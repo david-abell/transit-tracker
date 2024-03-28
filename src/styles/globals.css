@@ -368,3 +368,37 @@ body.modal-open {
     box-shadow: 0 0 0 4px var(--animate-color);
   }
 }
+
+.react-select-container {
+  .react-select__control {
+    background-color: hsl(var(--background));
+    border-color: hsl(var(--border));
+    transition: none;
+
+    &:hover {
+      border-color: hsl(var(--border));
+    }
+  }
+
+  .react-select__menu {
+    background-color: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+  }
+
+  .react-select__option {
+    background-color: hsl(var(--background));
+
+    &:hover {
+      background-color: hsl(var(--background));
+    }
+  }
+
+  .react-select__indicator-separator {
+    background-color: hsl(var(--border));
+  }
+
+  .react-select__placeholder,
+  .react-select__single-value {
+    color: hsl(var(--background));
+  }
+}

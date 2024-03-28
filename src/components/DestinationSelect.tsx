@@ -53,7 +53,8 @@ function DestinationSelect({ stopList, handler, stopId }: Props) {
       options={stopList}
       getOptionLabel={handleOptionLabel}
       getOptionValue={handleOptionValue}
-      className="min-w-[8rem] w-full [isDisabled]:cursor-not-allowed"
+      className="react-select-container min-w-[8rem] w-full [isDisabled]:cursor-not-allowed"
+      classNamePrefix="react-select"
       placeholder={
         selectedOption
           ? selectedOption.stop.stopName || "Unnamed stops"

@@ -4,7 +4,13 @@ import { LeafletTrackingMarker } from "react-leaflet-tracking-marker";
 import { useEffect, useState } from "react";
 import { Arrival } from "@/hooks/useVehiclePosition";
 import { Popup } from "react-leaflet";
-import { formatDelay } from "@/lib/timeHelpers";
+import {
+  formatDelay,
+  getDifferenceInSeconds,
+  isPastArrivalTime,
+} from "@/lib/timeHelpers";
+import { useInterval } from "usehooks-ts";
+import { DateTime } from "luxon";
 
 function Bus({
   position,
@@ -18,11 +24,29 @@ function Bus({
   const [lat, lon] = position;
   const [prevPos, setPrevPos] = useState<LatLngTuple>([lat, lon]);
   const [prevAngle, setPrevAngle] = useState<number>(rotationAngle);
+  const [arrivingIn, setArrivingIn] = useState("");
 
   useEffect(() => {
     if (prevPos[1] !== lon && prevPos[0] !== lat) setPrevPos([lat, lon]);
     if (prevAngle !== rotationAngle) setPrevAngle(rotationAngle);
   }, [lat, lon, prevPos, rotationAngle, prevAngle]);
+
+  useInterval(
+    () => {
+      if (
+        isPastArrivalTime(nextStop.delayedArrivalTime ?? nextStop.arrivalTime)
+      )
+        return;
+
+      const arrivalSeconds = getDifferenceInSeconds(
+        nextStop.delayedArrivalTime ?? nextStop.arrivalTime,
+      );
+      // Your custom logic here
+      setArrivingIn(formatDelay(arrivalSeconds, true) ?? "");
+    },
+    // Delay in milliseconds or null to stop it
+    1000,
+  );
 
   const prettyDelay = formatDelay(
     nextStop.stopUpdate?.arrival?.delay ||
@@ -72,7 +96,7 @@ function Bus({
         rotationAngle={0}
       >
         <Popup>
-          <span>Next Stop: {nextStop.stop.stopCode}</span>
+          <p>Next Stop: {nextStop.stop.stopCode}</p>
           <h3 className="text-lg font-bold !mt-0">
             {nextStop.stop.stopName ?? ""}
           </h3>
@@ -85,7 +109,7 @@ function Bus({
             </p>
           )}
           {prettyDelay && (
-            <p className="text-lg !mt-0">
+            <p>
               <b
                 className={`${isEarly ? "text-green-900" : "text-red-700 dark:text-red-500"}`}
               >
@@ -94,6 +118,15 @@ function Bus({
               {isEarly ? " early" : " late"}
             </p>
           )}
+
+          <p className="text-lg !mt-0">
+            Arrival estimate{" "}
+            <b
+              className={`${isEarly ? "text-green-900 dark:text-green-500" : "text-red-700 dark:text-red-500"}`}
+            >
+              {arrivingIn}
+            </b>
+          </p>
         </Popup>
       </LeafletTrackingMarker>
     </>

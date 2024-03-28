@@ -116,14 +116,14 @@ export function getDelayedTime(
 
 // Return valid time duration string in format 19h 11m 32s | 11m 32s | 32s
 // https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-time-element:valid-duration-string
-export function formatDelay(delayInSeconds: number | undefined) {
+export function formatDelay(delayInSeconds: number | undefined, exact = false) {
   if (!delayInSeconds) return undefined;
-  const positiveDelay = Math.abs(delayInSeconds);
+  const positiveDelay = Math.round(Math.abs(delayInSeconds));
   const hours = Math.floor(positiveDelay / 3600);
   const minutes = Math.floor((positiveDelay - hours * 3600) / 60);
   const seconds = positiveDelay - hours * 3600 - minutes * 60;
 
-  if (positiveDelay < 30) {
+  if (!exact && positiveDelay < 30) {
     return;
   }
 
@@ -244,10 +244,12 @@ export function getTripStatus(
 
 export function getDifferenceInSeconds(
   stopTimeOne: string,
-  stopTimeTwo: string,
+  stopTimeTwo?: string,
 ) {
   const dateOne = stopTimeStringToDate(stopTimeOne);
-  const dateTwo = stopTimeStringToDate(stopTimeTwo);
+  const dateTwo = stopTimeTwo
+    ? stopTimeStringToDate(stopTimeTwo)
+    : DateTime.now();
   const { seconds } = dateTwo.diff(dateOne, "seconds").toObject();
 
   return seconds ? Math.abs(seconds) : 0;

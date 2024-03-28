@@ -3,11 +3,15 @@ import { Icon, LatLngTuple } from "leaflet";
 import { LeafletTrackingMarker } from "react-leaflet-tracking-marker";
 // import buslogo from "/public/bus_teardrop.svg";
 import { useEffect, useState } from "react";
+import { Arrival } from "@/hooks/useVehiclePosition";
+import { Popup } from "react-leaflet";
 
 function Bus({
   position,
   rotationAngle,
+  nextStop,
 }: {
+  nextStop: Arrival;
   position: LatLngTuple;
   rotationAngle: number;
 }) {
@@ -55,8 +59,23 @@ function Bus({
         previousPosition={prevPos}
         duration={1000}
         rotationAngle={0}
-        interactive={false}
-      />
+      >
+        <Popup>
+          <p>
+            <b>Next Stop: </b>
+            {nextStop.stop.stopName ?? ""}
+          </p>
+          <p>
+            <b>Scheduled arrival: </b> {nextStop.arrivalTime}
+          </p>
+          {nextStop.delayedArrivalTime && (
+            <p>
+              <b>Arriving: </b>
+              {nextStop.delayedArrivalTime}
+            </p>
+          )}
+        </Popup>
+      </LeafletTrackingMarker>
     </>
   );
 }

@@ -15,7 +15,7 @@ import { LatLngTuple } from "leaflet";
 import { useMemo } from "react";
 import { KeyedMutator } from "swr";
 
-type Arrival = {
+export type Arrival = {
   arrivalTime: string;
   coordinates: [number, number];
   delayedArrivalTime: string | null;
@@ -42,8 +42,9 @@ function useVehiclePosition({
   stopTimeUpdate,
   options,
 }: Props): {
-  vehiclePosition: LatLngTuple;
   bearing: number;
+  nextStop: Arrival;
+  vehiclePosition: LatLngTuple;
   vehicleError: undefined;
 };
 
@@ -196,7 +197,7 @@ function useVehiclePosition({
 
   const bearing = getBearing(vehiclePosition, nextStop.coordinates);
 
-  return { vehiclePosition: vehiclePosition, bearing };
+  return { vehiclePosition, bearing, nextStop };
 }
 
 export default useVehiclePosition;

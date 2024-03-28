@@ -167,16 +167,17 @@ function MapContentLayer({
     [selectedDateTime],
   );
 
-  const { vehiclePosition, bearing, vehicleError } = useVehiclePosition({
-    stopTimesByStopId,
-    shape,
-    stopIds,
-    stopsById,
-    stopTimeUpdate: tripId
-      ? realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate
-      : undefined,
-    options: { skip: !isToday || isAddedTrip },
-  });
+  const { vehiclePosition, bearing, vehicleError, nextStop } =
+    useVehiclePosition({
+      stopTimesByStopId,
+      shape,
+      stopIds,
+      stopsById,
+      stopTimeUpdate: tripId
+        ? realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate
+        : undefined,
+      options: { skip: !isToday || isAddedTrip },
+    });
 
   // Some stops are visited twice
   // don't render them twice if no trip Selected
@@ -226,7 +227,11 @@ function MapContentLayer({
           {/* width required for icon not to be 0*0 px */}
           <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>
             {!vehicleError && (
-              <Bus position={vehiclePosition} rotationAngle={bearing} />
+              <Bus
+                position={vehiclePosition}
+                rotationAngle={bearing}
+                nextStop={nextStop}
+              />
             )}
           </Pane>
         </LayerGroup>

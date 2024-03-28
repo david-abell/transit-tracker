@@ -388,6 +388,7 @@ function MapContentLayer({
           <Polyline
             pathOptions={{ color: "firebrick" }}
             positions={shape as LatLngTuple[]}
+            interactive={false}
           />
         </LayersControl.Overlay>
       )}

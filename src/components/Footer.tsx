@@ -170,7 +170,7 @@ function Footer({
                         tripStatus === "early"
                           ? "text-green-700"
                           : tripStatus === "delayed"
-                            ? "text-red-900"
+                            ? "text-red-700 dark:text-red-500"
                             : ""
                       }
                     >
@@ -182,7 +182,7 @@ function Footer({
                         tripStatus === "early"
                           ? "text-green-700"
                           : tripStatus === "delayed"
-                            ? "text-red-900"
+                            ? "text-red-700 dark:text-red-500"
                             : ""
                       }
                     >

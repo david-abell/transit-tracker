@@ -371,7 +371,7 @@ body.modal-open {
 
 .react-select-container {
   .react-select__control {
-    background-color: hsl(var(--background));
+    background-color: hsl(var(--popover));
     border-color: hsl(var(--border));
     transition: none;
 
@@ -381,15 +381,15 @@ body.modal-open {
   }
 
   .react-select__menu {
-    background-color: hsl(var(--background));
+    background-color: hsl(var(--popover));
     border: 1px solid hsl(var(--border));
   }
 
   .react-select__option {
-    background-color: hsl(var(--background));
+    background-color: hsl(var(--popover));
 
     &:hover {
-      background-color: hsl(var(--background));
+      background-color: hsl(var(--popover));
     }
   }
 
@@ -399,6 +399,6 @@ body.modal-open {
 
   .react-select__placeholder,
   .react-select__single-value {
-    color: hsl(var(--background));
+    color: hsl(var(--popover-foreground));
   }
 }

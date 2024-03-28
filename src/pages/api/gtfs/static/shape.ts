@@ -7,8 +7,9 @@ import { StatusCodes } from "http-status-codes";
 import { Shape } from "@prisma/client";
 import camelcaseKeys from "camelcase-keys";
 import { ApiHandler } from "@/lib/FetchHelper";
+import { Position } from "@turf/helpers";
 
-export type ShapeAPIResponse = LatLngTuple[];
+export type ShapeAPIResponse = Position[];
 
 const handler: ApiHandler<ShapeAPIResponse> = async (req, res) => {
   const { tripId } = req.query;
@@ -38,7 +39,7 @@ const handler: ApiHandler<ShapeAPIResponse> = async (req, res) => {
     return res.status(StatusCodes.OK).json([]);
   }
 
-  const shapePoints: LatLngTuple[] = camelcaseKeys(shapes).map(
+  const shapePoints: Position[] = camelcaseKeys(shapes).map(
     ({ shapePtLat, shapePtLon }) => [shapePtLat, shapePtLon],
   );
 

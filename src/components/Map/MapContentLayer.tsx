@@ -40,6 +40,7 @@ import useRealtime from "@/hooks/useRealtime";
 import useStopId from "@/hooks/useStopId";
 import { SavedStop } from "../SavedStops";
 import { Button } from "@/components/ui/button";
+import { Position } from "@turf/helpers";
 
 type StopWithTimes = { stop: Stop; times?: StopTime[] };
 
@@ -49,7 +50,7 @@ type Props = {
   tripId: string | null;
   handleSelectedStop: (stopId: string) => void;
   handleDestinationStop: (stopId: string) => void;
-  shape: LatLngTuple[] | undefined;
+  shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
@@ -377,7 +378,10 @@ function MapContentLayer({
       {/* Trip line shape */}
       {!!shape && (
         <LayersControl.Overlay name="Route Path" checked>
-          <Polyline pathOptions={{ color: "firebrick" }} positions={shape} />
+          <Polyline
+            pathOptions={{ color: "firebrick" }}
+            positions={shape as LatLngTuple[]}
+          />
         </LayersControl.Overlay>
       )}
     </LayersControl>

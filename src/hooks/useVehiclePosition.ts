@@ -7,7 +7,7 @@ import {
 import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
 import { StopTimeUpdate } from "@/types/realtime";
 import { Stop, StopTime } from "@prisma/client";
-import { Position, point } from "@turf/helpers";
+import { Coord, Position, point } from "@turf/helpers";
 import lineChunk from "@turf/line-chunk";
 import lineSlice from "@turf/line-slice";
 import rhumbDistance from "@turf/rhumb-distance";
@@ -17,17 +17,15 @@ import { KeyedMutator } from "swr";
 
 type Arrival = {
   arrivalTime: string;
-  coordinates: {
-    stopLat: number;
-    stopLon: number;
-  };
+  coordinates: [number, number];
   delayedArrivalTime: string | null;
   stopSequence: number;
+  stop: Stop;
 };
 
 type Props = {
   stopIds: string[] | undefined;
-  shape: LatLngTuple[] | undefined;
+  shape: Position[] | undefined;
   stopTimesByStopId: Map<StopTime["stopId"], StopTime>;
   stopsById: Map<string, Stop>;
   stopTimeUpdate: StopTimeUpdate[] | undefined;
@@ -77,9 +75,9 @@ function useVehiclePosition({
     () =>
       stopIds &&
       stopIds
-        .flatMap<Arrival>((stopId) => {
-          const { stopLat, stopLon } = stopsById.get(stopId) || {};
-          if (!stopLat || !stopLon) {
+        .flatMap((stopId): Arrival | [] => {
+          const stop = stopsById.get(stopId);
+          if (!stop?.stopLat || !stop?.stopLon) {
             return [];
           }
           const { arrivalTime, stopSequence } =
@@ -113,8 +111,9 @@ function useVehiclePosition({
               arrival?.delay || departure?.delay,
               true,
             ),
-            coordinates: { stopLat, stopLon },
+            coordinates: [stop.stopLat, stop.stopLon],
             stopSequence,
+            stop,
           };
         })
         .sort((a, b) => a.stopSequence - b.stopSequence),
@@ -159,11 +158,10 @@ function useVehiclePosition({
     nextStop.delayedArrivalTime || nextStop.arrivalTime,
   );
 
-  const sliced = lineSlice(
-    [nextStop.coordinates.stopLat, nextStop.coordinates.stopLon],
-    [lastStop.coordinates.stopLat, lastStop.coordinates.stopLon],
-    { type: "LineString", coordinates: shape as Position[] },
-  );
+  const sliced = lineSlice(nextStop.coordinates, lastStop.coordinates, {
+    type: "LineString",
+    coordinates: shape,
+  });
 
   const chunks = lineChunk(sliced, 20, { units: "meters" });
 
@@ -172,10 +170,7 @@ function useVehiclePosition({
   );
 
   // Check if slice is correct direction of travel
-  const nextStopPoint = point([
-    nextStop.coordinates.stopLat,
-    nextStop.coordinates.stopLon,
-  ]);
+  const nextStopPoint = point(nextStop.coordinates);
   const sliceStart = nextShapeSlice.at(0);
   const sliceEnd = nextShapeSlice.at(-1);
 
@@ -199,10 +194,7 @@ function useVehiclePosition({
   // Leaflet.js LatLngTuple = [number, number]
   const vehiclePosition = nextShapeSlice[sliceIndex] as LatLngTuple;
 
-  const bearing = getBearing(vehiclePosition, [
-    nextStop.coordinates.stopLat,
-    nextStop.coordinates.stopLon,
-  ]);
+  const bearing = getBearing(vehiclePosition, nextStop.coordinates);
 
   return { vehiclePosition: vehiclePosition, bearing };
 }

@@ -1,11 +1,10 @@
 "use-client";
 import { Icon, LatLngTuple } from "leaflet";
 import { LeafletTrackingMarker } from "react-leaflet-tracking-marker";
-// import buslogo from "/public/bus_teardrop.svg";
 import { useEffect, useState } from "react";
 import { Arrival } from "@/hooks/useVehiclePosition";
 import { Popup } from "react-leaflet";
-import { formatDelay, getDelayedTime } from "@/lib/timeHelpers";
+import { formatDelay } from "@/lib/timeHelpers";
 
 function Bus({
   position,

@@ -40,6 +40,7 @@ import useRealtime from "@/hooks/useRealtime";
 import useStopId from "@/hooks/useStopId";
 import { SavedStop } from "../SavedStops";
 import { Button } from "@/components/ui/button";
+import { Position } from "@turf/helpers";
 
 type StopWithTimes = { stop: Stop; times?: StopTime[] };
 
@@ -49,7 +50,7 @@ type Props = {
   tripId: string | null;
   handleSelectedStop: (stopId: string) => void;
   handleDestinationStop: (stopId: string) => void;
-  shape: LatLngTuple[] | undefined;
+  shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
@@ -166,16 +167,17 @@ function MapContentLayer({
     [selectedDateTime],
   );
 
-  const { vehiclePosition, bearing, vehicleError } = useVehiclePosition({
-    stopTimesByStopId,
-    shape,
-    stopIds,
-    stopsById,
-    stopTimeUpdate: tripId
-      ? realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate
-      : undefined,
-    options: { skip: !isToday || isAddedTrip },
-  });
+  const { vehiclePosition, bearing, vehicleError, nextStop } =
+    useVehiclePosition({
+      stopTimesByStopId,
+      shape,
+      stopIds,
+      stopsById,
+      stopTimeUpdate: tripId
+        ? realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate
+        : undefined,
+      options: { skip: !isToday || isAddedTrip },
+    });
 
   // Some stops are visited twice
   // don't render them twice if no trip Selected
@@ -225,7 +227,11 @@ function MapContentLayer({
           {/* width required for icon not to be 0*0 px */}
           <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>
             {!vehicleError && (
-              <Bus position={vehiclePosition} rotationAngle={bearing} />
+              <Bus
+                position={vehiclePosition}
+                rotationAngle={bearing}
+                nextStop={nextStop}
+              />
             )}
           </Pane>
         </LayerGroup>
@@ -313,6 +319,10 @@ function MapContentLayer({
                     )}
                     {!!tripId && !!realtimeTrip && !!delayedArrivalTime && (
                       <>
+                        <p className="tooltip-schedule-change !mt-0">
+                          <strong>Estimated arrival</strong>:{" "}
+                          {delayedArrivalTime}
+                        </p>
                         {!!prettyDelay && isEarly && (
                           <p className="text-lg">
                             <span className="text-green-900">
@@ -323,14 +333,12 @@ function MapContentLayer({
                         )}
                         {!!prettyDelay && !isEarly && (
                           <p className="text-lg">
-                            <span className="text-red-900">{prettyDelay}</span>{" "}
+                            <span className="text-red-700 dark:text-red-500">
+                              {prettyDelay}
+                            </span>{" "}
                             late
                           </p>
                         )}
-                        <p className="tooltip-schedule-change !mt-0">
-                          <strong>Estimated arrival</strong>:{" "}
-                          {delayedArrivalTime}
-                        </p>
                       </>
                     )}
                     <div className="flex flex-col gap-2 mt-4">
@@ -377,7 +385,11 @@ function MapContentLayer({
       {/* Trip line shape */}
       {!!shape && (
         <LayersControl.Overlay name="Route Path" checked>
-          <Polyline pathOptions={{ color: "firebrick" }} positions={shape} />
+          <Polyline
+            pathOptions={{ color: "firebrick" }}
+            positions={shape as LatLngTuple[]}
+            interactive={false}
+          />
         </LayersControl.Overlay>
       )}
     </LayersControl>

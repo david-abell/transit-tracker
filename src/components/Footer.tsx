@@ -165,29 +165,35 @@ function Footer({
                   {tripStatus === "completed" ? (
                     "Completed"
                   ) : isPastPickup ? (
-                    <span
-                      className={
-                        tripStatus === "early"
-                          ? "text-green-700"
-                          : tripStatus === "delayed"
-                            ? "text-red-900"
-                            : ""
-                      }
-                    >
-                      {dropOffDelay ?? ""} {dropOffDelayStatus || tripStatus}
-                    </span>
+                    <p>
+                      <span
+                        className={
+                          tripStatus === "early"
+                            ? "text-green-700"
+                            : tripStatus === "delayed"
+                              ? "text-red-700 dark:text-red-500"
+                              : ""
+                        }
+                      >
+                        {dropOffDelay ?? ""} {dropOffDelayStatus || tripStatus}
+                      </span>{" "}
+                      to {destinationStop?.stopName}
+                    </p>
                   ) : (
-                    <span
-                      className={
-                        tripStatus === "early"
-                          ? "text-green-700"
-                          : tripStatus === "delayed"
-                            ? "text-red-900"
-                            : ""
-                      }
-                    >
-                      {pickupDelay ?? ""} {pickupDelayStatus || tripStatus}
-                    </span>
+                    <p>
+                      <span
+                        className={
+                          tripStatus === "early"
+                            ? "text-green-700"
+                            : tripStatus === "delayed"
+                              ? "text-red-700 dark:text-red-500"
+                              : ""
+                        }
+                      >
+                        {pickupDelay ?? ""} {pickupDelayStatus || tripStatus}
+                      </span>{" "}
+                      to {destinationStop?.stopName}
+                    </p>
                   )}
                 </div>
               }

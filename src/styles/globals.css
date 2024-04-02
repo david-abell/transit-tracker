@@ -352,20 +352,23 @@ body.modal-open {
 
 .attention-pulse {
   --animate-color: hsl(var(--green-600));
-  animation: pulse 2s infinite;
-}
+  --animate-secondary: hsla(142, 76%, 36%, 0);
+  animation: pulse 1.5s infinite;
 
-.dark .attention-pulse {
-  --animate-color: hsl(var(--secondary));
+  .dark & {
+    --animate-color: hsl(var(--green-200));
+  }
 }
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0 var(--animate-color);
+    box-shadow: var(--animate-color) 0 0 0 0;
+    transform: scale(1.002);
   }
 
-  50% {
-    box-shadow: 0 0 0 4px var(--animate-color);
+  75% {
+    box-shadow: var(--animate-secondary) 0 0 0 14px;
+    transform: scale(1);
   }
 }
 

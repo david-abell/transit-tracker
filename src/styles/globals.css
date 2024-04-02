@@ -351,9 +351,19 @@ body.modal-open {
 }
 
 .attention-pulse {
-  --animate-color: hsl(var(--green-600));
+  --animate-color: hsl(var(--green-700));
   --animate-secondary: hsla(142, 76%, 36%, 0);
   animation: pulse 1.5s infinite;
+
+  .dark & {
+    --animate-color: hsl(var(--green-200));
+  }
+}
+
+.marker-pulse {
+  --animate-color: hsl(var(--green-700));
+  --animate-secondary: hsla(142, 76%, 36%, 0);
+  animation: marker-pulse 1.5s infinite;
 
   .dark & {
     --animate-color: hsl(var(--green-200));
@@ -367,8 +377,18 @@ body.modal-open {
   }
 
   75% {
-    box-shadow: var(--animate-secondary) 0 0 0 14px;
+    box-shadow: var(--animate-secondary) 0 0 2px 10px;
     transform: scale(1);
+  }
+}
+
+@keyframes marker-pulse {
+  0% {
+    box-shadow: var(--animate-color) 0 0 0 0;
+  }
+
+  75% {
+    box-shadow: var(--animate-secondary) 0 0 2px 10px;
   }
 }
 

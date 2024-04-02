@@ -42,7 +42,11 @@ import { SavedStop } from "../SavedStops";
 import { Button } from "@/components/ui/button";
 import { Position } from "@turf/helpers";
 
-type StopWithTimes = { stop: Stop; times?: StopTime[] };
+type ValidStop = Stop & {
+  stopLat: NonNullable<Stop["stopLat"]>;
+  stopLon: NonNullable<Stop["stopLon"]>;
+};
+type StopWithTimes = { stop: ValidStop; times?: StopTime[] };
 
 type Props = {
   height: number;
@@ -106,6 +110,7 @@ function MapContentLayer({
     () => selectedStopId && stopTimesByStopId.get(selectedStopId),
     [selectedStopId, stopTimesByStopId],
   );
+
   useEffect(() => {
     if (stopIds.length && isEqual(stopIds, previousStopIds)) {
       return;
@@ -160,7 +165,7 @@ function MapContentLayer({
   const [count, setCount] = useState<number>(0);
   useInterval(() => {
     setCount(count + 1);
-  }, 1000);
+  }, 2000);
 
   const isToday = useMemo(
     () => DateTime.now().hasSame(parseDatetimeLocale(selectedDateTime), "day"),
@@ -182,38 +187,52 @@ function MapContentLayer({
   // Some stops are visited twice
   // don't render them twice if no trip Selected
   const stopList: StopWithTimes[] = useMemo(() => {
-    if (stopTimes?.length) {
-      const orderedStops: Map<string, StopWithTimes> = new Map();
+    const orderedStops: Map<string, StopWithTimes> = new Map();
 
-      stopTimes.forEach((stopTime) => {
+    if (stopTimes?.length) {
+      for (const stopTime of stopTimes) {
         const stop = stopsById.get(stopTime.stopId);
-        if (!stop) return;
+        if (!stop || stop?.stopLat === null || stop?.stopLon === null) continue;
 
         if (orderedStops.has(stopTime.stopId)) {
           const { stop, times } = orderedStops.get(stopTime.stopId)!;
           orderedStops.set(stopTime.stopId, {
-            stop,
+            stop: stop as ValidStop,
             times: times?.concat(stopTime),
           });
         } else {
-          orderedStops.set(stopTime.stopId, { stop, times: [stopTime] });
+          orderedStops.set(stopTime.stopId, {
+            stop: stop as ValidStop,
+            times: [stopTime],
+          });
         }
-      });
+      }
+
       return [...orderedStops.values()];
     }
 
     if (stops?.length) {
       const orderedStops: Map<string, StopWithTimes> = new Map();
-      stops.forEach((stop) => {
-        if (!orderedStops.has(stop.stopId)) {
-          orderedStops.set(stop.stopId, { stop });
+
+      for (const stop of stops) {
+        if (
+          !orderedStops.has(stop.stopId) &&
+          stop.stopLat !== null &&
+          stop.stopLon !== null
+        ) {
+          orderedStops.set(stop.stopId, { stop: stop as ValidStop });
         }
-      });
+      }
+
       return [...orderedStops.values()];
     }
 
-    if (selectedStop) {
-      return [{ stop: selectedStop }];
+    if (
+      selectedStop &&
+      selectedStop.stopLat !== null &&
+      selectedStop.stopLon !== null
+    ) {
+      return [{ stop: selectedStop as ValidStop }];
     }
 
     return [];
@@ -241,11 +260,8 @@ function MapContentLayer({
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>
           {stopList &&
-            stopList.map(({ stop, times }) => {
+            stopList.map(({ stop, times }, index) => {
               const { stopLat, stopLon, stopName, stopId, stopCode } = stop;
-              if (!stopLat || !stopLon) {
-                return [];
-              }
 
               const { arrivalTime, departureTime, stopSequence } =
                 times?.at(0) || {};
@@ -288,6 +304,7 @@ function MapContentLayer({
                   key={"mm" + stopId + stopSequence}
                   position={[stopLat, stopLon]}
                   icon={stopMarkerIcon({
+                    animate: !selectedStop && index % 4 === 0,
                     isUpcoming:
                       !!arrivalTime &&
                       !isPastArrivalTime(

@@ -12,10 +12,12 @@ type Color =
   | "black";
 
 export function stopMarkerIcon({
+  animate = false,
   isUpcoming,
   isCurrent = false,
   isTripSelected,
 }: {
+  animate?: boolean;
   isUpcoming: boolean;
   isCurrent: boolean;
   isTripSelected: boolean;
@@ -39,6 +41,7 @@ export function stopMarkerIcon({
     iconSize: isCurrent ? [40, 48] : [24, 30],
     iconAnchor: [14, 14],
     popupAnchor: [1, -34],
+    className: animate ? "marker-pulse rounded" : "",
     shadowSize: [41, 41],
   });
 }

@@ -1,8 +1,8 @@
 "use-client";
 import { Icon, LatLngTuple } from "leaflet";
 import { LeafletTrackingMarker } from "react-leaflet-tracking-marker";
-import { useEffect, useState } from "react";
-import { Arrival } from "@/hooks/useVehiclePosition";
+import { useEffect, useMemo, useState } from "react";
+import useVehiclePosition from "@/hooks/useVehiclePosition";
 import { Popup } from "react-leaflet";
 import {
   formatDelay,
@@ -10,29 +10,60 @@ import {
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
 import { useInterval } from "usehooks-ts";
-import { DateTime } from "luxon";
+import { Stop, StopTime } from "@prisma/client";
+import { Position } from "@turf/helpers";
+import { TripUpdate } from "@/types/realtime";
+
+type Props = {
+  realtimeScheduledByTripId: Map<string, TripUpdate>;
+  shape: Position[] | undefined;
+  stopIds: string[] | undefined;
+  stopsById: Map<string, Stop>;
+  stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
+  tripId: string | null;
+  show: boolean;
+};
 
 function Bus({
-  position,
-  rotationAngle,
-  nextStop,
-}: {
-  nextStop: Arrival;
-  position: LatLngTuple;
-  rotationAngle: number;
-}) {
-  const [lat, lon] = position;
-  const [prevPos, setPrevPos] = useState<LatLngTuple>([lat, lon]);
-  const [prevAngle, setPrevAngle] = useState<number>(rotationAngle);
+  realtimeScheduledByTripId,
+  shape,
+  stopIds,
+  stopsById,
+  stopTimesByStopId,
+  tripId,
+  show,
+}: Props) {
+  const stopTimeUpdate = useMemo(() => {
+    return tripId
+      ? realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate
+      : undefined;
+  }, [realtimeScheduledByTripId, tripId]);
+
+  const { vehiclePosition, bearing, vehicleError, nextStop } =
+    useVehiclePosition({
+      stopTimesByStopId,
+      shape,
+      stopIds,
+      stopsById,
+      stopTimeUpdate,
+      options: { skip: show },
+    });
+
+  const [prevPos, setPrevPos] = useState<LatLngTuple>([0, 0]);
+  const [prevAngle, setPrevAngle] = useState<number>(bearing ?? 0);
   const [arrivingIn, setArrivingIn] = useState("");
 
   useEffect(() => {
-    if (prevPos[1] !== lon && prevPos[0] !== lat) setPrevPos([lat, lon]);
-    if (prevAngle !== rotationAngle) setPrevAngle(rotationAngle);
-  }, [lat, lon, prevPos, rotationAngle, prevAngle]);
+    if (vehicleError) return;
+
+    if (prevPos[1] !== vehiclePosition[1] && prevPos[0] !== vehiclePosition[0])
+      setPrevPos(vehiclePosition);
+    if (prevAngle !== bearing) setPrevAngle(bearing);
+  }, [prevPos, prevAngle, vehiclePosition, vehicleError, bearing]);
 
   useInterval(
     () => {
+      if (!nextStop) return;
       if (
         isPastArrivalTime(nextStop.delayedArrivalTime ?? nextStop.arrivalTime)
       )
@@ -47,6 +78,8 @@ function Bus({
     // Delay in milliseconds or null to stop it
     1000,
   );
+
+  if (vehicleError) return null;
 
   const prettyDelay = formatDelay(
     nextStop.stopUpdate?.arrival?.delay ||
@@ -72,9 +105,9 @@ function Bus({
             shadowSize: [41, 41],
           })
         }
-        position={[lat, lon]}
+        position={vehiclePosition}
         previousPosition={prevPos}
-        duration={1000}
+        duration={500}
         rotationAngle={prevAngle}
         rotationOrigin="center"
         interactive={false}
@@ -90,9 +123,9 @@ function Bus({
             shadowSize: [41, 41],
           })
         }
-        position={[lat, lon]}
+        position={vehiclePosition}
         previousPosition={prevPos}
-        duration={1000}
+        duration={500}
         rotationAngle={0}
       >
         <Popup>

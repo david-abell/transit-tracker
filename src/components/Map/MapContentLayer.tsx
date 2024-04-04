@@ -179,18 +179,6 @@ function MapContentLayer({
     [selectedDateTime],
   );
 
-  const { vehiclePosition, bearing, vehicleError, nextStop } =
-    useVehiclePosition({
-      stopTimesByStopId,
-      shape,
-      stopIds,
-      stopsById,
-      stopTimeUpdate: tripId
-        ? realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate
-        : undefined,
-      options: { skip: !isToday || isAddedTrip },
-    });
-
   // Some stops are visited twice
   // don't render them twice if no trip Selected
   const stopList: StopWithTimes[] = useMemo(() => {
@@ -252,13 +240,15 @@ function MapContentLayer({
         <LayerGroup>
           {/* width required for icon not to be 0*0 px */}
           <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>
-            {!vehicleError && (
-              <Bus
-                position={vehiclePosition}
-                rotationAngle={bearing}
-                nextStop={nextStop}
-              />
-            )}
+            <Bus
+              realtimeScheduledByTripId={realtimeScheduledByTripId}
+              shape={shape}
+              stopIds={stopIds}
+              tripId={tripId}
+              stopTimesByStopId={stopTimesByStopId}
+              stopsById={stopsById}
+              show={!isToday}
+            />
           </Pane>
         </LayerGroup>
       </LayersControl.Overlay>

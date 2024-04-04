@@ -1,7 +1,7 @@
 "use-client";
 import { Icon, LatLngTuple } from "leaflet";
 import { LeafletTrackingMarker } from "react-leaflet-tracking-marker";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useVehiclePosition from "@/hooks/useVehiclePosition";
 import { Popup } from "react-leaflet";
 import {
@@ -13,6 +13,7 @@ import { useInterval } from "usehooks-ts";
 import { Stop, StopTime } from "@prisma/client";
 import { Position } from "@turf/helpers";
 import { TripUpdate } from "@/types/realtime";
+import LiveText, { LiveTextColor } from "../ui/LiveText";
 
 type Props = {
   realtimeScheduledByTripId: Map<string, TripUpdate>;
@@ -79,18 +80,32 @@ function Bus({
     1000,
   );
 
+  const onTextUpdate = useCallback(() => {
+    if (nextStop) {
+      return (
+        formatDelay(
+          nextStop?.stopUpdate?.arrival?.delay ||
+            nextStop?.stopUpdate?.departure?.delay,
+        ) ?? ""
+      );
+    }
+
+    return "";
+  }, [nextStop]);
   if (vehicleError) return null;
 
-  const prettyDelay = formatDelay(
-    nextStop.stopUpdate?.arrival?.delay ||
-      nextStop.stopUpdate?.departure?.delay,
-  );
+  const arrivalDelay = nextStop?.stopUpdate?.arrival?.delay;
+  const departureDelay = nextStop?.stopUpdate?.departure?.delay;
 
-  const isEarly = nextStop.stopUpdate?.arrival?.delay
-    ? nextStop.stopUpdate?.arrival?.delay < 0
-    : nextStop.stopUpdate?.departure?.delay
-      ? nextStop.stopUpdate?.departure.delay < 0
-      : false;
+  const hasDelay =
+    (typeof arrivalDelay === "number" && arrivalDelay !== 0) ||
+    (typeof departureDelay === "number" && departureDelay !== 0);
+
+  const isEarly =
+    (typeof arrivalDelay === "number" && arrivalDelay < 0) ||
+    (typeof departureDelay === "number" && departureDelay < 0);
+
+  const liveTextColor: LiveTextColor = isEarly ? "info" : "alert";
 
   return (
     <>
@@ -141,12 +156,10 @@ function Bus({
               <b>Arriving: </b> {nextStop.delayedArrivalTime}
             </p>
           )}
-          {prettyDelay && (
+          {hasDelay && (
             <p>
-              <b
-                className={`${isEarly ? "text-green-900" : "text-red-700 dark:text-red-500"}`}
-              >
-                {prettyDelay}
+              <b>
+                <LiveText content={onTextUpdate} color={liveTextColor} />
               </b>
               {isEarly ? " early" : " late"}
             </p>
@@ -154,10 +167,8 @@ function Bus({
 
           <p className="text-lg !mt-0">
             Arrival estimate{" "}
-            <b
-              className={`${isEarly ? "text-green-900 dark:text-green-500" : "text-red-700 dark:text-red-500"}`}
-            >
-              {arrivingIn}
+            <b>
+              <LiveText content={arrivingIn} color={liveTextColor} />
             </b>
           </p>
         </Popup>

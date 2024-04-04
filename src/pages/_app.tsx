@@ -2,6 +2,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "@/styles/globals.css";
 import "@/styles/leaflet.css";
+import "@/styles/markerCluster.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { useRouterReady } from "@/hooks/useRouterReady";

@@ -41,6 +41,7 @@ import useStopId from "@/hooks/useStopId";
 import { SavedStop } from "../SavedStops";
 import { Button } from "@/components/ui/button";
 import { Position } from "@turf/helpers";
+import MarkerClusterGroup from "./MarkerClusterGroup";
 
 type ValidStop = Stop & {
   stopLat: NonNullable<Stop["stopLat"]>;
@@ -138,6 +139,12 @@ function MapContentLayer({
     }
   }, [map, height]);
 
+  useEffect(() => {
+    if (map != null) {
+      map.locate({ setView: true, maxZoom: 16 });
+    }
+  }, [map]);
+
   // Realtime state
   const { realtimeScheduledByTripId, addedTripStopTimes, realtimeAddedTrips } =
     useRealtime(tripId);
@@ -162,10 +169,10 @@ function MapContentLayer({
   //   stopTimeUpdate?.flatMap(({ stopId }) => stopsById.get(stopId || "") || []);
 
   // Rerender interval to update live position and marker colors
-  const [count, setCount] = useState<number>(0);
-  useInterval(() => {
-    setCount(count + 1);
-  }, 2000);
+  // const [count, setCount] = useState<number>(0);
+  // useInterval(() => {
+  //   setCount(count + 1);
+  // }, 2000);
 
   const isToday = useMemo(
     () => DateTime.now().hasSame(parseDatetimeLocale(selectedDateTime), "day"),
@@ -259,8 +266,8 @@ function MapContentLayer({
       {/* Route stop markers */}
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>
-          {stopList &&
-            stopList.map(({ stop, times }, index) => {
+          <MarkerClusterGroup>
+            {stopList.map(({ stop, times }, index) => {
               const { stopLat, stopLon, stopName, stopId, stopCode } = stop;
 
               const { arrivalTime, departureTime, stopSequence } =
@@ -304,7 +311,7 @@ function MapContentLayer({
                   key={"mm" + stopId + stopSequence}
                   position={[stopLat, stopLon]}
                   icon={stopMarkerIcon({
-                    animate: !selectedStop && index % 4 === 0,
+                    animate: !selectedStop,
                     isUpcoming:
                       !!arrivalTime &&
                       !isPastArrivalTime(
@@ -396,6 +403,7 @@ function MapContentLayer({
                 </Marker>
               );
             })}
+          </MarkerClusterGroup>
         </FeatureGroup>
       </LayersControl.Overlay>
 

@@ -43,9 +43,9 @@ function getPropsAndEvents(props: MarkerClusterControl) {
   // Splitting props and events to different objects
   Object.entries(rest).forEach(([propName, prop]) => {
     if (propName.startsWith("on")) {
-      clusterEvents = { ...clusterEvents, [propName]: prop };
+      clusterEvents[propName] = prop;
     } else {
-      clusterProps = { ...clusterProps, [propName]: prop };
+      clusterProps[propName] = prop;
     }
   });
   return { clusterProps, clusterEvents };

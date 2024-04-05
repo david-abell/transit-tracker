@@ -119,9 +119,10 @@ function MapContentLayer({
   );
 
   useEffect(() => {
-    // if (map != null && !stopIds.length && !selectedStop) {
-    //   map.locate({ setView: true, maxZoom: 16 });
-    // }
+    if (map != null && !stopIds.length && !selectedStop) {
+      map.locate({ setView: true, maxZoom: 12 });
+      return;
+    }
     if (stopIds.length && isEqual(stopIds, previousStopIds)) {
       return;
     }
@@ -137,7 +138,7 @@ function MapContentLayer({
 
       if (!stopLat || !stopLon) return;
 
-      map.flyTo([stopLat, stopLon], 14);
+      map.flyTo([stopLat, stopLon], 12);
     }
   }, [map, stopIds, previousStopIds, selectedStop]);
 
@@ -148,12 +149,6 @@ function MapContentLayer({
       map.invalidateSize();
     }
   }, [map, height]);
-
-  // useEffect(() => {
-  //   if (map != null) {
-  //     map.locate({ setView: true, maxZoom: 16 });
-  //   }
-  // }, [map]);
 
   // Realtime state
   const { realtimeScheduledByTripId, addedTripStopTimes, realtimeAddedTrips } =

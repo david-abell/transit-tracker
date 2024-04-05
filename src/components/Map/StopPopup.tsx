@@ -72,9 +72,9 @@ const StopPopup = memo(function StopPopup({
           onClick={() => handleSaveStop(stopId, stopName)}
           className="flex flex-row justify-between gap-1"
         >
-          <Star className="text-yellow-400" />
+          <Star fill="#facc15" color="#facc15" />
           <span>Favourite</span>
-          <Star className="inline-block h-5 w-5 text-yellow-400" />
+          <Star fill="#facc15" color="#facc15" />
         </Button>
       </div>
     </Popup>

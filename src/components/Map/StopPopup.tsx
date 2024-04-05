@@ -45,7 +45,10 @@ const StopPopup = memo(function StopPopup({
           </p>
           {!!formattedDelay && status === "early" && (
             <p className="text-lg">
-              <span className="text-green-700">{formattedDelay}</span> early
+              <span className="text-green-700 dark:text-green-500">
+                {formattedDelay}
+              </span>{" "}
+              early
             </p>
           )}
           {!!formattedDelay && status === "late" && (

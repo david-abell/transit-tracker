@@ -147,20 +147,24 @@ function Footer({
             <AccordionTrigger className="[&>svg]:h-[28px] [&>svg]:w-[28px] py-0 no-underline">
               {
                 <div className="flex w-full flex-row content-center justify-between gap-4 overflow-hidden pl-2 pr-4 text-left font-normal">
-                  <span>
+                  <p>
                     {!!route ? (
                       <>
-                        <b>{route.routeShortName ?? ""} </b>
+                        <span>Route </span>
+                        <b>{route.routeShortName ?? ""}</b>
                         <span className="max-lg:hidden">
-                          {route?.routeLongName ?? ""}
+                          {" "}
+                          &#9830; {route?.routeLongName ?? ""}
                         </span>
                       </>
                     ) : (
                       "No route selected"
                     )}
 
-                    {!!trip && <> - towards {trip.tripHeadsign}</>}
-                  </span>
+                    {!!trip && (
+                      <> &#9830; heading towards {trip.tripHeadsign}</>
+                    )}
+                  </p>
 
                   {tripStatus === "completed" ? (
                     "Completed"
@@ -204,7 +208,7 @@ function Footer({
                   {/* Pickup Headers */}
                   <div className="dark:bg-gray-700/90 col-span-3 grid grid-cols-3 grid-rows-subgrid items-center  gap-2 bg-gray-200/90 p-2 uppercase text-gray-950 dark:text-gray-50">
                     {/* <span className="col-span-2 p-2">Route</span> */}
-                    <span>Journey start</span>
+                    <span>From</span>
                     <span>Scheduled</span>
                     <span>Realtime</span>
                   </div>
@@ -242,7 +246,7 @@ function Footer({
                 <div className="grid grid-cols-3 grid-rows-[minmax(0,_3rem)_1fr] gap-x-2">
                   {/* Destination Headers */}
                   <div className="dark:bg-gray-700/90 col-span-3 grid grid-cols-3 grid-rows-subgrid items-center gap-2 bg-gray-200/90 p-2 uppercase text-gray-950 dark:text-gray-50 ">
-                    <span>Destination</span>
+                    <span>To</span>
                     <span>Scheduled</span>
                     {/* <span className="p-2">Delay</span> */}
                     <span>Realtime</span>

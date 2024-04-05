@@ -33,7 +33,7 @@ import {
 import { stopMarkerIcon } from "./stopMarkerIcon";
 import Bus from "./Bus";
 import usePrevious from "@/hooks/usePrevious";
-import isEqual from "fast-deep-equal";
+import isEqual from "react-fast-compare";
 import useVehiclePosition from "@/hooks/useVehiclePosition";
 import { KeyedMutator } from "swr";
 import { DateTime } from "luxon";

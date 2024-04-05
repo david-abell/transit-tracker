@@ -110,10 +110,6 @@ function MapContentLayer({
   );
 
   useEffect(() => {
-    if (map != null && !stopIds.length && !selectedStop) {
-      map.locate({ setView: true, maxZoom: 12 });
-      return;
-    }
     if (stopIds.length && isEqual(stopIds, previousStopIds)) {
       return;
     }

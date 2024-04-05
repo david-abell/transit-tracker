@@ -1,15 +1,12 @@
 "use-client";
 
 import {
-  Marker,
   Polyline,
   FeatureGroup,
   useMap,
-  Tooltip,
   LayersControl,
   Pane,
   LayerGroup,
-  Popup,
 } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
 import {
@@ -19,28 +16,22 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from "react";
 import { useInterval, useLocalStorage } from "usehooks-ts";
 
-import type { Stop, StopTime, Trip } from "@prisma/client";
+import type { Stop, StopTime } from "@prisma/client";
 import {
   formatDelay,
   getDelayedTime,
-  isPastArrivalTime,
   parseDatetimeLocale,
 } from "@/lib/timeHelpers";
-import { stopMarkerIcon } from "./stopMarkerIcon";
 import Bus from "./Bus";
 import usePrevious from "@/hooks/usePrevious";
 import isEqual from "react-fast-compare";
-import useVehiclePosition from "@/hooks/useVehiclePosition";
-import { KeyedMutator } from "swr";
 import { DateTime } from "luxon";
 import useRealtime from "@/hooks/useRealtime";
 import useStopId from "@/hooks/useStopId";
 import { SavedStop } from "../SavedStops";
-import { Button } from "@/components/ui/button";
 import { Position } from "@turf/helpers";
 import MarkerClusterGroup from "./MarkerClusterGroup";
 import StopMarker from "./StopMarker";

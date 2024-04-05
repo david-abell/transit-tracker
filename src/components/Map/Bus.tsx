@@ -107,7 +107,11 @@ function Bus({
     (typeof arrivalDelay === "number" && arrivalDelay < 0) ||
     (typeof departureDelay === "number" && departureDelay < 0);
 
-  const liveTextColor: LiveTextColor = isEarly ? "info" : "alert";
+  const liveTextColor: LiveTextColor = isEarly
+    ? "info"
+    : hasDelay
+      ? "alert"
+      : "default";
 
   return (
     <>

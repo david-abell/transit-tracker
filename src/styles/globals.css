@@ -411,6 +411,7 @@ body.modal-open {
 
   .react-select__option {
     background-color: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
 
     &:hover {
       background-color: hsl(var(--accent));

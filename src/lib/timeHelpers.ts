@@ -140,7 +140,7 @@ export function formatDelay(delayInSeconds: number | undefined, exact = false) {
 }
 
 export const delayStatus = {
-  delay: "late",
+  late: "late",
   early: "early",
   "on-time": "on-time",
   canceled: "canceled",
@@ -164,10 +164,10 @@ export function getDelayStatus(
     delay = stopTimeUpdate.arrival.delay;
   }
 
-  if (!delay || (delay > -30 && delay < 30)) return delayStatus["on-time"];
+  if (!delay || delay === 0) return delayStatus["on-time"];
 
-  if (delay > 30) {
-    return delayStatus.delay;
+  if (delay > 0) {
+    return delayStatus.late;
   } else {
     return delayStatus.early;
   }
@@ -198,18 +198,15 @@ export function getTripStatus(
     return tripStatus.canceled;
   }
 
-  const firstStop = stopTimes[0];
-
-  const boardingStop =
-    !!start && stopTimes.find((stop) => stop.stopId === start);
+  const firstStop = start
+    ? stopTimes.find((stop) => stop.stopId === start) ?? stopTimes[0]
+    : stopTimes[0];
 
   const lastStop =
     stopTimes.find((stop) => stop.stopId === end) ?? stopTimes.at(-1);
 
   const startTime = firstStop.departureTime ?? firstStop.arrivalTime;
-  const boardingTime = boardingStop
-    ? boardingStop?.departureTime ?? boardingStop?.arrivalTime
-    : undefined;
+
   const finishTime = lastStop?.arrivalTime;
 
   const realtime = stopTimeUpdate?.at(-1);
@@ -227,11 +224,11 @@ export function getTripStatus(
     return tripStatus.finished;
   }
   // if delayed
-  if (delay > 30) {
+  if (delay > 0) {
     return tripStatus.delayed;
   }
   // if early
-  if (delay < -30) {
+  if (delay < 0) {
     return tripStatus.early;
   }
   // if trip hasn't started yet and no delay

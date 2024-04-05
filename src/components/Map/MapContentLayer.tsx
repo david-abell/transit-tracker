@@ -1,46 +1,41 @@
 "use-client";
 
 import {
-  Marker,
   Polyline,
   FeatureGroup,
   useMap,
-  Tooltip,
   LayersControl,
   Pane,
   LayerGroup,
-  Popup,
 } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
 import {
   Dispatch,
   SetStateAction,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from "react";
 import { useInterval, useLocalStorage } from "usehooks-ts";
 
-import type { Stop, StopTime, Trip } from "@prisma/client";
+import type { Stop, StopTime } from "@prisma/client";
 import {
   formatDelay,
   getDelayedTime,
-  isPastArrivalTime,
   parseDatetimeLocale,
 } from "@/lib/timeHelpers";
-import { stopMarkerIcon } from "./stopMarkerIcon";
 import Bus from "./Bus";
 import usePrevious from "@/hooks/usePrevious";
-import isEqual from "fast-deep-equal";
-import useVehiclePosition from "@/hooks/useVehiclePosition";
-import { KeyedMutator } from "swr";
+import isEqual from "react-fast-compare";
 import { DateTime } from "luxon";
 import useRealtime from "@/hooks/useRealtime";
 import useStopId from "@/hooks/useStopId";
 import { SavedStop } from "../SavedStops";
-import { Button } from "@/components/ui/button";
 import { Position } from "@turf/helpers";
+import MarkerClusterGroup from "./MarkerClusterGroup";
+import StopMarker from "./StopMarker";
+import StopPopup from "./StopPopup";
 
 type ValidStop = Stop & {
   stopLat: NonNullable<Stop["stopLat"]>;
@@ -93,16 +88,19 @@ function MapContentLayer({
     {},
   );
 
-  const handleSaveStop = (stopId: string, stopName: string | null) => {
-    setSavedStops((prev) => {
-      const stops = { ...prev };
+  const handleSaveStop = useCallback(
+    (stopId: string, stopName: string | null) => {
+      setSavedStops((prev) => {
+        const stops = { ...prev };
 
-      stops[stopId] = stopName || stopId;
+        stops[stopId] = stopName || stopId;
 
-      return stops;
-    });
-    setShowSavedStops(true);
-  };
+        return stops;
+      });
+      setShowSavedStops(true);
+    },
+    [setSavedStops, setShowSavedStops],
+  );
 
   const { selectedStop } = useStopId(selectedStopId);
 
@@ -112,6 +110,10 @@ function MapContentLayer({
   );
 
   useEffect(() => {
+    if (map != null && !stopIds.length && !selectedStop) {
+      map.locate({ setView: true, maxZoom: 12 });
+      return;
+    }
     if (stopIds.length && isEqual(stopIds, previousStopIds)) {
       return;
     }
@@ -119,6 +121,7 @@ function MapContentLayer({
       const group = markerGroupRef.current;
 
       if (!group || !group.getBounds().isValid()) return;
+      console.log("flying to group");
 
       map.flyToBounds(group.getBounds());
     } else {
@@ -126,7 +129,7 @@ function MapContentLayer({
 
       if (!stopLat || !stopLon) return;
 
-      map.flyTo([stopLat, stopLon], 14);
+      map.flyTo([stopLat, stopLon], 12);
     }
   }, [map, stopIds, previousStopIds, selectedStop]);
 
@@ -149,40 +152,28 @@ function MapContentLayer({
   const { stopTimeUpdate } = realtimeTrip || {};
   const lastStopTimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
 
-  const isAddedTrip = useMemo(
-    () =>
-      !!realtimeTrip
-        ? realtimeTrip.trip.scheduleRelationship === "ADDED"
-        : false,
-    [realtimeTrip],
-  );
+  // const isAddedTrip = useMemo(
+  //   () =>
+  //     !!realtimeTrip
+  //       ? realtimeTrip.trip.scheduleRelationship === "ADDED"
+  //       : false,
+  //   [realtimeTrip],
+  // );
 
   // const addedTripStops =
   //   isAddedTrip &&
   //   stopTimeUpdate?.flatMap(({ stopId }) => stopsById.get(stopId || "") || []);
 
   // Rerender interval to update live position and marker colors
-  const [count, setCount] = useState<number>(0);
-  useInterval(() => {
-    setCount(count + 1);
-  }, 2000);
+  // const [count, setCount] = useState<number>(0);
+  // useInterval(() => {
+  //   setCount(count + 1);
+  // }, 2000);
 
   const isToday = useMemo(
     () => DateTime.now().hasSame(parseDatetimeLocale(selectedDateTime), "day"),
     [selectedDateTime],
   );
-
-  const { vehiclePosition, bearing, vehicleError, nextStop } =
-    useVehiclePosition({
-      stopTimesByStopId,
-      shape,
-      stopIds,
-      stopsById,
-      stopTimeUpdate: tripId
-        ? realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate
-        : undefined,
-      options: { skip: !isToday || isAddedTrip },
-    });
 
   // Some stops are visited twice
   // don't render them twice if no trip Selected
@@ -245,13 +236,15 @@ function MapContentLayer({
         <LayerGroup>
           {/* width required for icon not to be 0*0 px */}
           <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>
-            {!vehicleError && (
-              <Bus
-                position={vehiclePosition}
-                rotationAngle={bearing}
-                nextStop={nextStop}
-              />
-            )}
+            <Bus
+              realtimeScheduledByTripId={realtimeScheduledByTripId}
+              shape={shape}
+              stopIds={stopIds}
+              tripId={tripId}
+              stopTimesByStopId={stopTimesByStopId}
+              stopsById={stopsById}
+              show={!isToday}
+            />
           </Pane>
         </LayerGroup>
       </LayersControl.Overlay>
@@ -259,8 +252,8 @@ function MapContentLayer({
       {/* Route stop markers */}
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>
-          {stopList &&
-            stopList.map(({ stop, times }, index) => {
+          <MarkerClusterGroup>
+            {stopList.map(({ stop, times }) => {
               const { stopLat, stopLon, stopName, stopId, stopCode } = stop;
 
               const { arrivalTime, departureTime, stopSequence } =
@@ -300,102 +293,34 @@ function MapContentLayer({
                 false;
 
               return (
-                <Marker
+                <StopMarker
+                  big={
+                    stopId === selectedStopId ||
+                    stopId === selectedDestinationStopId
+                  }
                   key={"mm" + stopId + stopSequence}
-                  position={[stopLat, stopLon]}
-                  icon={stopMarkerIcon({
-                    animate: !selectedStop && index % 4 === 0,
-                    isUpcoming:
-                      !!arrivalTime &&
-                      !isPastArrivalTime(
-                        delayedArrivalTime || arrivalTime,
-                        selectedDateTime,
-                      ),
-                    isTripSelected: !!tripId,
-                    isCurrent:
-                      stopId === selectedStopId ||
-                      stopId === selectedDestinationStopId,
-                  })}
-
-                  // eventHandlers={{
-                  //   click: () => handleSelectedStop(stopId),
-                  // }}
+                  stopLat={stopLat}
+                  stopLon={stopLon}
+                  stopId={stopId}
+                  stopSequence={stopSequence}
                 >
-                  <Popup interactive>
-                    <p>
-                      <span className="">Stop </span>
-                      {stopCode ?? stopId}
-                    </p>
-                    <h3 className="text-lg font-bold">{stopName}</h3>
-
-                    {!!arrivalTime && (
-                      <p className="!mb-0">
-                        <strong>Scheduled arrival</strong>:
-                        <span> {arrivalTime}</span>
-                      </p>
-                    )}
-                    {!!tripId && !!realtimeTrip && !!delayedArrivalTime && (
-                      <>
-                        <p className="tooltip-schedule-change !mt-0">
-                          <strong>Estimated arrival</strong>:{" "}
-                          {delayedArrivalTime}
-                        </p>
-                        {!!prettyDelay && isEarly && (
-                          <p className="text-lg">
-                            <span className="text-green-900">
-                              {prettyDelay}
-                            </span>{" "}
-                            early
-                          </p>
-                        )}
-                        {!!prettyDelay && !isEarly && (
-                          <p className="text-lg">
-                            <span className="text-red-700 dark:text-red-500">
-                              {prettyDelay}
-                            </span>{" "}
-                            late
-                          </p>
-                        )}
-                      </>
-                    )}
-                    <div className="flex flex-col gap-2 mt-4">
-                      <Button onClick={() => handleSelectedStop(stopId)}>
-                        View trips
-                      </Button>
-                      {!!selectedStopId && isValidDestination && (
-                        <Button onClick={() => handleDestinationStop(stopId)}>
-                          set Destination
-                        </Button>
-                      )}
-                      <Button
-                        onClick={() => handleSaveStop(stopId, stopName)}
-                        className="flex flex-row justify-between gap-1"
-                      >
-                        <svg
-                          aria-hidden="true"
-                          className="inline-block h-5 w-5 text-yellow-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                        </svg>
-                        <span>Favourite</span>
-                        <svg
-                          aria-hidden="true"
-                          className="inline-block h-5 w-5 text-yellow-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                        </svg>
-                      </Button>
-                    </div>
-                  </Popup>
-                </Marker>
+                  <StopPopup
+                    arrivalTime={arrivalTime ?? ""}
+                    delayedArrivalTime={delayedArrivalTime}
+                    formattedDelay={prettyDelay}
+                    handleDestinationStop={handleDestinationStop}
+                    handleSaveStop={handleSaveStop}
+                    handleSelectedStop={handleSelectedStop}
+                    isValidDestination={isValidDestination}
+                    status={
+                      isEarly ? "early" : !!prettyDelay ? "late" : "default"
+                    }
+                    stop={stop}
+                  />
+                </StopMarker>
               );
             })}
+          </MarkerClusterGroup>
         </FeatureGroup>
       </LayersControl.Overlay>
 

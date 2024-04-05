@@ -1,8 +1,8 @@
 "use-client";
 import { Icon, LatLngTuple } from "leaflet";
 import { LeafletTrackingMarker } from "react-leaflet-tracking-marker";
-import { useEffect, useState } from "react";
-import { Arrival } from "@/hooks/useVehiclePosition";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import useVehiclePosition from "@/hooks/useVehiclePosition";
 import { Popup } from "react-leaflet";
 import {
   formatDelay,
@@ -10,29 +10,63 @@ import {
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
 import { useInterval } from "usehooks-ts";
-import { DateTime } from "luxon";
+import { Stop, StopTime } from "@prisma/client";
+import { Position } from "@turf/helpers";
+import { TripUpdate } from "@/types/realtime";
+import LiveText, { LiveTextColor } from "../ui/LiveText";
+
+type Props = {
+  realtimeScheduledByTripId: Map<string, TripUpdate>;
+  shape: Position[] | undefined;
+  stopIds: string[] | undefined;
+  stopsById: Map<string, Stop>;
+  stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
+  tripId: string | null;
+  show: boolean;
+};
+
+const SVG_ANGLE_OFFSET = 225;
 
 function Bus({
-  position,
-  rotationAngle,
-  nextStop,
-}: {
-  nextStop: Arrival;
-  position: LatLngTuple;
-  rotationAngle: number;
-}) {
-  const [lat, lon] = position;
-  const [prevPos, setPrevPos] = useState<LatLngTuple>([lat, lon]);
-  const [prevAngle, setPrevAngle] = useState<number>(rotationAngle);
+  realtimeScheduledByTripId,
+  shape,
+  stopIds,
+  stopsById,
+  stopTimesByStopId,
+  tripId,
+  show,
+}: Props) {
+  const stopTimeUpdate = useMemo(() => {
+    return tripId
+      ? realtimeScheduledByTripId.get(tripId)?.stopTimeUpdate
+      : undefined;
+  }, [realtimeScheduledByTripId, tripId]);
+
+  const { vehiclePosition, bearing, vehicleError, nextStop } =
+    useVehiclePosition({
+      stopTimesByStopId,
+      shape,
+      stopIds,
+      stopsById,
+      stopTimeUpdate,
+      options: { skip: show },
+    });
+
+  const [prevPos, setPrevPos] = useState<LatLngTuple>([0, 0]);
+  const [prevAngle, setPrevAngle] = useState<number>(bearing ?? 0);
   const [arrivingIn, setArrivingIn] = useState("");
 
   useEffect(() => {
-    if (prevPos[1] !== lon && prevPos[0] !== lat) setPrevPos([lat, lon]);
-    if (prevAngle !== rotationAngle) setPrevAngle(rotationAngle);
-  }, [lat, lon, prevPos, rotationAngle, prevAngle]);
+    if (vehicleError) return;
+
+    if (prevPos[1] !== vehiclePosition[1] && prevPos[0] !== vehiclePosition[0])
+      setPrevPos(vehiclePosition);
+    if (prevAngle !== bearing) setPrevAngle(bearing);
+  }, [prevPos, prevAngle, vehiclePosition, vehicleError, bearing]);
 
   useInterval(
     () => {
+      if (!nextStop) return;
       if (
         isPastArrivalTime(nextStop.delayedArrivalTime ?? nextStop.arrivalTime)
       )
@@ -48,51 +82,69 @@ function Bus({
     1000,
   );
 
-  const prettyDelay = formatDelay(
-    nextStop.stopUpdate?.arrival?.delay ||
-      nextStop.stopUpdate?.departure?.delay,
-  );
+  const onTextUpdate = useCallback(() => {
+    if (nextStop) {
+      return (
+        formatDelay(
+          nextStop?.stopUpdate?.arrival?.delay ||
+            nextStop?.stopUpdate?.departure?.delay,
+        ) ?? ""
+      );
+    }
 
-  const isEarly = nextStop.stopUpdate?.arrival?.delay
-    ? nextStop.stopUpdate?.arrival?.delay < 0
-    : nextStop.stopUpdate?.departure?.delay
-      ? nextStop.stopUpdate?.departure.delay < 0
-      : false;
+    return "";
+  }, [nextStop]);
+  if (vehicleError) return null;
+
+  const arrivalDelay = nextStop?.stopUpdate?.arrival?.delay;
+  const departureDelay = nextStop?.stopUpdate?.departure?.delay;
+
+  const hasDelay =
+    (typeof arrivalDelay === "number" && arrivalDelay !== 0) ||
+    (typeof departureDelay === "number" && departureDelay !== 0);
+
+  const isEarly =
+    (typeof arrivalDelay === "number" && arrivalDelay < 0) ||
+    (typeof departureDelay === "number" && departureDelay < 0);
+
+  const liveTextColor: LiveTextColor = isEarly
+    ? "info"
+    : hasDelay
+      ? "alert"
+      : "default";
 
   return (
     <>
       <LeafletTrackingMarker
         icon={
           new Icon({
-            iconUrl: "/bus_teardrop.svg",
+            iconUrl: "/Aiga_teardrop.svg",
             shadowUrl: "",
             iconSize: [60, 60],
             iconAnchor: [30, 30],
             popupAnchor: [1, -34],
-            shadowSize: [41, 41],
           })
         }
-        position={[lat, lon]}
+        position={vehiclePosition}
         previousPosition={prevPos}
-        duration={1000}
-        rotationAngle={prevAngle}
+        duration={500}
+        rotationAngle={prevAngle - SVG_ANGLE_OFFSET}
         rotationOrigin="center"
         interactive={false}
       />
       <LeafletTrackingMarker
         icon={
           new Icon({
-            iconUrl: "/bus.svg",
+            iconUrl: "/Aiga_bus.svg",
             shadowUrl: "",
             iconSize: [60, 60],
             iconAnchor: [30, 30],
             popupAnchor: [1, -34],
-            shadowSize: [41, 41],
           })
         }
-        position={[lat, lon]}
+        position={vehiclePosition}
         previousPosition={prevPos}
-        duration={1000}
+        duration={500}
         rotationAngle={0}
       >
         <Popup>
@@ -100,6 +152,14 @@ function Bus({
           <h3 className="text-lg font-bold !mt-0">
             {nextStop.stop.stopName ?? ""}
           </h3>
+
+          <p className="!mt-0 !mb-0">
+            Arrival in around{" "}
+            <b className="text-lg">
+              <LiveText content={arrivingIn} color={liveTextColor} />
+            </b>
+          </p>
+
           <p>
             <b>Scheduled arrival: </b> {nextStop.arrivalTime}
           </p>
@@ -108,25 +168,15 @@ function Bus({
               <b>Arriving: </b> {nextStop.delayedArrivalTime}
             </p>
           )}
-          {prettyDelay && (
+
+          {hasDelay && (
             <p>
-              <b
-                className={`${isEarly ? "text-green-900" : "text-red-700 dark:text-red-500"}`}
-              >
-                {prettyDelay}
+              <b>
+                <LiveText content={onTextUpdate} color={liveTextColor} />
               </b>
               {isEarly ? " early" : " late"}
             </p>
           )}
-
-          <p className="text-lg !mt-0">
-            Arrival estimate{" "}
-            <b
-              className={`${isEarly ? "text-green-900 dark:text-green-500" : "text-red-700 dark:text-red-500"}`}
-            >
-              {arrivingIn}
-            </b>
-          </p>
         </Popup>
       </LeafletTrackingMarker>
     </>

@@ -12,8 +12,9 @@ import lineChunk from "@turf/line-chunk";
 import lineSlice from "@turf/line-slice";
 import rhumbDistance from "@turf/rhumb-distance";
 import { LatLngTuple } from "leaflet";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { KeyedMutator } from "swr";
+import { useInterval } from "usehooks-ts";
 
 export type Arrival = {
   arrivalTime: string;
@@ -35,28 +36,17 @@ type Props = {
   };
 };
 
-function useVehiclePosition({
-  stopIds,
-  shape,
-  stopTimesByStopId,
-  stopsById,
-  stopTimeUpdate,
-  options,
-}: Props): {
+type VehiclePosition = {
   bearing: number;
   nextStop: Arrival;
   vehiclePosition: LatLngTuple;
   vehicleError: undefined;
 };
 
-function useVehiclePosition({
-  stopIds,
-  shape,
-  stopTimesByStopId,
-  stopsById,
-  stopTimeUpdate,
-  options,
-}: Props): {
+type VehicleError = {
+  bearing: undefined;
+  nextStop: undefined;
+  vehiclePosition: undefined;
   vehicleError: true;
 };
 
@@ -67,7 +57,12 @@ function useVehiclePosition({
   stopsById,
   stopTimeUpdate,
   options,
-}: Props) {
+}: Props): VehiclePosition | VehicleError {
+  const [count, setCount] = useState<number>(0);
+  useInterval(() => {
+    setCount(count + 1);
+  }, 500);
+
   const lastStopTimeUpdate = useMemo(
     () => stopTimeUpdate && stopTimeUpdate.at(-1),
     [stopTimeUpdate],
@@ -132,7 +127,12 @@ function useVehiclePosition({
     !arrivals ||
     arrivals.length < 2
   ) {
-    return { vehicleError: true };
+    return {
+      vehiclePosition: undefined,
+      bearing: undefined,
+      nextStop: undefined,
+      vehicleError: true,
+    };
   }
 
   const currentStopSequence = arrivals.findIndex(
@@ -142,7 +142,12 @@ function useVehiclePosition({
 
   // bail early if two coordinates not possible
   if (currentStopSequence <= 0 || currentStopSequence > arrivals.length - 1) {
-    return { vehicleError: true };
+    return {
+      vehiclePosition: undefined,
+      bearing: undefined,
+      nextStop: undefined,
+      vehicleError: true,
+    };
   }
 
   const lastStop = arrivals[currentStopSequence - 1];
@@ -198,8 +203,7 @@ function useVehiclePosition({
   const vehiclePosition = nextShapeSlice[sliceIndex] as LatLngTuple;
 
   const bearing = getBearing(vehiclePosition, nextStop.coordinates);
-
-  return { vehiclePosition, bearing, nextStop };
+  return { vehiclePosition, bearing, nextStop, vehicleError: undefined };
 }
 
 export default useVehiclePosition;

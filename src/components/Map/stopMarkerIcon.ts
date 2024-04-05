@@ -1,34 +1,23 @@
 import { Icon } from "leaflet";
 
-type Color =
-  | "blue"
-  | "gold"
-  | "red"
-  | "green"
-  | "orange"
-  | "yellow"
-  | "violet"
-  | "grey"
-  | "black";
+const colors = {
+  past: "#737373",
+  big: "#3b82f6",
+  default: "#16a34a",
+};
 
 export function stopMarkerIcon({
   animate = false,
-  isUpcoming,
-  isCurrent = false,
-  isTripSelected,
+  isPast,
+  big = false,
 }: {
   animate?: boolean;
-  isUpcoming: boolean;
-  isCurrent: boolean;
-  isTripSelected: boolean;
+  isPast: boolean;
+  big: boolean;
 }) {
-  const color = isCurrent
-    ? "blue"
-    : !isTripSelected
-      ? "blue"
-      : isUpcoming
-        ? "green"
-        : "grey";
+  const color = encodeURIComponent(
+    big ? colors.big : isPast ? colors.past : colors.default,
+  );
   return new Icon({
     iconUrl: new URL(`
     data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 54 62'%3E
@@ -38,7 +27,7 @@ export function stopMarkerIcon({
     %3C/g%3E%3Cdefs%3E%3CclipPath id='a'%3E%3Crect width='54' height='62' fill='white'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E`)
       .href,
     shadowUrl: "",
-    iconSize: isCurrent ? [40, 48] : [24, 30],
+    iconSize: big ? [40, 48] : [24, 30],
     iconAnchor: [14, 14],
     popupAnchor: [1, -34],
     className: animate ? "marker-pulse rounded" : "",

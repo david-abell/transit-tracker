@@ -294,6 +294,10 @@ function MapContentLayer({
 
               return (
                 <StopMarker
+                  big={
+                    stopId === selectedStopId ||
+                    stopId === selectedDestinationStopId
+                  }
                   key={"mm" + stopId + stopSequence}
                   stopLat={stopLat}
                   stopLon={stopLon}

@@ -31,7 +31,7 @@ const StopMarker = memo(function StopMarker({
         animate: animate,
         isUpcoming: true,
         isTripSelected: false,
-        isCurrent: !!big,
+        big: !!big,
       })}
     >
       {children}

@@ -148,6 +148,14 @@ function Bus({
           <h3 className="text-lg font-bold !mt-0">
             {nextStop.stop.stopName ?? ""}
           </h3>
+
+          <p className="!mt-0 !mb-0">
+            Arrival in around{" "}
+            <b className="text-lg">
+              <LiveText content={arrivingIn} color={liveTextColor} />
+            </b>
+          </p>
+
           <p>
             <b>Scheduled arrival: </b> {nextStop.arrivalTime}
           </p>
@@ -156,6 +164,7 @@ function Bus({
               <b>Arriving: </b> {nextStop.delayedArrivalTime}
             </p>
           )}
+
           {hasDelay && (
             <p>
               <b>
@@ -164,13 +173,6 @@ function Bus({
               {isEarly ? " early" : " late"}
             </p>
           )}
-
-          <p className="text-lg !mt-0">
-            Arrival estimate{" "}
-            <b>
-              <LiveText content={arrivingIn} color={liveTextColor} />
-            </b>
-          </p>
         </Popup>
       </LeafletTrackingMarker>
     </>

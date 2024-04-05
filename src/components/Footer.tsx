@@ -166,37 +166,28 @@ function Footer({
                     )}
                   </p>
 
-                  {tripStatus === "completed" ? (
-                    "Completed"
-                  ) : isPastPickup ? (
-                    <p>
-                      <span
-                        className={
-                          tripStatus === "early"
-                            ? "text-green-700"
-                            : tripStatus === "delayed"
-                              ? "text-red-700 dark:text-red-500"
-                              : ""
-                        }
-                      >
-                        {dropOffDelay ?? ""} {dropOffDelayStatus || tripStatus}
-                      </span>{" "}
-                      to {destinationStop?.stopName}
-                    </p>
-                  ) : (
-                    <p>
-                      <span
-                        className={
-                          tripStatus === "early"
-                            ? "text-green-700"
-                            : tripStatus === "delayed"
-                              ? "text-red-700 dark:text-red-500"
-                              : ""
-                        }
-                      >
-                        {pickupDelay ?? ""} {pickupDelayStatus || tripStatus}
-                      </span>{" "}
-                      to {destinationStop?.stopName}
+                  {!!tripStatus && (
+                    <p
+                      className={
+                        tripStatus === "early"
+                          ? "text-green-700 dark:text-green-500"
+                          : tripStatus === "delayed"
+                            ? "text-red-700 dark:text-red-500"
+                            : ""
+                      }
+                    >
+                      {tripStatus === "completed" ? (
+                        "Completed"
+                      ) : isPastPickup ? (
+                        <>
+                          {dropOffDelay ?? ""}{" "}
+                          {dropOffDelayStatus || tripStatus}
+                        </>
+                      ) : (
+                        <>
+                          {pickupDelay ?? ""} {pickupDelayStatus || tripStatus}
+                        </>
+                      )}
                     </p>
                   )}
                 </div>

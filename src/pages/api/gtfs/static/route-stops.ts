@@ -18,9 +18,9 @@ const handler: ApiHandler<StopsAPIResponse> = async (req, res) => {
   });
 
   if (!stops || !stops.length) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ error: `No stops found for route id ${routeId}` });
+    return res.status(StatusCodes.NOT_FOUND).json({
+      error: `This route is not currently in service. Please make a different selection.`,
+    });
   }
 
   return res.status(StatusCodes.OK).json(stops);

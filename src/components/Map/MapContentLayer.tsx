@@ -119,6 +119,9 @@ function MapContentLayer({
   );
 
   useEffect(() => {
+    // if (map != null && !stopIds.length && !selectedStop) {
+    //   map.locate({ setView: true, maxZoom: 16 });
+    // }
     if (stopIds.length && isEqual(stopIds, previousStopIds)) {
       return;
     }
@@ -126,6 +129,7 @@ function MapContentLayer({
       const group = markerGroupRef.current;
 
       if (!group || !group.getBounds().isValid()) return;
+      console.log("flying to group");
 
       map.flyToBounds(group.getBounds());
     } else {
@@ -145,11 +149,11 @@ function MapContentLayer({
     }
   }, [map, height]);
 
-  useEffect(() => {
-    if (map != null) {
-      map.locate({ setView: true, maxZoom: 16 });
-    }
-  }, [map]);
+  // useEffect(() => {
+  //   if (map != null) {
+  //     map.locate({ setView: true, maxZoom: 16 });
+  //   }
+  // }, [map]);
 
   // Realtime state
   const { realtimeScheduledByTripId, addedTripStopTimes, realtimeAddedTrips } =
@@ -162,13 +166,13 @@ function MapContentLayer({
   const { stopTimeUpdate } = realtimeTrip || {};
   const lastStopTimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
 
-  const isAddedTrip = useMemo(
-    () =>
-      !!realtimeTrip
-        ? realtimeTrip.trip.scheduleRelationship === "ADDED"
-        : false,
-    [realtimeTrip],
-  );
+  // const isAddedTrip = useMemo(
+  //   () =>
+  //     !!realtimeTrip
+  //       ? realtimeTrip.trip.scheduleRelationship === "ADDED"
+  //       : false,
+  //   [realtimeTrip],
+  // );
 
   // const addedTripStops =
   //   isAddedTrip &&

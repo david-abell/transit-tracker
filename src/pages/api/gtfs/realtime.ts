@@ -13,6 +13,11 @@ import { ApiErrorResponse, ApiHandler } from "@/lib/FetchHelper";
 const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/TripUpdates?format=json";
 
+// const UPSTASH_MAX_REQUEST_BYTES = 1048576;
+// const TRIP_UPDATE_BYTES = 1127;
+
+const BATCH_LIMIT = 800;
+
 export type RealtimeTripUpdateResponse = {
   tripUpdates: [string, TripUpdate][];
   addedTrips: [string, TripUpdate][];
@@ -126,6 +131,16 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
 
     if (tripIds?.includes(tripUpdate.trip.tripId)) {
       requestedTripUpdates.push([tripUpdate.trip.tripId, tripUpdate]);
+    }
+
+    // Upstash has an hmset size limit of 1048576 bytes. Batch updates to stay under this threshold.
+    if (tripUpdates.size > BATCH_LIMIT) {
+      await redis.hmset(tripUpdateKey, tripUpdates);
+      tripUpdates.clear();
+    }
+    if (addedTripsMap.size > BATCH_LIMIT) {
+      await redis.hmset(addedTripsKey, addedTripsMap);
+      addedTripsMap.clear();
     }
   }
 

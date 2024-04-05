@@ -1,10 +1,12 @@
-# fly.toml app configuration file generated for transit-tracker on 2023-06-15T14:39:38+01:00
+# fly.toml app configuration file generated for busfinder on 2024-04-05T15:48:41+01:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "busfinder"
-primary_region = "cdg"
+app = 'busfinder'
+primary_region = 'cdg'
+
+[build]
 
 [http_service]
   internal_port = 3000
@@ -12,3 +14,8 @@ primary_region = "cdg"
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

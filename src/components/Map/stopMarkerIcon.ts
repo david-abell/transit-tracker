@@ -1,22 +1,23 @@
 import { Icon } from "leaflet";
 
 const colors = {
+  past: "#737373",
   big: "#3b82f6",
   default: "#16a34a",
 };
 
 export function stopMarkerIcon({
   animate = false,
-  isUpcoming,
+  isPast,
   big = false,
-  isTripSelected,
 }: {
   animate?: boolean;
-  isUpcoming: boolean;
+  isPast: boolean;
   big: boolean;
-  isTripSelected: boolean;
 }) {
-  const color = encodeURIComponent(big ? colors.big : colors.default);
+  const color = encodeURIComponent(
+    big ? colors.big : isPast ? colors.past : colors.default,
+  );
   return new Icon({
     iconUrl: new URL(`
     data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 54 62'%3E

@@ -9,6 +9,7 @@ type Props = {
   animate?: boolean;
   big?: boolean;
   children?: ReactNode;
+  isPast?: boolean;
   stopLat: number;
   stopLon: number;
   stopId: string;
@@ -17,6 +18,7 @@ type Props = {
 const StopMarker = memo(function StopMarker({
   big,
   children,
+  isPast,
   stopLat,
   stopLon,
   stopId,
@@ -29,8 +31,7 @@ const StopMarker = memo(function StopMarker({
       position={[stopLat, stopLon]}
       icon={stopMarkerIcon({
         animate: animate,
-        isUpcoming: true,
-        isTripSelected: false,
+        isPast: isPast ?? false,
         big: !!big,
       })}
     >

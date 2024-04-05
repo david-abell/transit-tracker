@@ -25,6 +25,8 @@ type Props = {
   show: boolean;
 };
 
+const SVG_ANGLE_OFFSET = 225;
+
 function Bus({
   realtimeScheduledByTripId,
   shape,
@@ -112,30 +114,28 @@ function Bus({
       <LeafletTrackingMarker
         icon={
           new Icon({
-            iconUrl: "/bus_teardrop.svg",
+            iconUrl: "/Aiga_teardrop.svg",
             shadowUrl: "",
             iconSize: [60, 60],
             iconAnchor: [30, 30],
             popupAnchor: [1, -34],
-            shadowSize: [41, 41],
           })
         }
         position={vehiclePosition}
         previousPosition={prevPos}
         duration={500}
-        rotationAngle={prevAngle}
+        rotationAngle={prevAngle - SVG_ANGLE_OFFSET}
         rotationOrigin="center"
         interactive={false}
       />
       <LeafletTrackingMarker
         icon={
           new Icon({
-            iconUrl: "/bus.svg",
+            iconUrl: "/Aiga_bus.svg",
             shadowUrl: "",
             iconSize: [60, 60],
             iconAnchor: [30, 30],
             popupAnchor: [1, -34],
-            shadowSize: [41, 41],
           })
         }
         position={vehiclePosition}

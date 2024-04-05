@@ -180,12 +180,17 @@ function Footer({
                         "Completed"
                       ) : isPastPickup ? (
                         <>
-                          {dropOffDelay ?? ""}{" "}
+                          <span className="whitespace-nowrap">
+                            {dropOffDelay ?? ""}
+                          </span>{" "}
                           {dropOffDelayStatus || tripStatus}
                         </>
                       ) : (
                         <>
-                          {pickupDelay ?? ""} {pickupDelayStatus || tripStatus}
+                          <span className="whitespace-nowrap">
+                            {pickupDelay ?? ""}
+                          </span>{" "}
+                          {pickupDelayStatus || tripStatus}
                         </>
                       )}
                     </p>

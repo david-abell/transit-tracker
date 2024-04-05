@@ -140,7 +140,7 @@ export function formatDelay(delayInSeconds: number | undefined, exact = false) {
 }
 
 export const delayStatus = {
-  delay: "late",
+  late: "late",
   early: "early",
   "on-time": "on-time",
   canceled: "canceled",
@@ -164,10 +164,10 @@ export function getDelayStatus(
     delay = stopTimeUpdate.arrival.delay;
   }
 
-  if (!delay || (delay > -30 && delay < 30)) return delayStatus["on-time"];
+  if (!delay || delay === 0) return delayStatus["on-time"];
 
-  if (delay > 30) {
-    return delayStatus.delay;
+  if (delay > 0) {
+    return delayStatus.late;
   } else {
     return delayStatus.early;
   }

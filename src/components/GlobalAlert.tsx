@@ -8,11 +8,7 @@ type Props = {
   children: ReactNode;
 };
 
-export function GlobalAlert({
-  children,
-  visible = true,
-  variant = "default",
-}: Props) {
+function GlobalAlert({ children, visible = true, variant = "default" }: Props) {
   if (!visible) return null;
 
   return (

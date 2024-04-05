@@ -2,12 +2,19 @@
 
 import { MapContainer, TileLayer } from "react-leaflet";
 import { ReactNode } from "react";
+import { LatLngExpression } from "leaflet";
+
+//Stop 135351, Eden Quay, Dublin
+const INITIAL_LOCATION: LatLngExpression = [
+  53.3477999659065, -6.25849647173381,
+];
 
 function TileLayerWrapper({ children }: { children: ReactNode }) {
   return (
     <MapContainer
-      center={[53.7798, -7.3055]}
-      zoom={7}
+      center={INITIAL_LOCATION}
+      zoom={12}
+      minZoom={8}
       className={`relative h-full w-[100max]`}
     >
       <TileLayer

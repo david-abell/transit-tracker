@@ -1,6 +1,4 @@
 "use-client";
-import Image from "next/image";
-import { Inter } from "next/font/google";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseAsString, useQueryState } from "nuqs";
 import useRealtime from "@/hooks/useRealtime";
@@ -8,22 +6,17 @@ import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripModal from "@/components/tripModal/TripModal";
 import DateTimeSelect from "@/components/DateTimeSelect";
-import {
-  formatDelay,
-  getDelayedTime,
-  initDateTimeValue,
-} from "@/lib/timeHelpers";
+import { initDateTimeValue } from "@/lib/timeHelpers";
 import Modal from "@/components/Modal";
 
 import useRouteId from "@/hooks/useRouteId";
 import MainNav from "@/components/MainNav";
-import { useElementSize, useMediaQuery, useWindowSize } from "usehooks-ts";
+import { useElementSize, useWindowSize } from "usehooks-ts";
 import SavedStops from "@/components/SavedStops";
 import useStopId from "@/hooks/useStopId";
 
-import { AlertCircle, Menu, MenuSquare, Star } from "lucide-react";
+import { Star } from "lucide-react";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import useShape from "@/hooks/useShape";
 import useStopTimes from "@/hooks/useStopTimes";
 import useStops from "@/hooks/useStops";
@@ -32,14 +25,11 @@ import useTrip from "@/hooks/useTrip";
 import Footer from "@/components/Footer";
 import StopSelect from "@/components/StopSelect";
 import { Button } from "@/components/ui/button";
-import { Stop, StopTime } from "@prisma/client";
 import NavItem from "@/components/NavItem";
 import GlobalAlert from "@/components/GlobalAlert";
 import DestinationSelect, {
   StopAndStopTime,
 } from "@/components/DestinationSelect";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   // query params state

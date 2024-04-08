@@ -10,7 +10,7 @@ function NavItem({ children, className }: Props) {
   return (
     <li
       className={cn(
-        "flex w-full items-start justify-center lg:w-auto mb-auto",
+        "flex w-full justify-center lg:w-auto items-center",
         className,
       )}
     >

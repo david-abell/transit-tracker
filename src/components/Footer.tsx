@@ -146,7 +146,7 @@ function Footer({
           <AccordionItem value="item-1" className="border-none">
             <AccordionTrigger className="[&>svg]:h-[28px] [&>svg]:w-[28px] py-0 no-underline">
               {
-                <div className="flex w-full flex-row content-center justify-between gap-4 overflow-hidden pl-2 pr-4 text-left font-normal">
+                <div className="flex w-full flex-row content-center justify-between gap-2 md:gap-4 overflow-hidden px-2 text-left font-normal">
                   <p>
                     {!!route ? (
                       <>

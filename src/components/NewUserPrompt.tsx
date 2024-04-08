@@ -4,7 +4,6 @@ import { Button } from "./ui/button";
 import { AlertCircle } from "lucide-react";
 
 type Props = {
-  children: ReactNode;
   isMobile: boolean;
   variant?: AlertVariants;
   visible?: boolean;
@@ -13,7 +12,6 @@ type Props = {
 };
 
 export function NewUserPrompt({
-  children,
   isMobile,
   variant = "default",
   visible = true,
@@ -55,8 +53,10 @@ export function NewUserPrompt({
         <AlertCircle className="h-4 w-4" />
       )}
       {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
-      <AlertDescription className="bg-transparent min-h-10 [&>*]:pointer-events-none">
-        {children}
+      <AlertDescription className="bg-transparent min-h-10 text-lg">
+        Welcome to the Irish bus tracker. Try searching for a bus name like{" "}
+        <b>Ballycullen Road</b>, a route number like <b>15</b>, or a specific
+        stop code like <b>4495</b>.
       </AlertDescription>
     </Alert>
   );

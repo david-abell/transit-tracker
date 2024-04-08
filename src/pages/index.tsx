@@ -11,7 +11,7 @@ import Modal from "@/components/Modal";
 
 import useRouteId from "@/hooks/useRouteId";
 import MainNav from "@/components/MainNav";
-import { useElementSize, useWindowSize } from "usehooks-ts";
+import { useElementSize, useMediaQuery, useWindowSize } from "usehooks-ts";
 import SavedStops from "@/components/SavedStops";
 import useStopId from "@/hooks/useStopId";
 
@@ -30,6 +30,7 @@ import GlobalAlert from "@/components/GlobalAlert";
 import DestinationSelect, {
   StopAndStopTime,
 } from "@/components/DestinationSelect";
+import NewUserPrompt from "@/components/NewUserPrompt";
 
 export default function Home() {
   // query params state
@@ -65,7 +66,7 @@ export default function Home() {
   const { height: windowHeight } = useWindowSize();
   const [navContainer, { height: navHeight }] =
     useElementSize<HTMLDivElement>();
-  // const isLargeScreen = useMediaQuery("(min-width: 1024px)");
+  const isMobile = useMediaQuery("(max-width: 1023px)");
 
   const navRef = useRef<HTMLDivElement>(null);
 
@@ -334,10 +335,24 @@ export default function Home() {
           {apiError?.message || "An Unknown error occurred."}
         </GlobalAlert>
       ) : (
-        <GlobalAlert visible={isNewUser}>
-          Use the menu to search for a bus name like <b>Ballycullen Road</b>, a
-          route number like <b>15</b>, or a specific stop code like <b>4495</b>.
-        </GlobalAlert>
+        <NewUserPrompt
+          isMobile={isMobile}
+          visible={isNewUser}
+          setShowMenu={setShowMobileMenu}
+          showMenu={showMobileMenu}
+        >
+          <span>Try </span>
+
+          <span>
+            searching for a bus name like <b>Ballycullen Road</b>, a route
+            number like <b>15</b>, or a specific stop code like <b>4495</b>
+            {isMobile && (
+              <>
+                <span> in the </span>
+              </>
+            )}
+          </span>
+        </NewUserPrompt>
       )}
 
       <Footer

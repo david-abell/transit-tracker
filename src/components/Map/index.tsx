@@ -15,7 +15,7 @@ type MapContentLayerProps = React.ComponentProps<typeof MapContentLayer>;
 
 type Props = MapContentLayerProps;
 
-function TileLayerWrapper({ ...props }: Props) {
+function Map({ ...props }: Props) {
   return (
     <MapContainer
       center={INITIAL_LOCATION}
@@ -33,4 +33,4 @@ function TileLayerWrapper({ ...props }: Props) {
   );
 }
 
-export default TileLayerWrapper;
+export default Map;

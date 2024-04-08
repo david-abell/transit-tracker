@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseAsString, useQueryState } from "nuqs";
 import useRealtime from "@/hooks/useRealtime";
-import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripModal from "@/components/tripModal/TripModal";
 import DateTimeSelect from "@/components/DateTimeSelect";
@@ -33,15 +32,25 @@ import DestinationSelect, {
 } from "@/components/DestinationSelect";
 import NewUserPrompt from "@/components/NewUserPrompt";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import { LatLngExpression } from "leaflet";
+
+const Map = dynamic(() => import("../components/Map"), {
+  ssr: false,
+});
+
+const INITIAL_LOCATION: LatLngExpression = [
+  53.3477999659065, -6.25849647173381,
+];
 
 export default function Home() {
   // query params state
-  const [routeId, setRouteId] = useQueryState("routeId");
-  const [tripId, setTripId] = useQueryState("tripId");
-  const [stopId, setStopId] = useQueryState("stopId");
+  const [routeId, setRouteId] = useQueryState("routeId", { history: "push" });
+  const [tripId, setTripId] = useQueryState("tripId", { history: "push" });
+  const [stopId, setStopId] = useQueryState("stopId", { history: "push" });
   const [destId, setDestId] = useQueryState(
     "destId",
-    parseAsString.withDefault(""),
+    parseAsString.withDefault("").withOptions({ history: "push" }),
   );
 
   // Query string helpers
@@ -61,6 +70,8 @@ export default function Home() {
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
 
   // component visibility state
+  const [mapCenter, setMapCenter] =
+    useState<LatLngExpression>(INITIAL_LOCATION);
   const [showTripModal, setShowTripModal] = useState(false);
   const [showSavedStops, setShowSavedStops] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -179,13 +190,22 @@ export default function Home() {
     !isWarmingDB && !apiError && !routeId && !tripId && !stopId && !destId;
 
   // event handlers
-  const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
+  const handleSelectedTrip = ({
+    tripId,
+    newRouteId,
+    from,
+  }: {
+    tripId: string;
+    newRouteId?: string;
+    from: LatLngExpression;
+  }) => {
     setShowTripModal(false);
     const currentRouteId = routeId;
     setTripId(tripId);
     if (newRouteId && currentRouteId !== newRouteId) {
       setRouteId(newRouteId);
     }
+    setMapCenter(from);
   };
 
   const handleSelectedStop = useCallback(
@@ -291,7 +311,8 @@ export default function Home() {
           </MainNav>
         </div>
         <div className="relative">
-          <MapComponent
+          <Map
+            center={mapCenter}
             shape={shape}
             selectedDateTime={selectedDateTime}
             selectedStopId={stopId}
@@ -318,11 +339,10 @@ export default function Home() {
         onOptionalText="Refresh"
       >
         <TripModal
-          handleTimeChange={onTimeChange}
           handleSelectedTrip={handleSelectedTrip}
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}
-          selectedStopId={stopId}
+          selectedStop={selectedStop}
           handleApiLoading={onApiLoading}
         />
       </Modal>

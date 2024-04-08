@@ -4,8 +4,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { HelpCircle, Info } from "lucide-react";
-import { ReactNode, Ref } from "react";
-import { Popup } from "react-leaflet";
+import { ReactNode } from "react";
 
 type Props = {
   align?: "start" | "center" | "end";

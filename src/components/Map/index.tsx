@@ -1,18 +1,19 @@
 "use-client";
 
 import { MapContainer, TileLayer } from "react-leaflet";
-import { ReactNode } from "react";
 import { LatLngExpression } from "leaflet";
+import MapContentLayer from "./MapContentLayer";
 
-//Stop 135351, Eden Quay, Dublin
-const INITIAL_LOCATION: LatLngExpression = [
-  53.3477999659065, -6.25849647173381,
-];
+type MapContentLayerProps = React.ComponentProps<typeof MapContentLayer>;
 
-function TileLayerWrapper({ children }: { children: ReactNode }) {
+interface Props extends MapContentLayerProps {
+  center: LatLngExpression;
+}
+
+function Map({ center, ...props }: Props) {
   return (
     <MapContainer
-      center={INITIAL_LOCATION}
+      center={center}
       zoom={12}
       minZoom={8}
       className={`relative h-full w-[100max]`}
@@ -22,9 +23,9 @@ function TileLayerWrapper({ children }: { children: ReactNode }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         className="map-tiles"
       />
-      {children}
+      <MapContentLayer center={center} {...props} />
     </MapContainer>
   );
 }
 
-export default TileLayerWrapper;
+export default Map;

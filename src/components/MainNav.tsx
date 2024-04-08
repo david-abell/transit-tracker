@@ -1,5 +1,5 @@
 "use-client";
-import { Route, Stop, StopTime } from "@prisma/client";
+import { Route } from "@prisma/client";
 import {
   ReactNode,
   useEffect,

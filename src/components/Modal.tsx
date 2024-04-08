@@ -1,4 +1,4 @@
-import { useEffect, useRef, createContext, useCallback } from "react";
+import { useEffect, useRef, createContext } from "react";
 import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
 import { Button } from "./ui/button";
 

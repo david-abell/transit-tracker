@@ -5,7 +5,7 @@ import {
   getTripStatus,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
-import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
+import { TripUpdate } from "@/types/realtime";
 import { Route, Stop, StopTime, Trip } from "@prisma/client";
 import { useMemo, useState } from "react";
 import { useInterval } from "usehooks-ts";

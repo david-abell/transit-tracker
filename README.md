@@ -1,6 +1,6 @@
 # Irish public transport tracker
 
-> [Try the live Transport Tracker on fly.io](https://transport-tracker.fly.dev).
+> [Try the live Transport Tracker on fly.io](https://busfinder.fly.dev).
 
 ## Table of Contents
 
@@ -114,7 +114,6 @@ For local schedule data clone the PostgreSQL repo [https://github.com/david-abel
 
 create a `.env` file in the project root with `DATABASE_URL='PostgreSQL connection string` in the format `postgresql://postgres-username:password@localhost:5432/database-name`
 
-
 ### Usage
 
 then
@@ -127,9 +126,10 @@ then
 
 #### Running as a local docker container
 
-To run as local docker container: 
- - `docker build --tag 'transport-tracker' .`
- - `docker run -p 3000:3000 -e "postgresql://postgres-username:password@host.docker.internal:5432/database-name" 'transport-tracker'`
+To run as local docker container:
+
+- `docker build --tag 'transport-tracker' .`
+- `docker run -p 3000:3000 -e "postgresql://postgres-username:password@host.docker.internal:5432/database-name" 'transport-tracker'`
 
 ### Deployment
 

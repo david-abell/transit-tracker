@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 import { Star } from "lucide-react";
 import { memo } from "react";
 import { Stop } from "@prisma/client";
-import { StopTimeUpdate } from "@/types/realtime";
+import LiveMarkerTooltip from "./LiveMarkerTooltip";
 
 type Props = {
   arrivalTime: string;
@@ -48,7 +48,7 @@ const StopPopup = memo(function StopPopup({
               <span className="text-green-700 dark:text-green-500">
                 {formattedDelay}
               </span>{" "}
-              early
+              early <LiveMarkerTooltip />
             </p>
           )}
           {!!formattedDelay && status === "late" && (
@@ -56,7 +56,7 @@ const StopPopup = memo(function StopPopup({
               <span className="text-red-700 dark:text-red-500">
                 {formattedDelay}
               </span>{" "}
-              late
+              late <LiveMarkerTooltip />
             </p>
           )}
         </>

@@ -34,7 +34,7 @@ import NewUserPrompt from "@/components/NewUserPrompt";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
-const Map = dynamic(() => import("../components/Map/TileLayerWrapper"), {
+const Map = dynamic(() => import("../components/Map/Map"), {
   ssr: false,
 });
 

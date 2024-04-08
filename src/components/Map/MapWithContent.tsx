@@ -1,7 +1,7 @@
 "use-client";
 
 import MapContentLayer from "./MapContentLayer";
-import TileLayerWrapper from "./TileLayerWrapper";
+import TileLayerWrapper from "./Map";
 
 type MapContentLayerProps = React.ComponentProps<typeof MapContentLayer>;
 

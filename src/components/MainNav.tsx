@@ -82,7 +82,7 @@ function MainNav({
           ) : (
             <div>
               <h1 className="text-lg font-medium lg:pl-2.5">
-                Welcome to the Irish bus tracker.
+                Choose a menu option at right to get started.
               </h1>
             </div>
           )}

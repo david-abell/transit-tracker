@@ -6,7 +6,7 @@ import {
 } from "@/lib/timeHelpers";
 import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
 import { TripUpdate } from "@/types/realtime";
-import { Route, StopTime, Trip } from "@prisma/client";
+import { Route, Stop, StopTime, Trip } from "@prisma/client";
 import { useContext, useEffect, useState } from "react";
 import { DialogRefContext } from "../Modal";
 import useUpcoming from "@/hooks/useUpcoming";
@@ -22,14 +22,23 @@ import TripList from "./TripList";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Button } from "../ui/button";
+import { LatLngExpression } from "leaflet";
 
 type Props = {
-  handleSelectedTrip: (tripId: string, routeId?: string) => void;
+  handleSelectedTrip: ({
+    tripId,
+    newRouteId,
+    from,
+  }: {
+    tripId: string;
+    newRouteId?: string | undefined;
+    from: LatLngExpression;
+  }) => void;
   handleTimeChange: (e?: React.ChangeEvent<HTMLInputElement>) => void;
   handleApiLoading: (val: boolean) => void;
   selectedDateTime: string;
   selectedRoute: Route | undefined;
-  selectedStopId: string | null;
+  selectedStop: Stop | undefined;
 };
 
 function TripModal({
@@ -38,7 +47,7 @@ function TripModal({
   handleApiLoading,
   selectedDateTime,
   selectedRoute,
-  selectedStopId,
+  selectedStop,
 }: Props) {
   const { dialog } = useContext(DialogRefContext);
   const [showAllRoutes, setShowAllRoutes] = useState(!selectedRoute);
@@ -51,7 +60,7 @@ function TripModal({
     isLoadingUpcoming,
     error: upcomingError,
     upcomingTrips,
-  } = useUpcoming(selectedStopId, selectedDateTime);
+  } = useUpcoming(selectedStop?.stopId, selectedDateTime);
 
   const trips = showAllRoutes
     ? upcomingTrips
@@ -72,6 +81,9 @@ function TripModal({
     handleApiLoading(isLoadingRealtime || isLoadingUpcoming);
   }, [isLoadingRealtime, isLoadingUpcoming, handleApiLoading]);
 
+  if (!selectedStop || !selectedStop.stopLat || !selectedStop.stopLon)
+    return null;
+
   const isToday = DateTime.now().hasSame(
     parseDatetimeLocale(selectedDateTime),
     "day",
@@ -82,6 +94,11 @@ function TripModal({
 
   // Some trips have duplicate blockIds and arrival times and need to be skipped
   let duplicateTrips = new Set();
+
+  const stopLocation: LatLngExpression = [
+    selectedStop.stopLat,
+    selectedStop.stopLon,
+  ];
 
   return (
     <div className="flex h-full w-full flex-col gap-4 text-start text-sm font-medium text-gray-900  dark:text-white ">
@@ -147,7 +164,7 @@ function TripModal({
                   (stopTimeUpdate &&
                     stopTimeUpdate.find(
                       ({ stopId, stopSequence: realtimeSequence }) =>
-                        stopId === selectedStopId ||
+                        stopId === selectedStop?.stopId ||
                         (stopSequence && realtimeSequence >= stopSequence),
                     )) ||
                   stopTimeUpdate?.at(-1);
@@ -200,7 +217,13 @@ function TripModal({
                   <li key={tripId + departureTime}>
                     <button
                       type="button"
-                      onClick={() => handleSelectedTrip(tripId, routeId)}
+                      onClick={() =>
+                        handleSelectedTrip({
+                          tripId,
+                          newRouteId: routeId,
+                          from: stopLocation,
+                        })
+                      }
                       disabled={isCanceled}
                       className={`flex w-full items-center justify-between gap-1 border-b border-gray-200 
                   py-2 pr-2 text-start font-medium dark:border-gray-600 md:gap-2 md:pr-4

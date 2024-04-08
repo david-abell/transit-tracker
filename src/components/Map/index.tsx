@@ -23,7 +23,7 @@ function Map({ center, ...props }: Props) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         className="map-tiles"
       />
-      <MapContentLayer {...props} />
+      <MapContentLayer center={center} {...props} />
     </MapContainer>
   );
 }

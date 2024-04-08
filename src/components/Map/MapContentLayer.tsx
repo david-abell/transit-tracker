@@ -8,7 +8,7 @@ import {
   Pane,
   LayerGroup,
 } from "react-leaflet";
-import { LatLngTuple } from "leaflet";
+import { LatLngExpression, LatLngTuple } from "leaflet";
 import {
   Dispatch,
   SetStateAction,
@@ -49,6 +49,7 @@ type Props = {
   tripId: string | null;
   handleSelectedStop: (stopId: string) => void;
   handleDestinationStop: (stopId: string) => void;
+  center: LatLngExpression;
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
@@ -63,6 +64,7 @@ function MapContentLayer({
   handleSelectedStop,
   handleDestinationStop,
   height,
+  center,
   selectedDateTime,
   stopTimes,
   stopTimesByStopId,
@@ -82,6 +84,7 @@ function MapContentLayer({
   }, [stops]);
 
   const previousStopIds = usePrevious(stopIds);
+  const prevCenter = usePrevious(center);
 
   const [savedStops, setSavedStops] = useLocalStorage<SavedStop>(
     "savedSTops",
@@ -110,24 +113,33 @@ function MapContentLayer({
   );
 
   useEffect(() => {
-    if (stopIds.length && isEqual(stopIds, previousStopIds)) {
-      return;
+    if (center !== prevCenter) {
+      if (stopIds.length) {
+        const group = markerGroupRef.current;
+
+        if (!group || !group.getBounds().isValid()) return;
+
+        map.flyToBounds(group.getBounds());
+        return;
+      }
     }
 
-    if (stopIds.length) {
+    if (stopIds.length && !isEqual(stopIds, previousStopIds)) {
       const group = markerGroupRef.current;
 
-      if (!group || !group.getBounds().isValid()) return;
-
-      map.flyToBounds(group.getBounds());
+      if (group && group.getBounds().isValid()) {
+        map.flyToBounds(group.getBounds());
+      }
     } else {
-      const { stopLat, stopLon } = selectedStop || {};
+      if (!stopIds.length) {
+        const { stopLat, stopLon } = selectedStop || {};
 
-      if (!stopLat || !stopLon) return;
+        if (!stopLat || !stopLon) return;
 
-      map.flyTo([stopLat, stopLon], 12);
+        map.flyTo([stopLat, stopLon], 12);
+      }
     }
-  }, [map, stopIds, previousStopIds, selectedStop]);
+  }, [map, stopIds, previousStopIds, selectedStop, center, prevCenter]);
 
   useEffect(() => {
     if (map != null) {

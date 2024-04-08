@@ -190,13 +190,22 @@ export default function Home() {
     !isWarmingDB && !apiError && !routeId && !tripId && !stopId && !destId;
 
   // event handlers
-  const handleSelectedTrip = (tripId: string, newRouteId?: string) => {
+  const handleSelectedTrip = ({
+    tripId,
+    newRouteId,
+    from,
+  }: {
+    tripId: string;
+    newRouteId?: string;
+    from: LatLngExpression;
+  }) => {
     setShowTripModal(false);
     const currentRouteId = routeId;
     setTripId(tripId);
     if (newRouteId && currentRouteId !== newRouteId) {
       setRouteId(newRouteId);
     }
+    setMapCenter(from);
   };
 
   const handleSelectedStop = useCallback(
@@ -334,7 +343,7 @@ export default function Home() {
           handleSelectedTrip={handleSelectedTrip}
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}
-          selectedStopId={stopId}
+          selectedStop={selectedStop}
           handleApiLoading={onApiLoading}
         />
       </Modal>

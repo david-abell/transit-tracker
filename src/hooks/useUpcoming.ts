@@ -6,7 +6,11 @@ import { UpcomingTripsAPIResponse } from "@/pages/api/gtfs/static/upcoming";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
 
-function useTrips(stopId: string | null, selectedDateTime: string, page = 0) {
+function useTrips(
+  stopId: string | undefined,
+  selectedDateTime: string,
+  page = 0,
+) {
   const { data, error, isValidating } = useSWR<
     UpcomingTripsAPIResponse,
     ApiError

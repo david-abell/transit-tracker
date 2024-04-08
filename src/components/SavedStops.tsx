@@ -60,7 +60,7 @@ export default function Sidebar({
           if (stopId && stopId === selectedStopId) {
             setShowTripModal(true);
           } else {
-            setTimeout(() => setShowTripModal(true), 1500);
+            setTimeout(() => setShowTripModal(true), 200);
           }
         });
     },

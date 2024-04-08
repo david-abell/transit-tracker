@@ -14,6 +14,7 @@ import { Stop, StopTime } from "@prisma/client";
 import { Position } from "@turf/helpers";
 import { TripUpdate } from "@/types/realtime";
 import LiveText, { LiveTextColor } from "../ui/LiveText";
+import LiveVehicleTooltip from "./LiveVehicleTooltip";
 
 type Props = {
   realtimeScheduledByTripId: Map<string, TripUpdate>;
@@ -149,8 +150,8 @@ function Bus({
       >
         <Popup>
           <p>Next Stop: {nextStop.stop.stopCode}</p>
-          <h3 className="text-lg font-bold !mt-0">
-            {nextStop.stop.stopName ?? ""}
+          <h3 className="text-lg font-bold !mt-0 ">
+            {nextStop.stop.stopName ?? ""} <LiveVehicleTooltip />
           </h3>
 
           <p className="!mt-0 !mb-0">
@@ -170,12 +171,14 @@ function Bus({
           )}
 
           {hasDelay && (
-            <p>
-              <b>
-                <LiveText content={onTextUpdate} color={liveTextColor} />
-              </b>
-              {isEarly ? " early" : " late"}
-            </p>
+            <>
+              <p>
+                <b>
+                  <LiveText content={onTextUpdate} color={liveTextColor} />
+                </b>
+                <span className="mr-1">{isEarly ? " early" : " late"}</span>
+              </p>
+            </>
           )}
         </Popup>
       </LeafletTrackingMarker>

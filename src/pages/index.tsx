@@ -45,12 +45,12 @@ const INITIAL_LOCATION: LatLngExpression = [
 
 export default function Home() {
   // query params state
-  const [routeId, setRouteId] = useQueryState("routeId");
-  const [tripId, setTripId] = useQueryState("tripId");
-  const [stopId, setStopId] = useQueryState("stopId");
+  const [routeId, setRouteId] = useQueryState("routeId", { history: "push" });
+  const [tripId, setTripId] = useQueryState("tripId", { history: "push" });
+  const [stopId, setStopId] = useQueryState("stopId", { history: "push" });
   const [destId, setDestId] = useQueryState(
     "destId",
-    parseAsString.withDefault(""),
+    parseAsString.withDefault("").withOptions({ history: "push" }),
   );
 
   // Query string helpers

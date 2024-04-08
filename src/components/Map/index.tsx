@@ -1,24 +1,19 @@
 "use-client";
 
 import { MapContainer, TileLayer } from "react-leaflet";
-import { ReactNode } from "react";
 import { LatLngExpression } from "leaflet";
 import MapContentLayer from "./MapContentLayer";
-import dynamic from "next/dynamic";
-
-//Stop 135351, Eden Quay, Dublin
-const INITIAL_LOCATION: LatLngExpression = [
-  53.3477999659065, -6.25849647173381,
-];
 
 type MapContentLayerProps = React.ComponentProps<typeof MapContentLayer>;
 
-type Props = MapContentLayerProps;
+interface Props extends MapContentLayerProps {
+  center: LatLngExpression;
+}
 
-function Map({ ...props }: Props) {
+function Map({ center, ...props }: Props) {
   return (
     <MapContainer
-      center={INITIAL_LOCATION}
+      center={center}
       zoom={12}
       minZoom={8}
       className={`relative h-full w-[100max]`}

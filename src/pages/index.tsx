@@ -305,7 +305,7 @@ export default function Home() {
                 className="w-full text-primary hover:text-primary/90 hover:underline flex items-center gap-2 text-lg"
               >
                 <Icon icon={"simple-icons:github"} className="inline-block" />{" "}
-                Report an
+                Report an issue
               </Link>
             </NavItem>
           </MainNav>

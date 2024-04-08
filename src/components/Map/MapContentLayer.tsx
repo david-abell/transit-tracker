@@ -113,11 +113,11 @@ function MapContentLayer({
     if (stopIds.length && isEqual(stopIds, previousStopIds)) {
       return;
     }
+
     if (stopIds.length) {
       const group = markerGroupRef.current;
 
       if (!group || !group.getBounds().isValid()) return;
-      console.log("flying to group");
 
       map.flyToBounds(group.getBounds());
     } else {

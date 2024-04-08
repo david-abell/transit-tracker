@@ -1,10 +1,8 @@
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Star, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -71,7 +69,6 @@ export default function Sidebar({
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      {/* <SheetTrigger>Open</SheetTrigger> */}
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Favorite Stops</SheetTitle>

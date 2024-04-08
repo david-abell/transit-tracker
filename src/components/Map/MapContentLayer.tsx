@@ -17,7 +17,7 @@ import {
   useMemo,
   useRef,
 } from "react";
-import { useInterval, useLocalStorage } from "usehooks-ts";
+import { useLocalStorage } from "usehooks-ts";
 
 import type { Stop, StopTime } from "@prisma/client";
 import {

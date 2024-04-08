@@ -339,7 +339,6 @@ export default function Home() {
         onOptionalText="Refresh"
       >
         <TripModal
-          handleTimeChange={onTimeChange}
           handleSelectedTrip={handleSelectedTrip}
           selectedDateTime={selectedDateTime}
           selectedRoute={selectedRoute}

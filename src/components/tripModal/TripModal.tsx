@@ -4,15 +4,11 @@ import {
   isPastArrivalTime,
   parseDatetimeLocale,
 } from "@/lib/timeHelpers";
-import { trapKeyboardFocus } from "@/lib/trapKeyboardFocus";
-import { TripUpdate } from "@/types/realtime";
-import { Route, Stop, StopTime, Trip } from "@prisma/client";
+import { Route, Stop } from "@prisma/client";
 import { useContext, useEffect, useState } from "react";
 import { DialogRefContext } from "../Modal";
 import useUpcoming from "@/hooks/useUpcoming";
-import { useSearchParams } from "next/navigation";
 import useRealtime from "@/hooks/useRealtime";
-import { useMediaQuery } from "usehooks-ts";
 import { DateTime } from "luxon";
 
 import Time from "./Time";
@@ -21,7 +17,6 @@ import { Switch } from "@/components/ui/switch";
 import TripList from "./TripList";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircle } from "lucide-react";
-import { Button } from "../ui/button";
 import { LatLngExpression } from "leaflet";
 
 type Props = {
@@ -34,7 +29,6 @@ type Props = {
     newRouteId?: string | undefined;
     from: LatLngExpression;
   }) => void;
-  handleTimeChange: (e?: React.ChangeEvent<HTMLInputElement>) => void;
   handleApiLoading: (val: boolean) => void;
   selectedDateTime: string;
   selectedRoute: Route | undefined;
@@ -43,18 +37,14 @@ type Props = {
 
 function TripModal({
   handleSelectedTrip,
-  handleTimeChange,
   handleApiLoading,
   selectedDateTime,
   selectedRoute,
   selectedStop,
 }: Props) {
-  const { dialog } = useContext(DialogRefContext);
   const [showAllRoutes, setShowAllRoutes] = useState(!selectedRoute);
   const [showCanceled, setShowCanceled] = useState(!selectedRoute);
   const [showDeparted, setShowDeparted] = useState(!selectedRoute);
-
-  // const matchesLarge = useMediaQuery("(min-width: 768px)");
 
   const {
     isLoadingUpcoming,

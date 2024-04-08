@@ -5,8 +5,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Star, X } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
+import { useQueryState } from "nuqs";
 import { Dispatch, SetStateAction, useCallback } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
@@ -29,14 +29,13 @@ export default function Sidebar({
   setShowTripModal,
 }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [savedStops, setSavedStops] = useLocalStorage<SavedStop>(
     "savedSTops",
     {},
   );
 
-  const selectedStopId = searchParams.get("stopId") || "";
+  const [selectedStopId] = useQueryState("stopId", { history: "push" });
 
   const removeStop = (stopId: string) => {
     setSavedStops((prev) => {

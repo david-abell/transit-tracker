@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseAsString, useQueryState } from "nuqs";
 import useRealtime from "@/hooks/useRealtime";
-import MapComponent from "@/components/Map";
 import SearchInput from "@/components/SearchInput";
 import TripModal from "@/components/tripModal/TripModal";
 import DateTimeSelect from "@/components/DateTimeSelect";
@@ -33,6 +32,11 @@ import DestinationSelect, {
 } from "@/components/DestinationSelect";
 import NewUserPrompt from "@/components/NewUserPrompt";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+const Map = dynamic(() => import("../components/Map/TileLayerWrapper"), {
+  ssr: false,
+});
 
 export default function Home() {
   // query params state
@@ -285,13 +289,13 @@ export default function Home() {
                 className="w-full text-primary hover:text-primary/90 hover:underline flex items-center gap-2 text-lg"
               >
                 <Icon icon={"simple-icons:github"} className="inline-block" />{" "}
-                Report an issue
+                Report an
               </Link>
             </NavItem>
           </MainNav>
         </div>
         <div className="relative">
-          <MapComponent
+          <Map
             shape={shape}
             selectedDateTime={selectedDateTime}
             selectedStopId={stopId}

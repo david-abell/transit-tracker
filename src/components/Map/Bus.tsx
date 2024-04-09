@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import useVehiclePosition from "@/hooks/useVehiclePosition";
 import { Popup } from "react-leaflet";
 import {
-  formatDelay,
+  formatReadableDelay,
   getDifferenceInSeconds,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
@@ -77,7 +77,7 @@ function Bus({
         nextStop.delayedArrivalTime ?? nextStop.arrivalTime,
       );
       // Your custom logic here
-      setArrivingIn(formatDelay(arrivalSeconds, true) ?? "");
+      setArrivingIn(formatReadableDelay(arrivalSeconds, true) ?? "");
     },
     // Delay in milliseconds or null to stop it
     1000,
@@ -86,7 +86,7 @@ function Bus({
   const onTextUpdate = useCallback(() => {
     if (nextStop) {
       return (
-        formatDelay(
+        formatReadableDelay(
           nextStop?.stopUpdate?.arrival?.delay ||
             nextStop?.stopUpdate?.departure?.delay,
         ) ?? ""
@@ -151,13 +151,14 @@ function Bus({
         <Popup>
           <p>Next Stop: {nextStop.stop.stopCode}</p>
           <h3 className="text-lg font-bold !mt-0 ">
-            {nextStop.stop.stopName ?? ""} <LiveVehicleTooltip />
+            {nextStop.stop.stopName ?? ""}
           </h3>
 
           <p className="!mt-0 !mb-0">
-            Arrival in around{" "}
-            <b className="text-lg">
-              <LiveText content={arrivingIn} color={liveTextColor} />
+            Arriving in about{" "}
+            <b className="text-lg whitespace-nowrap">
+              <LiveText content={arrivingIn} color={liveTextColor} />{" "}
+              <LiveVehicleTooltip />
             </b>
           </p>
 

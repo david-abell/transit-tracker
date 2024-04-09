@@ -1,5 +1,5 @@
 import {
-  formatDelay,
+  formatReadableDelay,
   getDelayStatus,
   getDelayedTime,
   getTripStatus,
@@ -96,7 +96,7 @@ function Footer({
 
   const pickupDelayStatus = getDelayStatus(closestPickupStopUpdate);
 
-  const pickupDelay = formatDelay(
+  const pickupDelay = formatReadableDelay(
     closestPickupStopUpdate?.arrival?.delay ||
       closestPickupStopUpdate?.departure?.delay,
   );
@@ -112,7 +112,7 @@ function Footer({
 
   const dropOffDelayStatus = getDelayStatus(closestDropOffStopUpdate);
 
-  const dropOffDelay = formatDelay(
+  const dropOffDelay = formatReadableDelay(
     closestDropOffStopUpdate?.arrival?.delay ||
       closestDropOffStopUpdate?.departure?.delay,
   );

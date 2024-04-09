@@ -1,5 +1,5 @@
 import {
-  formatDelay,
+  formatDelayAsDuration,
   getDelayedTime,
   isPastArrivalTime,
   parseDatetimeLocale,
@@ -253,7 +253,7 @@ function TripModal({
                         <>
                           {/* Delay */}
                           <Time
-                            time={formatDelay(
+                            time={formatDelayAsDuration(
                               arrival?.delay || departure?.delay,
                             )}
                             column="delay"

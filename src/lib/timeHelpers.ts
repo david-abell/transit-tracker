@@ -116,7 +116,10 @@ export function getDelayedTime(
 
 // Return valid time duration string in format 19h 11m 32s | 11m 32s | 32s
 // https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-time-element:valid-duration-string
-export function formatDelay(delayInSeconds: number | undefined, exact = false) {
+export function formatDelayAsDuration(
+  delayInSeconds: number | undefined,
+  exact = false,
+) {
   if (!delayInSeconds) return undefined;
   const positiveDelay = Math.round(Math.abs(delayInSeconds));
   const hours = Math.floor(positiveDelay / 3600);
@@ -131,12 +134,43 @@ export function formatDelay(delayInSeconds: number | undefined, exact = false) {
     return `${positiveDelay}s`;
   }
 
+  const hourString = `${hours}h `.padStart(2, "0");
+  const minuteString = `${minutes}m `.padStart(2, "0");
+  const secondsString = seconds !== 0 ? `${seconds}s`.padStart(2, "0") : "";
   // Less than an hour
   if (positiveDelay < 3600) {
-    return `${minutes}m ${seconds}s`;
+    return `${minuteString}${secondsString}`;
   }
 
-  return `${hours}h ${minutes}m ${seconds}s`;
+  return `${hourString}${minuteString}${secondsString}`;
+}
+
+export function formatReadableDelay(
+  delayInSeconds: number | undefined,
+  exact = false,
+) {
+  if (!delayInSeconds) return undefined;
+  const positiveDelay = Math.round(Math.abs(delayInSeconds));
+  const hours = Math.floor(positiveDelay / 3600);
+  const minutes = Math.floor((positiveDelay - hours * 3600) / 60);
+  const seconds = positiveDelay - hours * 3600 - minutes * 60;
+
+  if (!exact && positiveDelay < 30) {
+    return;
+  }
+
+  if (positiveDelay < 60) {
+    return `${positiveDelay}s`;
+  }
+
+  const minuteString = minutes !== 0 ? `${minutes}m ` : "";
+  const secondsString = seconds !== 0 ? `${seconds}s` : "";
+  // Less than an hour
+  if (positiveDelay < 3600) {
+    return `${minuteString}${secondsString}`;
+  }
+
+  return `${hours}h ${minuteString}`;
 }
 
 export const delayStatus = {

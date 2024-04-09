@@ -21,7 +21,7 @@ import { useLocalStorage } from "usehooks-ts";
 
 import type { Stop, StopTime } from "@prisma/client";
 import {
-  formatDelay,
+  formatReadableDelay,
   getDelayedTime,
   parseDatetimeLocale,
 } from "@/lib/timeHelpers";
@@ -284,7 +284,7 @@ function MapContentLayer({
                 arrival?.delay || departure?.delay,
               );
 
-              const prettyDelay = formatDelay(
+              const prettyDelay = formatReadableDelay(
                 arrival?.delay || departure?.delay,
               );
 

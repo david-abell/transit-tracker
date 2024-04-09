@@ -1,6 +1,6 @@
 import useRoute from "@/hooks/useRoute";
 import { Route, Stop } from "@prisma/client";
-import { useState, useMemo, CSSProperties } from "react";
+import { useState, useMemo, CSSProperties, useEffect } from "react";
 import useStops from "@/hooks/useStops";
 import Select, { InputActionMeta } from "react-select";
 
@@ -30,6 +30,12 @@ function SearchInput({
   const [selectedOption, setSelectedOption] = useState<Stop | Route | null>(
     null,
   );
+
+  useEffect(() => {
+    if (selectedRoute) {
+      setSelectedOption(selectedRoute);
+    }
+  }, [selectedRoute]);
 
   // still needs debouncing
   const [searchText, setSearchText] = useState<string>("");

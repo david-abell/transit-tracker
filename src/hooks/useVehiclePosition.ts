@@ -7,12 +7,20 @@ import {
 import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
 import { StopTimeUpdate } from "@/types/realtime";
 import { Stop, StopTime } from "@prisma/client";
-import { Coord, Position, point } from "@turf/helpers";
+import {
+  Coord,
+  Feature,
+  FeatureCollection,
+  LineString,
+  Position,
+  Properties,
+  point,
+} from "@turf/helpers";
 import lineChunk from "@turf/line-chunk";
 import lineSlice from "@turf/line-slice";
 import rhumbDistance from "@turf/rhumb-distance";
 import { LatLngTuple } from "leaflet";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { KeyedMutator } from "swr";
 import { useInterval } from "usehooks-ts";
 
@@ -23,6 +31,12 @@ export type Arrival = {
   stopSequence: number;
   stop: Stop;
   stopUpdate: StopTimeUpdate | undefined;
+};
+
+type ShapeSlices = {
+  shapeSlice: Feature<LineString, Properties>;
+  chunks: FeatureCollection<LineString, Properties>;
+  nextShapeSlice: Position[];
 };
 
 type Props = {
@@ -62,6 +76,8 @@ function useVehiclePosition({
   useInterval(() => {
     setCount(count + 1);
   }, 500);
+
+  const lineSlices = useRef(new Map<string, ShapeSlices>());
 
   const lastStopTimeUpdate = useMemo(
     () => stopTimeUpdate && stopTimeUpdate.at(-1),
@@ -166,16 +182,36 @@ function useVehiclePosition({
     nextStop.delayedArrivalTime || nextStop.arrivalTime,
   );
 
-  const sliced = lineSlice(nextStop.coordinates, lastStop.coordinates, {
-    type: "LineString",
-    coordinates: shape,
-  });
+  let shapeSlice: Feature<LineString, Properties>;
+  let chunks: FeatureCollection<LineString, Properties>;
+  let nextShapeSlice: Position[];
 
-  const chunks = lineChunk(sliced, 20, { units: "meters" });
+  // calling lineSlice is expensive. Storing results reduced call time by 450ms on longer routes...
+  const sliceKey = JSON.stringify(nextStop.coordinates, lastStop.coordinates);
 
-  const nextShapeSlice = chunks.features.flatMap(
-    ({ geometry }) => geometry.coordinates,
-  );
+  if (lineSlices.current.has(sliceKey)) {
+    const slice = lineSlices.current.get(sliceKey)!;
+    shapeSlice = slice.shapeSlice;
+    chunks = slice.chunks;
+    nextShapeSlice = slice.nextShapeSlice;
+  } else {
+    shapeSlice = lineSlice(nextStop.coordinates, lastStop.coordinates, {
+      type: "LineString",
+      coordinates: shape,
+    });
+
+    chunks = lineChunk(shapeSlice, 20, { units: "meters" });
+
+    nextShapeSlice = chunks.features.flatMap(
+      ({ geometry }) => geometry.coordinates,
+    );
+
+    lineSlices.current.set(sliceKey, {
+      shapeSlice,
+      chunks,
+      nextShapeSlice,
+    });
+  }
 
   // Check if slice is correct direction of travel
   const nextStopPoint = point(nextStop.coordinates);

@@ -4,7 +4,7 @@ import { GTFSResponse, TripUpdate } from "@/types/realtime";
 import withErrorHandler from "@/lib/withErrorHandler";
 import { ApiError } from "next/dist/server/api-utils";
 const API_KEY = process.env.NTA_REALTIME_API_KEY;
-import { redisClient as redis } from "@/lib/redis/createRedisInstance";
+import { redisClient as redis } from "@/lib/redis/redisClient";
 import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes, ReasonPhrases } from "http-status-codes";

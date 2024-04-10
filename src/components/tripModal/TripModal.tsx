@@ -195,13 +195,11 @@ function TripModal({
 
                 const tripStatus = isCanceled
                   ? "canceled"
-                  : hasDeparted
-                    ? "departed"
-                    : isEarly
-                      ? "early"
-                      : isDelayed
-                        ? "delayed"
-                        : "ontime";
+                  : isEarly
+                    ? "early"
+                    : isDelayed
+                      ? "delayed"
+                      : "ontime";
 
                 return (
                   <li key={tripId + departureTime}>
@@ -243,9 +241,10 @@ function TripModal({
                         }
                       >
                         <Time
-                          time={departureTime}
                           column="scheduled"
+                          departed={hasDeparted}
                           status={tripStatus}
+                          time={departureTime}
                         />
                       </span>
 
@@ -253,17 +252,19 @@ function TripModal({
                         <>
                           {/* Delay */}
                           <Time
+                            column="delay"
+                            departed={hasDeparted}
                             time={formatDelayAsDuration(
                               arrival?.delay || departure?.delay,
                             )}
-                            column="delay"
                             status={tripStatus}
                           />
                           {/* Arriving */}
                           <Time
-                            time={delayedArrivalTime || departureTime}
                             column="arriving"
+                            departed={hasDeparted}
                             status={tripStatus}
+                            time={delayedArrivalTime || departureTime}
                           />
                         </>
                       )}

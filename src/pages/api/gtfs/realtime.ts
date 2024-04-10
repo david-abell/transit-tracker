@@ -4,7 +4,7 @@ import { GTFSResponse, TripUpdate } from "@/types/realtime";
 import withErrorHandler from "@/lib/withErrorHandler";
 import { ApiError } from "next/dist/server/api-utils";
 const API_KEY = process.env.NTA_REALTIME_API_KEY;
-import { createRedisInstance } from "@/lib/redis/createRedisInstance";
+import { redisClient as redis } from "@/lib/redis/redisClient";
 import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
@@ -38,8 +38,6 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
 
   console.log("realtime called:", new Date().toLocaleString());
 
-  const redis = createRedisInstance();
-
   const tripUpdateKey = "tripUpdates";
   const addedTripsKey = "addTrips";
 
@@ -47,21 +45,16 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   const cachedAdded = await redis.exists(addedTripsKey);
   const cachedUpdates = await redis.exists(tripUpdateKey);
 
+  let idArray: string[] = [];
+
+  if (tripIds?.includes(",")) {
+    idArray = tripIds.split(",").map((tripId) => decodeURI(tripId));
+  } else {
+    idArray = !!tripIds ? [decodeURI(tripIds)] : [];
+  }
+
   if (cachedAdded && cachedUpdates) {
-    if (!tripIds) {
-      console.error("No tripIds received");
-      res.status(StatusCodes.BAD_REQUEST).end();
-      return;
-    }
-
-    let idArray: string[] = [];
-
-    if (tripIds.includes(",")) {
-      idArray = tripIds.split(",").map((tripId) => decodeURI(tripId));
-    } else {
-      idArray = [tripIds];
-    }
-    console.log(`redis cache hit: searching for ${tripIds.length} trip ids.`);
+    console.log(`redis cache hit: searching for ${idArray.length} trip ids.`);
 
     const addedTripRecords = await redis.hgetall(addedTripsKey);
 
@@ -87,7 +80,7 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     return res.status(StatusCodes.OK).json({ addedTrips, tripUpdates });
   }
 
-  console.log(`redis cache miss, setting new trip updates`);
+  console.log("redis cache miss, setting new trip updates");
 
   const response = await fetch(API_URL, {
     method: "GET",
@@ -107,6 +100,9 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   const json = await response.json();
 
   const data: GTFSResponse = camelcaseKeys(json, { deep: true });
+
+  console.log("Downloaded %s trip updates", data?.entity?.length);
+  const requestedTripSet = tripIds ? new Set(idArray) : new Set();
 
   const tripUpdates = new Map<string, string>();
   const addedTripsMap = new Map<string, string>();
@@ -129,7 +125,7 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     }
     tripUpdates.set(tripUpdate.trip.tripId, JSON.stringify(tripUpdate));
 
-    if (tripIds?.includes(tripUpdate.trip.tripId)) {
+    if (requestedTripSet.has(tripUpdate.trip.tripId)) {
       requestedTripUpdates.push([tripUpdate.trip.tripId, tripUpdate]);
     }
 

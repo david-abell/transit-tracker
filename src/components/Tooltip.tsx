@@ -1,9 +1,10 @@
 import {
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { HelpCircle, Info } from "lucide-react";
+import { HelpCircle, Info, X } from "lucide-react";
 import { ReactNode } from "react";
 
 type Props = {
@@ -22,16 +23,19 @@ function Tooltip({
   variant = "default",
 }: Props) {
   return (
-    <Popover>
+    <Popover modal>
       <PopoverTrigger>
         {variant === "default" ? (
-          <HelpCircle className="text-green-700 dark:text-green-500" />
+          <HelpCircle className="text-green-700 dark:text-green-500 inline-block ml-2" />
         ) : (
-          <Info className="text-yellow-700 dark:text-yellow-500" />
+          <Info className="text-yellow-700 dark:text-yellow-500 inline-block ml-2" />
         )}
       </PopoverTrigger>
       <PopoverContent align={align} side={side} sideOffset={sideOffset}>
         {children}
+        <PopoverClose className="text-red-700 absolute right-4 top-4">
+          <X />
+        </PopoverClose>
       </PopoverContent>
     </Popover>
   );

@@ -149,32 +149,33 @@ function Bus({
         rotationAngle={0}
       >
         <Popup>
-          <p>Next Stop: {nextStop.stop.stopCode}</p>
-          <h3 className="text-lg font-bold !mt-0 ">
+          <b>Next Stop</b>
+          <p className="!mb-0.5">{nextStop.stop.stopCode}</p>
+          <h3 className="text-lg font-bold !my-0.5">
             {nextStop.stop.stopName ?? ""}
           </h3>
 
-          <p className="!mt-0 !mb-0">
-            Arriving in about{" "}
+          <p className="!mt-1 !mb-0">
             <b className="text-lg whitespace-nowrap">
               <LiveText content={arrivingIn} color={liveTextColor} />{" "}
               <LiveVehicleTooltip />
             </b>
           </p>
 
-          <p>
+          <p className="!mt-2 !mb-0">
             <b>Scheduled arrival: </b> {nextStop.arrivalTime}
           </p>
           {nextStop.delayedArrivalTime && (
-            <p>
-              <b>Arriving: </b> {nextStop.delayedArrivalTime}
-            </p>
+            <span>
+              <b>Arriving at </b> {nextStop.delayedArrivalTime}
+            </span>
           )}
 
           {hasDelay && (
             <>
               <p>
                 <b>
+                  {"Vehicle is "}
                   <LiveText content={onTextUpdate} color={liveTextColor} />
                 </b>
                 <span className="mr-1">{isEarly ? " early" : " late"}</span>

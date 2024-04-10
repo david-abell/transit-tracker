@@ -14,9 +14,9 @@ const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/TripUpdates?format=json";
 
 // const UPSTASH_MAX_REQUEST_BYTES = 1048576;
-// const TRIP_UPDATE_BYTES = 1127;
+// const TRIP_UPDATE_BYTE_size = 1442;
 
-const BATCH_LIMIT = 800;
+const BATCH_LIMIT = 700;
 
 export type RealtimeTripUpdateResponse = {
   tripUpdates: [string, TripUpdate][];

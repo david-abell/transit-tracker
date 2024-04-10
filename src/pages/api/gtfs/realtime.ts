@@ -18,6 +18,8 @@ const API_URL =
 
 const BATCH_LIMIT = 700;
 
+const REDIS_CACHE_EXPIRE_SECONDS = 120;
+
 export type RealtimeTripUpdateResponse = {
   tripUpdates: [string, TripUpdate][];
   addedTrips: [string, TripUpdate][];
@@ -144,8 +146,8 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   await redis.hmset(addedTripsKey, addedTripsMap);
 
   // expire after 120 seconds
-  redis.expire(tripUpdateKey, 120);
-  redis.expire(addedTripsKey, 120);
+  redis.expire(tripUpdateKey, REDIS_CACHE_EXPIRE_SECONDS);
+  redis.expire(addedTripsKey, REDIS_CACHE_EXPIRE_SECONDS);
 
   return res
     .status(200)

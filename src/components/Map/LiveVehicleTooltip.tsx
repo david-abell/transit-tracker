@@ -1,6 +1,9 @@
 import { HelpCircle } from "lucide-react";
 import Tooltip from "../Tooltip";
 
+// Next.js throws an error when this is imported from the server api file realtime.ts
+const REDIS_CACHE_EXPIRE_SECONDS = 120;
+
 function LiveTooltip() {
   return (
     <Tooltip sideOffset={-100}>
@@ -9,15 +12,19 @@ function LiveTooltip() {
         <HelpCircle className="text-green-700 dark:text-green-500 absolute inset-4" />
         How is this vehicle position calculated?
       </h3>
-      <p>This estimate is a combination of</p>
+      <p>This estimate is a combination of:</p>
       <ul className="list-disc [&>li]:ml-6 [&>*:first-child]:pt-2 [&>*:last-child]:mb-2">
-        <li>The vehicle&apos;s scheduled position.</li>
+        <li>the vehicle&apos;s scheduled position.</li>
         <li>
-          The last known delay in seconds from the TFI live vehicle feed.
-          (updated every five minutes)
+          {`the last known delay in seconds from the TFI live vehicle feed.
+          [updated every ${REDIS_CACHE_EXPIRE_SECONDS / 60} minutes]`}
         </li>
       </ul>
-      <p>It should not be treated as 100% accurate.</p>
+      <p>It does not include:</p>
+      <ul className="list-disc [&>li]:ml-6 [&>*:first-child]:pt-2 [&>*:last-child]:mb-2">
+        <li>Traffic congestion, construction, or signals.</li>
+        <li>Whether the vehicle is currently moving or stationary.</li>
+      </ul>
     </Tooltip>
   );
 }

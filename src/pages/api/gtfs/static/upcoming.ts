@@ -30,6 +30,8 @@ export type UpcomingTripsAPIResponse = {
 
 // type NumericalString = `${number}`;
 
+const DEPARTURE_LOOKBACK_SECONDS = 60 * 35;
+
 const handler: ApiHandler<UpcomingTripsAPIResponse> = async (req, res) => {
   const { dateTime, stopId, page } = req.query;
   if (typeof dateTime !== "string" || typeof stopId !== "string") {
@@ -46,7 +48,10 @@ const handler: ApiHandler<UpcomingTripsAPIResponse> = async (req, res) => {
   const startOfDate = startOfDay(date);
   const departureDifferenceInSeconds = differenceInSeconds(date, startOfDate);
   // Show trips in last 5 minutes
-  const departureOffset = departureDifferenceInSeconds > 60 * 5 ? 60 * 5 : 0;
+  const departureOffset =
+    departureDifferenceInSeconds > DEPARTURE_LOOKBACK_SECONDS
+      ? DEPARTURE_LOOKBACK_SECONDS
+      : 0;
   const departureTimeInSeconds = departureDifferenceInSeconds - departureOffset;
 
   const stopTimeResponse = await prisma.$queryRaw<UpcomingTrip[]>`

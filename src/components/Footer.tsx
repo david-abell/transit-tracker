@@ -2,7 +2,6 @@ import {
   formatReadableDelay,
   getDelayStatus,
   getDelayedTime,
-  getTripStatus,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
 import { TripUpdate } from "@/types/realtime";
@@ -79,48 +78,40 @@ function Footer({
 
   const lastStopTimeUpdate = stopTimeUpdates?.at(-1);
 
-  const closestPickupStopUpdate =
+  const pickupStopUpdate =
     (pickupStopSequence &&
       stopTimeUpdates?.find(
-        ({ stopId: stopTimeStopId, stopSequence }) =>
-          stop?.stopId === stopTimeStopId ||
-          (destination && stopSequence >= pickupStopSequence),
+        ({ stopSequence }) => stopSequence >= pickupStopSequence,
       )) ||
     lastStopTimeUpdate;
 
   const realtimePickupArrivalTime = getDelayedTime(
     pickupDepartureTime,
-    closestPickupStopUpdate?.arrival?.delay ||
-      closestPickupStopUpdate?.departure?.delay,
+    pickupStopUpdate?.arrival?.delay || pickupStopUpdate?.departure?.delay,
   );
 
-  const pickupDelayStatus = getDelayStatus(closestPickupStopUpdate);
+  const pickupDelayStatus = getDelayStatus(pickupStopUpdate);
 
   const pickupDelay = formatReadableDelay(
-    closestPickupStopUpdate?.arrival?.delay ||
-      closestPickupStopUpdate?.departure?.delay,
+    pickupStopUpdate?.arrival?.delay || pickupStopUpdate?.departure?.delay,
   );
 
-  const closestDropOffStopUpdate =
+  const dropOffStopUpdate =
     (dropOffStopSequence &&
       stopTimeUpdates?.find(
-        ({ stopId: stopTimeStopId, stopSequence }) =>
-          destination?.stopId === stopTimeStopId ||
-          (pickupStopSequence && stopSequence >= dropOffStopSequence),
+        ({ stopSequence }) => stopSequence >= dropOffStopSequence,
       )) ||
     lastStopTimeUpdate;
 
-  const dropOffDelayStatus = getDelayStatus(closestDropOffStopUpdate);
+  const dropOffDelayStatus = getDelayStatus(dropOffStopUpdate);
 
   const dropOffDelay = formatReadableDelay(
-    closestDropOffStopUpdate?.arrival?.delay ||
-      closestDropOffStopUpdate?.departure?.delay,
+    dropOffStopUpdate?.arrival?.delay || dropOffStopUpdate?.departure?.delay,
   );
 
   const realtimeDropOffArrivalTime = getDelayedTime(
     dropOffArrivalTime,
-    closestDropOffStopUpdate?.arrival?.delay ||
-      closestDropOffStopUpdate?.departure?.delay,
+    dropOffStopUpdate?.arrival?.delay || dropOffStopUpdate?.departure?.delay,
   );
 
   const isPastPickup =
@@ -131,14 +122,6 @@ function Footer({
     !!dropOffArrivalTime &&
     isPastArrivalTime(realtimeDropOffArrivalTime ?? dropOffArrivalTime);
 
-  const tripStatus = getTripStatus(
-    trip,
-    stopTimes,
-    stopTimeUpdates,
-    stop?.stopId,
-    destination?.stopId,
-  );
-
   return (
     <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto p-4 lg:max-w-7xl lg:px-10">
       <div className="rounded-lg bg-background/90 p-4">
@@ -148,53 +131,40 @@ function Footer({
               {
                 <div className="flex w-full flex-row content-center justify-between gap-2 md:gap-4 overflow-hidden px-2 text-left font-normal">
                   <p>
-                    {!!route ? (
+                    {
                       <>
                         <span>Route </span>
-                        <b>{route.routeShortName ?? ""}</b>
+                        <b>{route?.routeShortName ?? ""}</b>
                         <span className="max-lg:hidden">
                           {" "}
-                          &#9830; {route?.routeLongName ?? ""}
+                          &#9830; {route?.routeLongName ?? "No route selected"}
                         </span>
                       </>
-                    ) : (
-                      "No route selected"
-                    )}
+                    }
 
                     {!!trip && (
                       <> &#9830; heading towards {trip.tripHeadsign}</>
                     )}
                   </p>
 
-                  {!!tripStatus && (
-                    <p
-                      className={
-                        tripStatus === "early"
-                          ? "text-green-700 dark:text-green-500"
-                          : tripStatus === "delayed"
-                            ? "text-red-700 dark:text-red-500"
-                            : ""
-                      }
-                    >
-                      {tripStatus === "completed" ? (
-                        "Completed"
-                      ) : isPastPickup ? (
-                        <>
-                          <span className="whitespace-nowrap">
-                            {dropOffDelay ?? ""}
-                          </span>{" "}
-                          {dropOffDelayStatus || tripStatus}
-                        </>
-                      ) : (
-                        <>
-                          <span className="whitespace-nowrap">
-                            {pickupDelay ?? ""}
-                          </span>{" "}
-                          {pickupDelayStatus || tripStatus}
-                        </>
-                      )}
-                    </p>
-                  )}
+                  <p
+                    className={
+                      dropOffDelayStatus === "early"
+                        ? "text-green-700 dark:text-green-500"
+                        : dropOffDelayStatus === "late"
+                          ? "text-red-700 dark:text-red-500"
+                          : ""
+                    }
+                  >
+                    <span className="whitespace-nowrap">
+                      {dropOffDelay ?? ""}
+                    </span>{" "}
+                    {isPastDropOff
+                      ? "Completed"
+                      : isPastPickup
+                        ? dropOffDelayStatus
+                        : pickupDelayStatus}
+                  </p>
                 </div>
               }
             </AccordionTrigger>
@@ -229,7 +199,7 @@ function Footer({
                     <span>
                       {!!realtimePickupArrivalTime && (
                         <>
-                          {isPastPickup && "Departed @ "}
+                          {isPastPickup && "Arrived @ "}
                           <time dateTime={realtimePickupArrivalTime}>
                             {realtimePickupArrivalTime}
                           </time>

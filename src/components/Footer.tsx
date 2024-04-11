@@ -2,6 +2,7 @@ import {
   formatReadableDelay,
   getDelayStatus,
   getDelayedTime,
+  getDifferenceInSeconds,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
 import { TripUpdate } from "@/types/realtime";
@@ -38,7 +39,7 @@ function Footer({
   const [count, setCount] = useState<number>(0);
   useInterval(() => {
     setCount(count + 1);
-  }, 15000);
+  }, 1000);
 
   const lastStopId = useMemo(() => {
     if (!!destination) return "";
@@ -122,6 +123,14 @@ function Footer({
     !!dropOffArrivalTime &&
     isPastArrivalTime(realtimeDropOffArrivalTime ?? dropOffArrivalTime);
 
+  const liveTextArrivalTime = isPastPickup
+    ? realtimeDropOffArrivalTime
+    : realtimePickupArrivalTime;
+
+  const liveTextContent = liveTextArrivalTime
+    ? formatReadableDelay(getDifferenceInSeconds(liveTextArrivalTime), true)
+    : "";
+
   return (
     <div className="absolute bottom-0 z-[1000] mx-auto min-h-[6rem] w-full overflow-x-auto p-4 lg:max-w-7xl lg:px-10">
       <div className="rounded-lg bg-background/90 p-4">
@@ -147,24 +156,33 @@ function Footer({
                     )}
                   </p>
 
-                  <p
-                    className={
-                      dropOffDelayStatus === "early"
-                        ? "text-green-700 dark:text-green-500"
-                        : dropOffDelayStatus === "late"
-                          ? "text-red-700 dark:text-red-500"
-                          : ""
-                    }
-                  >
-                    <span className="whitespace-nowrap">
-                      {dropOffDelay ?? ""}
-                    </span>{" "}
-                    {isPastDropOff
-                      ? "Completed"
-                      : isPastPickup
-                        ? dropOffDelayStatus
-                        : pickupDelayStatus}
-                  </p>
+                  {!!trip && (
+                    <p>
+                      {isPastDropOff ? (
+                        "Completed"
+                      ) : isPastPickup ? (
+                        <span>
+                          Dropping off {dropOffDelayStatus} in{" "}
+                          {liveTextContent ?? ""}
+                        </span>
+                      ) : (
+                        <span>
+                          Picking up {pickupDelayStatus} in{" "}
+                          <span
+                            className={`whitespace-nowrap ${
+                              dropOffDelayStatus === "early"
+                                ? "text-green-700 dark:text-green-500"
+                                : dropOffDelayStatus === "late"
+                                  ? "text-red-700 dark:text-red-500"
+                                  : ""
+                            }`}
+                          >
+                            {liveTextContent ?? ""}
+                          </span>
+                        </span>
+                      )}
+                    </p>
+                  )}
                 </div>
               }
             </AccordionTrigger>

@@ -35,7 +35,7 @@ const handler: ApiHandler<RouteAPIResponse> = async (req, res) => {
           SUBSTRING(route_short_name FROM '^\\d* *(.*?)( \\d+)?$'),
           COALESCE(SUBSTRING(route_short_name FROM ' (\\d+)$')::INTEGER, 0),
           substring(route_short_name, ${globQuery} ) DESC
-    LIMIT 6;
+    LIMIT 20;
  `;
 
   if (!routes) {

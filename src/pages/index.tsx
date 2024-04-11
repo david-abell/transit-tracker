@@ -1,7 +1,7 @@
 "use-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseAsString, useQueryState } from "nuqs";
-import useRealtime from "@/hooks/useTripUpdates";
+import useTripUpdates from "@/hooks/useTripUpdates";
 import SearchInput from "@/components/SearchInput";
 import TripModal from "@/components/tripModal/TripModal";
 import DateTimeSelect from "@/components/DateTimeSelect";
@@ -117,7 +117,7 @@ export default function Home() {
     realtimeScheduledByTripId: tripUpdatesByTripId,
     isLoadingRealtime,
     error: realTimeError,
-  } = useRealtime(tripId);
+  } = useTripUpdates(tripId);
 
   const [isChildApiLoading, setIsChildApiLoading] = useState(false);
 

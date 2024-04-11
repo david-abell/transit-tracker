@@ -8,7 +8,7 @@ import { Route, Stop } from "@prisma/client";
 import { useContext, useEffect, useState } from "react";
 import { DialogRefContext } from "../Modal";
 import useUpcoming from "@/hooks/useUpcoming";
-import useRealtime from "@/hooks/useTripUpdates";
+import useTripUpdates from "@/hooks/useTripUpdates";
 import { DateTime } from "luxon";
 
 import Time from "./Time";
@@ -65,7 +65,7 @@ function TripModal({
     realtimeScheduledByTripId,
     realtimeRouteIds,
     realtimeCanceledTripIds,
-  } = useRealtime(tripIds);
+  } = useTripUpdates(tripIds);
 
   useEffect(() => {
     handleApiLoading(isLoadingRealtime || isLoadingUpcoming);

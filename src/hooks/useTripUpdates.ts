@@ -26,7 +26,7 @@ type AddedStopTime = Pick<
   "arrivalTime" | "departureTime" | "stopSequence"
 >;
 
-function useRealtime(tripIds: string | string[] | undefined | null) {
+function useTripUpdates(tripIds: string | string[] | undefined | null) {
   const { data, error, isValidating, mutate } = useSWR<
     RealtimeTripUpdateResponse,
     ApiError
@@ -101,7 +101,7 @@ function useRealtime(tripIds: string | string[] | undefined | null) {
   };
 }
 
-export default useRealtime;
+export default useTripUpdates;
 
 function createAddedStopTime(
   arrival: Time | undefined,

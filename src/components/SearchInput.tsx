@@ -175,7 +175,7 @@ const selectStyles = {
   }),
   menuList: (base: any) => ({
     ...base,
-    minHeight: "400px", // your desired height
+    minHeight: "31rem",
   }),
 };
 

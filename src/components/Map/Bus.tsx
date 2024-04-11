@@ -13,7 +13,7 @@ import { useInterval } from "usehooks-ts";
 import { Stop, StopTime } from "@prisma/client";
 import { Position } from "@turf/helpers";
 import { TripUpdate } from "@/types/realtime";
-import LiveText, { LiveTextColor } from "../ui/LiveText";
+import LiveText, { LiveTextColor } from "../LiveText";
 import LiveVehicleTooltip from "./LiveVehicleTooltip";
 
 type Props = {

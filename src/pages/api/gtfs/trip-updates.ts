@@ -142,8 +142,12 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     }
   }
 
-  await redis.hmset(tripUpdateKey, tripUpdates);
-  await redis.hmset(addedTripsKey, addedTripsMap);
+  if (tripUpdates.size) {
+    await redis.hmset(tripUpdateKey, tripUpdates);
+  }
+  if (addedTripsMap.size) {
+    await redis.hmset(addedTripsKey, addedTripsMap);
+  }
 
   // expire after 120 seconds
   redis.expire(tripUpdateKey, REDIS_CACHE_EXPIRE_SECONDS);

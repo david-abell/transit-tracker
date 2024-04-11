@@ -7,7 +7,7 @@ import { formatSecondsAsTimeString } from "@/lib/timeHelpers";
 import { StopTime } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";
 
-const API_URL = "/api/gtfs/realtime";
+const API_URL = "/api/gtfs/trip-updates";
 
 // Api limited to 1 call per minute
 // test revalidate only at 5 minute intervals

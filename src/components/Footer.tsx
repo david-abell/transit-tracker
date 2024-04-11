@@ -163,7 +163,17 @@ function Footer({
                       ) : isPastPickup ? (
                         <span>
                           Dropping off {dropOffDelayStatus} in{" "}
-                          {liveTextContent ?? ""}
+                          <span
+                            className={`whitespace-nowrap ${
+                              dropOffDelayStatus === "early"
+                                ? "text-green-700 dark:text-green-500"
+                                : dropOffDelayStatus === "late"
+                                  ? "text-red-700 dark:text-red-500"
+                                  : ""
+                            }`}
+                          >
+                            {liveTextContent ?? ""}
+                          </span>
                         </span>
                       ) : (
                         <span>

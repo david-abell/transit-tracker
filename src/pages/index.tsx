@@ -1,7 +1,7 @@
 "use-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseAsString, useQueryState } from "nuqs";
-import useRealtime from "@/hooks/useRealtime";
+import useRealtime from "@/hooks/useTripUpdates";
 import SearchInput from "@/components/SearchInput";
 import TripModal from "@/components/tripModal/TripModal";
 import DateTimeSelect from "@/components/DateTimeSelect";

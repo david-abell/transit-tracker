@@ -8,7 +8,7 @@ import { Route, Stop } from "@prisma/client";
 import { useContext, useEffect, useState } from "react";
 import { DialogRefContext } from "../Modal";
 import useUpcoming from "@/hooks/useUpcoming";
-import useRealtime from "@/hooks/useRealtime";
+import useRealtime from "@/hooks/useTripUpdates";
 import { DateTime } from "luxon";
 
 import Time from "./Time";

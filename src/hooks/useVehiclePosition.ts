@@ -4,7 +4,7 @@ import {
   getPercentageToArrival,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
-import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
+import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/trip-updates";
 import { StopTimeUpdate } from "@/types/realtime";
 import { Stop, StopTime } from "@prisma/client";
 import {

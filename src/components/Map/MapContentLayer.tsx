@@ -29,7 +29,7 @@ import Bus from "./Bus";
 import usePrevious from "@/hooks/usePrevious";
 import isEqual from "react-fast-compare";
 import { DateTime } from "luxon";
-import useRealtime from "@/hooks/useRealtime";
+import useRealtime from "@/hooks/useTripUpdates";
 import useStopId from "@/hooks/useStopId";
 import { SavedStop } from "../SavedStops";
 import { Position } from "@turf/helpers";

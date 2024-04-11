@@ -12,7 +12,7 @@ import { ShapeAPIResponse } from "@/pages/api/gtfs/static/shape";
 import { StopsAPIResponse } from "@/pages/api/gtfs/static/stops";
 import { TripAPIResponse } from "@/pages/api/gtfs/static/trips";
 import { UpcomingTripsAPIResponse } from "@/pages/api/gtfs/static/upcoming";
-import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
+import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/trip-updates";
 import { StopTime } from "@prisma/client";
 
 type ApiResponse =

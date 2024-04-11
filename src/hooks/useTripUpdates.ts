@@ -2,7 +2,7 @@ import { Time, TripUpdate } from "@/types/realtime";
 import useSWR from "swr";
 
 import { fetchHelper } from "@/lib/FetchHelper";
-import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/realtime";
+import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/trip-updates";
 import { formatSecondsAsTimeString } from "@/lib/timeHelpers";
 import { StopTime } from "@prisma/client";
 import { ApiError } from "next/dist/server/api-utils";

@@ -7,6 +7,8 @@ import {
   LayersControl,
   Pane,
   LayerGroup,
+  Marker,
+  Popup,
 } from "react-leaflet";
 import { LatLngExpression, LatLngTuple } from "leaflet";
 import {
@@ -36,6 +38,8 @@ import { Position } from "@turf/helpers";
 import MarkerClusterGroup from "./MarkerClusterGroup";
 import StopMarker from "./StopMarker";
 import StopPopup from "./StopPopup";
+import useVehicleUpdates from "@/hooks/useVehicleUpdates";
+import { Button } from "../ui/button";
 
 type ValidStop = Stop & {
   stopLat: NonNullable<Stop["stopLat"]>;
@@ -153,6 +157,8 @@ function MapContentLayer({
   const { realtimeScheduledByTripId, addedTripStopTimes, realtimeAddedTrips } =
     useTripUpdates(tripId);
 
+  const { vehicleUpdates } = useVehicleUpdates();
+
   const realtimeTrip = useMemo(
     () => !!tripId && realtimeScheduledByTripId.get(tripId),
     [realtimeScheduledByTripId, tripId],
@@ -253,6 +259,41 @@ function MapContentLayer({
               stopsById={stopsById}
               show={!isToday}
             />
+          </Pane>
+        </LayerGroup>
+      </LayersControl.Overlay>
+      <LayersControl.Overlay name="Realtime Vehicles" checked>
+        <LayerGroup>
+          {/* width required for icon not to be 0*0 px */}
+          <Pane name="Vehicles" style={{ zIndex: 640, width: "2.5rem" }}>
+            {!!vehicleUpdates &&
+              vehicleUpdates.map(({ vehicle, route }) => {
+                const { routeShortName, routeLongName } = route;
+                const { latitude, longitude } = vehicle.position;
+                const { tripId = "", directionId } = vehicle.trip;
+                const time = new Date(
+                  Number(vehicle?.timestamp),
+                ).toLocaleString();
+                const timeIsValid = time !== "Invalid Date";
+                return (
+                  <Marker
+                    key={tripId + latitude + longitude}
+                    position={[latitude, longitude]}
+                  >
+                    <Popup>
+                      <p>{routeShortName}</p>
+                      <p>{routeLongName}</p>
+                      <p>{directionId}</p>
+                      <p>
+                        [{latitude}, {longitude}]
+                      </p>
+                      <p>{timeIsValid ? time : ""}</p>
+                      <p>{vehicle.vehicle.id}</p>
+                      <Button onClick={() => {}}>View this trip</Button>
+                    </Popup>
+                  </Marker>
+                );
+              })}
           </Pane>
         </LayerGroup>
       </LayersControl.Overlay>

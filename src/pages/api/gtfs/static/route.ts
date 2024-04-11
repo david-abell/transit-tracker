@@ -12,7 +12,7 @@ export type RouteAPIResponse = Route[];
 const handler: ApiHandler<RouteAPIResponse> = async (req, res) => {
   const { q = "" } = req.query;
 
-  if (!q || typeof q !== "string") {
+  if (typeof q !== "string") {
     res.status(StatusCodes.BAD_REQUEST).end();
     return;
   }
@@ -39,7 +39,7 @@ const handler: ApiHandler<RouteAPIResponse> = async (req, res) => {
           COALESCE(SUBSTRING(route_short_name FROM ' (\\d+)$')::INTEGER, 0),
           substring(route_short_name, ${globQuery} ) DESC
     LIMIT 20;
- `;
+    `;
   } else {
     routes = await prisma.route.findMany();
   }

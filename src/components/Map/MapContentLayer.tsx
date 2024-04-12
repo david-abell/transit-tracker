@@ -122,33 +122,22 @@ function MapContentLayer({
   );
 
   useEffect(() => {
-    if (center !== prevCenter) {
-      if (stopIds.length) {
-        const group = markerGroupRef.current;
+    if (!stopIds.length) return;
 
-        if (!group || !group.getBounds().isValid()) return;
+    const group = markerGroupRef.current;
 
+    if (prevCenter !== center && !isEqual(stopIds, previousStopIds)) {
+      if (group?.getBounds().isValid()) {
         map.flyToBounds(group.getBounds());
-        return;
+      } else {
+        map.setView(center);
       }
-    }
-
-    if (stopIds.length && !isEqual(stopIds, previousStopIds)) {
-      const group = markerGroupRef.current;
-
-      if (group && group.getBounds().isValid()) {
+    } else if (!isEqual(stopIds, previousStopIds)) {
+      if (group?.getBounds().isValid()) {
         map.flyToBounds(group.getBounds());
       }
-    } else {
-      if (!stopIds.length) {
-        const { stopLat, stopLon } = selectedStop || {};
-
-        if (!stopLat || !stopLon) return;
-
-        map.flyTo([stopLat, stopLon], 12);
-      }
     }
-  }, [map, stopIds, previousStopIds, selectedStop, center, prevCenter]);
+  }, [center, map, prevCenter, previousStopIds, stopIds]);
 
   useEffect(() => {
     if (map != null) {
@@ -284,9 +273,7 @@ function MapContentLayer({
                     <p>{routeShortName}</p>
                     <p>{routeLongName}</p>
                     <p>{directionId}</p>
-                    <p>
-                      [{latitude}, {longitude}]
-                    </p>
+                    <p>{tripId}</p>
                     <p>
                       Last reported:{" "}
                       {

@@ -6,7 +6,7 @@ export type LiveTextColor = "alert" | "caution" | "info" | "default";
 type Props = {
   content: string | (() => string);
   color?: LiveTextColor;
-  delayInMilliseconds?: number;
+  delayInSeconds?: number;
 };
 
 const colors = {
@@ -16,18 +16,14 @@ const colors = {
   default: "",
 };
 
-function LiveText({
-  content,
-  color = "default",
-  delayInMilliseconds = 1000,
-}: Props) {
+function LiveText({ content, color = "default", delayInSeconds = 1 }: Props) {
   const [textContent, setTextContent] = useState(
     typeof content === "string" ? content : content(),
   );
 
   useInterval(() => {
     setTextContent(typeof content === "string" ? content : content());
-  }, delayInMilliseconds);
+  }, delayInSeconds * 1000);
   return <span className={colors[color]}>{textContent}</span>;
 }
 

@@ -40,6 +40,7 @@ import StopMarker from "./StopMarker";
 import StopPopup from "./StopPopup";
 import useVehicleUpdates from "@/hooks/useVehicleUpdates";
 import { Button } from "../ui/button";
+import { TripHandler } from "@/pages";
 
 type ValidStop = Stop & {
   stopLat: NonNullable<Stop["stopLat"]>;
@@ -52,6 +53,7 @@ type Props = {
   selectedDateTime: string;
   tripId: string | null;
   handleSelectedStop: (stopId: string) => void;
+  handleSelectedTrip: TripHandler;
   handleDestinationStop: (stopId: string) => void;
   center: LatLngExpression;
   shape: Position[] | undefined;
@@ -66,6 +68,7 @@ type Props = {
 
 function MapContentLayer({
   handleSelectedStop,
+  handleSelectedTrip,
   handleDestinationStop,
   height,
   center,
@@ -268,7 +271,7 @@ function MapContentLayer({
           <Pane name="Vehicles" style={{ zIndex: 640, width: "2.5rem" }}>
             {!!vehicleUpdates &&
               vehicleUpdates.map(({ vehicle, route }) => {
-                const { routeShortName, routeLongName } = route;
+                const { routeShortName, routeLongName, routeId } = route;
                 const { latitude, longitude } = vehicle.position;
                 const { tripId = "", directionId } = vehicle.trip;
                 const time = new Date(
@@ -289,7 +292,17 @@ function MapContentLayer({
                       </p>
                       <p>{timeIsValid ? time : ""}</p>
                       <p>{vehicle.vehicle.id}</p>
-                      <Button onClick={() => {}}>View this trip</Button>
+                      <Button
+                        onClick={() =>
+                          handleSelectedTrip({
+                            tripId,
+                            newRouteId: routeId,
+                            from: [latitude, longitude],
+                          })
+                        }
+                      >
+                        Select this trip
+                      </Button>
                     </Popup>
                   </Marker>
                 );

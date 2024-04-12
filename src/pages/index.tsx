@@ -43,6 +43,16 @@ const INITIAL_LOCATION: LatLngExpression = [
   53.3477999659065, -6.25849647173381,
 ];
 
+export type TripHandler = ({
+  tripId,
+  newRouteId,
+  from,
+}: {
+  tripId: string;
+  newRouteId?: string | undefined;
+  from: LatLngExpression;
+}) => void;
+
 export default function Home() {
   // query params state
   const [routeId, setRouteId] = useQueryState("routeId", { history: "push" });
@@ -190,23 +200,17 @@ export default function Home() {
     !isWarmingDB && !apiError && !routeId && !tripId && !stopId && !destId;
 
   // event handlers
-  const handleSelectedTrip = ({
-    tripId,
-    newRouteId,
-    from,
-  }: {
-    tripId: string;
-    newRouteId?: string;
-    from: LatLngExpression;
-  }) => {
-    setShowTripModal(false);
-    const currentRouteId = routeId;
-    setTripId(tripId);
-    if (newRouteId && currentRouteId !== newRouteId) {
-      setRouteId(newRouteId);
-    }
-    setMapCenter(from);
-  };
+  const handleSelectedTrip: TripHandler = useCallback(
+    ({ tripId, newRouteId, from }) => {
+      setShowTripModal(false);
+      setTripId(tripId);
+      if (newRouteId) {
+        setRouteId((prev) => (prev !== newRouteId ? newRouteId : prev));
+      }
+      setMapCenter(from);
+    },
+    [setRouteId, setTripId],
+  );
 
   const handleSelectedStop = useCallback(
     (stopId: string) => {
@@ -323,6 +327,7 @@ export default function Home() {
             stops={stops}
             stopsById={stopsById}
             handleSelectedStop={handleSelectedStop}
+            handleSelectedTrip={handleSelectedTrip}
             handleDestinationStop={handleDestinationStop}
             tripId={tripId}
             height={windowHeight - navHeight}

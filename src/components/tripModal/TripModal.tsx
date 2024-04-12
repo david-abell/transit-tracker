@@ -18,17 +18,10 @@ import TripList from "./TripList";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircle } from "lucide-react";
 import { LatLngExpression } from "leaflet";
+import { TripHandler } from "@/pages";
 
 type Props = {
-  handleSelectedTrip: ({
-    tripId,
-    newRouteId,
-    from,
-  }: {
-    tripId: string;
-    newRouteId?: string | undefined;
-    from: LatLngExpression;
-  }) => void;
+  handleSelectedTrip: TripHandler;
   handleApiLoading: (val: boolean) => void;
   selectedDateTime: string;
   selectedRoute: Route | undefined;

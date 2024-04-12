@@ -56,14 +56,14 @@ export default function Sidebar({
         })
         .then(() => {
           setIsOpen(false);
-          if (stopId && stopId === selectedStopId) {
-            setShowTripModal(true);
-          } else {
-            setTimeout(() => setShowTripModal(true), 200);
-          }
+          setShowTripModal(true);
+          // if (stopId && stopId === selectedStopId) {
+          // } else {
+          //   setTimeout(() => setShowTripModal(true), 200);
+          // }
         });
     },
-    [router, selectedStopId, setIsOpen, setShowTripModal],
+    [router, setIsOpen, setShowTripModal],
   );
 
   return (

@@ -220,6 +220,16 @@ export function getDifferenceInSeconds(
   return seconds ? Math.abs(seconds) : 0;
 }
 
+export function timeSinceLastVehicleUpdate(timestamp: string) {
+  if (!timestamp) return "";
+
+  const now = DateTime.now();
+  const updateTime = DateTime.fromSeconds(Number(timestamp));
+  const { seconds } = updateTime.diff(now, "seconds").toObject();
+
+  return formatReadableDelay(seconds) ?? "";
+}
+
 export function getPercentageToArrival(
   beginTime: string,
   destinationTime: string,

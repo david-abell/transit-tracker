@@ -1,13 +1,13 @@
 "use-client";
 
 import { MapContainer, TileLayer } from "react-leaflet";
-import { LatLngExpression } from "leaflet";
+import { LatLngExpression, LatLngTuple } from "leaflet";
 import MapContentLayer from "./MapContentLayer";
 
 type MapContentLayerProps = React.ComponentProps<typeof MapContentLayer>;
 
 interface Props extends MapContentLayerProps {
-  center: LatLngExpression;
+  center: LatLngTuple;
 }
 
 function Map({ center, ...props }: Props) {

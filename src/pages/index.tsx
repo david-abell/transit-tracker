@@ -33,15 +33,13 @@ import DestinationSelect, {
 import NewUserPrompt from "@/components/NewUserPrompt";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { LatLngExpression } from "leaflet";
+import { LatLngExpression, LatLngTuple } from "leaflet";
 
 const Map = dynamic(() => import("../components/Map"), {
   ssr: false,
 });
 
-const INITIAL_LOCATION: LatLngExpression = [
-  53.3477999659065, -6.25849647173381,
-];
+const INITIAL_LOCATION: LatLngTuple = [53.3477999659065, -6.25849647173381];
 
 export type TripHandler = ({
   tripId,
@@ -50,7 +48,7 @@ export type TripHandler = ({
 }: {
   tripId: string;
   newRouteId?: string | undefined;
-  from: LatLngExpression;
+  from: LatLngTuple;
 }) => void;
 
 export default function Home() {
@@ -80,8 +78,7 @@ export default function Home() {
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
 
   // component visibility state
-  const [mapCenter, setMapCenter] =
-    useState<LatLngExpression>(INITIAL_LOCATION);
+  const [mapCenter, setMapCenter] = useState<LatLngTuple>(INITIAL_LOCATION);
   const [showTripModal, setShowTripModal] = useState(false);
   const [showSavedStops, setShowSavedStops] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);

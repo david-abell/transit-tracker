@@ -57,7 +57,7 @@ type Props = {
   handleSelectedStop: (stopId: string) => void;
   handleSelectedTrip: TripHandler;
   handleDestinationStop: (stopId: string) => void;
-  center: LatLngExpression;
+  center: LatLngTuple;
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
@@ -151,7 +151,10 @@ function MapContentLayer({
   const { realtimeScheduledByTripId, addedTripStopTimes, realtimeAddedTrips } =
     useTripUpdates(tripId);
 
-  const { vehicleUpdates } = useVehicleUpdates();
+  const { vehicleUpdates } = useVehicleUpdates({
+    lat: center[0],
+    long: center[1],
+  });
 
   const realtimeTrip = useMemo(
     () => !!tripId && realtimeScheduledByTripId.get(tripId),

@@ -11,7 +11,7 @@ import {
   Pane,
   useMapEvents,
 } from "react-leaflet";
-import { LatLng, LatLngExpression, LatLngTuple } from "leaflet";
+import { LatLngTuple } from "leaflet";
 import {
   Dispatch,
   SetStateAction,
@@ -45,6 +45,9 @@ import useVehicleUpdates from "@/hooks/useVehicleUpdates";
 import { Button } from "../ui/button";
 import { TripHandler } from "@/pages";
 import LiveText from "../LiveText";
+import L from "leaflet";
+import GPSGhost from "./GPSGhost";
+import { MAP_DEFAULT_ZOOM } from ".";
 
 type ValidStop = Stop & {
   stopLat: NonNullable<Stop["stopLat"]>;
@@ -107,6 +110,7 @@ function MapContentLayer({
   });
 
   const [mapKM, setMapKM] = useState(getWidthHeightInKM());
+  const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
 
   const mapEvents = useMapEvents({
     moveend() {
@@ -115,6 +119,7 @@ function MapContentLayer({
     },
     zoomend() {
       setMapKM(getWidthHeightInKM());
+      setZoomLevel(map.getZoom());
     },
   });
 
@@ -173,7 +178,10 @@ function MapContentLayer({
     if (map != null) {
       const mapContainer = map.getContainer();
       mapContainer.style.cssText = `height: ${height}px; width: 100%; position: relative;`;
+      const center = map.getCenter();
+      const zoom = map.getZoom();
       map.invalidateSize();
+      map.setView(center, zoom);
     }
   }, [map, height]);
 
@@ -289,19 +297,22 @@ function MapContentLayer({
       <LayersControl.Overlay name="Realtime Vehicles" checked>
         <FeatureGroup>
           {!!vehicleUpdates &&
-            vehicleUpdates.map(({ vehicle, route }) => {
-              const { routeShortName, routeLongName, routeId } = route;
+            vehicleUpdates.map((vehicle) => {
+              // const { routeShortName, routeLongName, routeId } = route;
               const { latitude, longitude } = vehicle.position;
               const { tripId = "", directionId } = vehicle.trip;
 
               return (
-                <Marker
+                <GPSGhost
                   key={tripId + latitude + longitude}
-                  position={[latitude, longitude]}
+                  lat={latitude}
+                  lon={longitude}
+                  vehicleId={vehicle.vehicle.id}
+                  zoom={zoomLevel}
                 >
                   <Popup interactive>
-                    <p>{routeShortName}</p>
-                    <p>{routeLongName}</p>
+                    {/* <p>{routeShortName}</p> */}
+                    {/* <p>{routeLongName}</p> */}
                     <p>{directionId}</p>
                     <p>{tripId}</p>
                     <p>
@@ -318,7 +329,7 @@ function MapContentLayer({
                     </p>
 
                     <p>{vehicle.vehicle.id}</p>
-                    <Button
+                    {/* <Button
                       onClick={() =>
                         handleSelectedTrip({
                           tripId,
@@ -328,9 +339,9 @@ function MapContentLayer({
                       }
                     >
                       Select this trip
-                    </Button>
+                    </Button> */}
                   </Popup>
-                </Marker>
+                </GPSGhost>
               );
             })}
         </FeatureGroup>

@@ -18,12 +18,8 @@ const API_URL =
 // const UPSTASH_MAX_REQUEST_BYTES = 1048576;
 // const TRIP_UPDATE_BYTE_size = 1442;
 
-const BATCH_LIMIT = 700;
-
-const REDIS_CACHE_EXPIRE_SECONDS = 360;
+const REDIS_CACHE_EXPIRE_SECONDS = 120;
 // const REDIS_CACHE_EXPIRE_SECONDS = 120;
-
-type TripId = string;
 
 type GeoRecord = [string, number, number];
 const DISTANCE_OPTIONS = { units: "kilometers" } as const;
@@ -87,12 +83,9 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
   console.log("Vehicle updates called:", new Date().toLocaleString());
 
   const geoRecordsKey = "vehicleGeo";
-  const vehicleTripsKey = "vehicleTrips";
 
   // try fetch cached data
   const geoRecords = await redis.exists(geoRecordsKey);
-
-  // let idArray: string[] = [];
 
   if (geoRecords) {
     const vehicleRecords = await redis.georadius(
@@ -113,7 +106,6 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
 
   const response = await fetch(API_URL, {
     method: "GET",
-    // Request headers
     headers: {
       "x-api-key": API_KEY as string,
     },
@@ -132,9 +124,7 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
 
   console.log("Downloaded %s vehicle updates", data?.entity?.length);
 
-  // const batchedVehicleTrips = new Map<string, string>();
   const vehiclesWithinRadius: NTAVehicleUpdate[] = [];
-  // const addedTrips: [string, TripUpdate][] = [];
 
   const mapCenter = point([Number(lat), Number(lng)]);
 
@@ -150,7 +140,6 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
       //just in case this is invalid
       continue;
     }
-    // batchedVehicleTrips.set(vehicle.trip.tripId, JSON.stringify(vehicle));
 
     await redis.geoadd(
       geoRecordsKey,
@@ -169,21 +158,9 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
         vehicle as unknown as NTAVehicleUpdate,
       );
     }
-
-    // Upstash has an hmset size limit of 1048576 bytes. Batch updates to stay under this threshold.
-    // if (batchedVehicleTrips.size > BATCH_LIMIT) {
-    //   await redis.hmset(vehicleTripsKey, batchedVehicleTrips);
-    //   batchedVehicleTrips.clear();
-    // }
   }
 
-  // if (batchedVehicleTrips.size) {
-  //   // Adds the specified geospatial items (longitude, latitude, name)
-  //   await redis.hmset(vehicleTripsKey, batchedVehicleTrips);
-  // }
-
   // expire after 120 seconds
-  redis.expire(vehicleTripsKey, REDIS_CACHE_EXPIRE_SECONDS);
   redis.expire(geoRecordsKey, REDIS_CACHE_EXPIRE_SECONDS);
 
   return res.status(200).json({ vehicleUpdates: vehiclesWithinRadius });

@@ -9,6 +9,8 @@ import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 import { ApiErrorResponse, ApiHandler } from "@/lib/FetchHelper";
+import { point } from "@turf/helpers";
+import distance from "@turf/distance";
 
 const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/Vehicles?format=json";
@@ -18,9 +20,14 @@ const API_URL =
 
 const BATCH_LIMIT = 700;
 
-const REDIS_CACHE_EXPIRE_SECONDS = 120;
+const REDIS_CACHE_EXPIRE_SECONDS = 360;
+// const REDIS_CACHE_EXPIRE_SECONDS = 120;
 
 type TripId = string;
+
+type GeoRecord = [string, number, number];
+const DISTANCE_OPTIONS = { units: "kilometers" } as const;
+const REDIS_DISTANCE_UNIT = "KM";
 
 export type NTAVehicleUpdate = {
   trip: RealTimeTrip;
@@ -38,60 +45,67 @@ export type VehicleUpdatesResponse = {
   vehicleUpdates: NTAVehicleUpdate[];
 };
 
-const updateSample = {
-  id: "V2",
-  vehicle: {
-    trip: {
-      trip_id: "3946_424",
-      start_time: "13:53:00",
-      start_date: "20240411",
-      schedule_relationship: "SCHEDULED",
-      route_id: "3946_63139",
-      direction_id: 1,
-    },
-    position: {
-      latitude: 53.2185326,
-      longitude: -6.86348486,
-    },
-    timestamp: "1712840847",
-    vehicle: {
-      id: "4",
-    },
-  },
-};
+// const updateExample = {
+//   id: "V2",
+//   vehicle: {
+//     trip: {
+//       trip_id: "3946_424",
+//       start_time: "13:53:00",
+//       start_date: "20240411",
+//       schedule_relationship: "SCHEDULED",
+//       route_id: "3946_63139",
+//       direction_id: 1,
+//     },
+//     position: {
+//       latitude: 53.2185326,
+//       longitude: -6.86348486,
+//     },
+//     timestamp: "1712840847",
+//     vehicle: {
+//       id: "4",
+//     },
+//   },
+// };
 
 const handler: ApiHandler<VehicleUpdatesResponse> = async (
   req: NextApiRequest,
   res: NextApiResponse<VehicleUpdatesResponse | ApiErrorResponse>,
 ) => {
-  // const { tripIds } = req.query;
+  const { lat, lng, rad } = req.query;
 
-  // if (Array.isArray(tripIds)) {
-  //   // shouldn't happen
-  //   console.error("Shouldn't happen: tripIds was an array...");
-  //   res.status(StatusCodes.BAD_REQUEST).end();
-  //   return;
-  // }
+  if (
+    typeof lat !== "string" ||
+    typeof lng !== "string" ||
+    typeof rad !== "string"
+  ) {
+    // shouldn't happen
+    console.error("Shouldn't happen: lat or long was an array...");
+    res.status(StatusCodes.BAD_REQUEST).end();
+    return;
+  }
 
   console.log("Vehicle updates called:", new Date().toLocaleString());
 
-  const vehicleUpdatesKey = "vehicleUpdates";
-  // const addedTripsKey = "addTrips";
+  const geoRecordsKey = "vehicleGeo";
+  const vehicleTripsKey = "vehicleTrips";
 
   // try fetch cached data
-  const cachedUpdates = await redis.exists(vehicleUpdatesKey);
+  const geoRecords = await redis.exists(geoRecordsKey);
 
   // let idArray: string[] = [];
 
-  if (cachedUpdates) {
-    // console.log(`redis cache hit: searching for ${idArray.length} trip ids.`);
-
-    const vehicleRecords = await redis.hgetall(vehicleUpdatesKey);
-
-    const vehicleUpdates = Object.values(vehicleRecords).map<NTAVehicleUpdate>(
-      (vehicleUpdate) => JSON.parse(vehicleUpdate),
+  if (geoRecords) {
+    const vehicleRecords = await redis.georadius(
+      geoRecordsKey,
+      lng,
+      lat,
+      Number(rad) / 2,
+      REDIS_DISTANCE_UNIT,
     );
 
+    const vehicleUpdates = vehicleRecords.map<NTAVehicleUpdate>((record) =>
+      JSON.parse(record as string),
+    );
     return res.status(StatusCodes.OK).json({ vehicleUpdates });
   }
 
@@ -118,56 +132,61 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
 
   console.log("Downloaded %s vehicle updates", data?.entity?.length);
 
-  const batchedUpdates = new Map<string, string>();
-  // const addedTripsMap = new Map<string, string>();
-  const vehicleUpdates: NTAVehicleUpdate[] = [];
+  // const batchedVehicleTrips = new Map<string, string>();
+  const vehiclesWithinRadius: NTAVehicleUpdate[] = [];
   // const addedTrips: [string, TripUpdate][] = [];
 
+  const mapCenter = point([Number(lat), Number(lng)]);
+
   for (const { vehicle } of data.entity) {
-    // this is the tripUpdate feed, it will not be undefined,
+    // this is the vehicle feed, it will not be undefined,
     if (!vehicle) continue;
 
-    // const encodedKey = createTripKey(vehicle.trip);
-
-    if (!vehicle.trip?.tripId) {
+    if (
+      !vehicle.trip?.tripId ||
+      !vehicle.position?.latitude ||
+      !vehicle.position.longitude
+    ) {
       //just in case this is invalid
       continue;
-      // addedTripsMap.set(encodedKey, JSON.stringify(vehicle));
-      // addedTrips.push([encodedKey, vehicle]);
-      // vehicle.trip["tripId"] = encodedKey;
     }
-    batchedUpdates.set(vehicle.trip.tripId, JSON.stringify(vehicle));
-    vehicleUpdates.push(
-      // NTA Vehicle update does not fully match GTFS spec
-      vehicle as unknown as NTAVehicleUpdate,
+    // batchedVehicleTrips.set(vehicle.trip.tripId, JSON.stringify(vehicle));
+
+    await redis.geoadd(
+      geoRecordsKey,
+      vehicle.position.longitude,
+      vehicle.position.latitude,
+      JSON.stringify(vehicle),
     );
 
-    // Upstash has an hmset size limit of 1048576 bytes. Batch updates to stay under this threshold.
-    if (batchedUpdates.size > BATCH_LIMIT) {
-      await redis.hmset(vehicleUpdatesKey, batchedUpdates);
-      batchedUpdates.clear();
+    const to = point([vehicle.position.latitude, vehicle.position.longitude]);
+
+    const distanceFromCenter = distance(mapCenter, to, DISTANCE_OPTIONS);
+
+    if (distanceFromCenter <= Number(rad) / 2) {
+      vehiclesWithinRadius.push(
+        // NTA Vehicle update does not fully match GTFS spec
+        vehicle as unknown as NTAVehicleUpdate,
+      );
     }
+
+    // Upstash has an hmset size limit of 1048576 bytes. Batch updates to stay under this threshold.
+    // if (batchedVehicleTrips.size > BATCH_LIMIT) {
+    //   await redis.hmset(vehicleTripsKey, batchedVehicleTrips);
+    //   batchedVehicleTrips.clear();
+    // }
   }
 
-  if (batchedUpdates.size) {
-    await redis.hmset(vehicleUpdatesKey, batchedUpdates);
-  }
+  // if (batchedVehicleTrips.size) {
+  //   // Adds the specified geospatial items (longitude, latitude, name)
+  //   await redis.hmset(vehicleTripsKey, batchedVehicleTrips);
+  // }
 
   // expire after 120 seconds
-  redis.expire(vehicleUpdatesKey, REDIS_CACHE_EXPIRE_SECONDS);
+  redis.expire(vehicleTripsKey, REDIS_CACHE_EXPIRE_SECONDS);
+  redis.expire(geoRecordsKey, REDIS_CACHE_EXPIRE_SECONDS);
 
-  return res.status(200).json({ vehicleUpdates });
+  return res.status(200).json({ vehicleUpdates: vehiclesWithinRadius });
 };
 
 export default withErrorHandler(handler);
-
-// function createTripKey(trip: TripUpdate["trip"]) {
-//   const { directionId, routeId, scheduleRelationship, startDate, startTime } =
-//     trip;
-
-//   return encodeURI(
-//     [scheduleRelationship, routeId, directionId, startDate, startTime].join(
-//       "-",
-//     ),
-//   );
-// }

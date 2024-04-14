@@ -7,23 +7,24 @@ import useRoute from "./useRoute";
 
 const API_URL = "/api/gtfs/vehicle-updates";
 
-// Api limited to 1 call per minute
-// test revalidate only at 5 minute intervals
-// const revalidateOptions = {
-//   focusThrottleInterval: 300000,
-//   dedupingInterval: 300000,
-// };
-// Api limited to 1 call per minute
 const revalidateOptions = {
   focusThrottleInterval: 10000,
-  dedupingInterval: 10000,
+  dedupingInterval: 30_000,
 };
 
-function useVehicleUpdates() {
+type Point = { lat: number; lng: number };
+
+function useVehicleUpdates({ lat, lng }: Point, radius: number) {
+  const url = `${API_URL}?${new URLSearchParams({
+    lat: String(lat),
+    lng: String(lng),
+    rad: String(radius),
+  })}`;
+
   const { data, error, isValidating, mutate } = useSWR<
     VehicleUpdatesResponse,
     ApiError
-  >(API_URL, fetchHelper, revalidateOptions);
+  >(url, fetchHelper, revalidateOptions);
 
   const { routes } = useRoute("", { all: true });
 

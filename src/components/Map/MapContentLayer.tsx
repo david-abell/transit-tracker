@@ -9,8 +9,9 @@ import {
   Marker,
   Popup,
   Pane,
+  useMapEvents,
 } from "react-leaflet";
-import { LatLngExpression, LatLngTuple } from "leaflet";
+import { LatLng, LatLngExpression, LatLngTuple } from "leaflet";
 import {
   Dispatch,
   SetStateAction,
@@ -18,6 +19,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
@@ -88,6 +90,34 @@ function MapContentLayer({
   const map = useMap();
   const markerGroupRef = useRef<L.FeatureGroup>(null);
 
+  const getWidthHeightInKM = useCallback(() => {
+    const bounds = map.getBounds();
+
+    const width =
+      map.distance(bounds.getNorthWest(), bounds.getNorthEast()) / 1000;
+    const height =
+      map.distance(bounds.getNorthWest(), bounds.getSouthWest()) / 1000;
+
+    return Math.min(width, height);
+  }, [map]);
+
+  const [mapCenter, setMapCenter] = useState({
+    lat: center[0],
+    lng: center[1],
+  });
+
+  const [mapKM, setMapKM] = useState(getWidthHeightInKM());
+
+  const mapEvents = useMapEvents({
+    moveend() {
+      const { lat, lng } = mapEvents.getCenter();
+      setMapCenter({ lat, lng });
+    },
+    zoomend() {
+      setMapKM(getWidthHeightInKM());
+    },
+  });
+
   const stopIds = useMemo(() => {
     return stops ? stops.map(({ stopId }) => stopId) : [];
   }, [stops]);
@@ -151,10 +181,7 @@ function MapContentLayer({
   const { realtimeScheduledByTripId, addedTripStopTimes, realtimeAddedTrips } =
     useTripUpdates(tripId);
 
-  const { vehicleUpdates } = useVehicleUpdates({
-    lat: center[0],
-    long: center[1],
-  });
+  const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM);
 
   const realtimeTrip = useMemo(
     () => !!tripId && realtimeScheduledByTripId.get(tripId),

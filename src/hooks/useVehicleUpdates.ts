@@ -17,11 +17,6 @@ const revalidateOptions = {
   dedupingInterval: 30_000,
 };
 
-type VehicleWithRoute = {
-  route: Route;
-  vehicle: NTAVehicleUpdate;
-};
-
 type Point = { lat: number; lng: number };
 
 function useVehicleUpdates({ lat, lng }: Point, radius: number) {

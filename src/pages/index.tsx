@@ -35,7 +35,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { LatLngExpression, LatLngTuple } from "leaflet";
 
-const Map = dynamic(() => import("../components/Map"), {
+const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,
 });
 
@@ -312,7 +312,7 @@ export default function Home() {
           </MainNav>
         </div>
         <div className="relative">
-          <Map
+          <MapContainer
             center={mapCenter}
             shape={shape}
             selectedDateTime={selectedDateTime}

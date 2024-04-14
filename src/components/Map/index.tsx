@@ -10,11 +10,13 @@ interface Props extends MapContentLayerProps {
   center: LatLngTuple;
 }
 
+export const MAP_DEFAULT_ZOOM = 13;
+
 function Map({ center, ...props }: Props) {
   return (
     <MapContainer
       center={center}
-      zoom={12}
+      zoom={MAP_DEFAULT_ZOOM}
       minZoom={8}
       className={`relative h-full w-[100max]`}
     >

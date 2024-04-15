@@ -683,6 +683,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
   background-color: red;
   color: white;
 }
+.leaflet-tooltip.gps-bus:hover {
+  border: 3px solid green;
+}
 
 /* Dark mode */
 

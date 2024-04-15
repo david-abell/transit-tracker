@@ -81,7 +81,7 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
           direction="right"
           permanent
           interactive
-          className="!min-w-10 text-center"
+          className="gps-bus !min-w-10 text-center"
         >
           <b>{routeShortName}</b>
         </Tooltip>

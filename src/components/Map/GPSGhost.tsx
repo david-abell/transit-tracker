@@ -43,12 +43,11 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
       stroke={false}
       radius={6}
     >
-      <Popup interactive>
+      <Popup interactive className="gps-bus-popup">
         <p>
-          <b>{routeShortName}</b> {routeLongName}
+          <b>{routeShortName}</b> to {destination}
         </p>
-        <p>Towards: {destination}</p>
-        <p>
+        <p className="whitespace-nowrap">
           <LiveText
             content={() => timeSinceLastVehicleUpdate(vehicle.timestamp)}
             delayInSeconds={10}
@@ -73,10 +72,10 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
             })
           }
         >
-          Select this trip
+          Select bus
         </Button>
       </Popup>
-      {zoom > 13 && (
+      {zoom > 12 && (
         <Tooltip
           direction="right"
           permanent

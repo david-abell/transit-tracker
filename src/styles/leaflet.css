@@ -674,6 +674,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Custom styles */
 
 /* Custom schedule change */
+.gps-bus-popup .leaflet-popup-content > p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
 .leaflet-tooltip.gps-bus:hover {
   border: 3px solid green;
 }

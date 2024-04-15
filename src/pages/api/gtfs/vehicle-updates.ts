@@ -11,6 +11,7 @@ import { StatusCodes, ReasonPhrases } from "http-status-codes";
 import { ApiErrorResponse, ApiHandler } from "@/lib/FetchHelper";
 import { point } from "@turf/helpers";
 import distance from "@turf/distance";
+import { retryAsync } from "ts-retry";
 
 const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/Vehicles?format=json";
@@ -83,7 +84,23 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
   const geoRecordsKey = "vehicleGeo";
 
   // try fetch cached data
-  const geoRecords = await redis.exists(geoRecordsKey);
+  let geoRecords = await redis.exists(geoRecordsKey);
+
+  if (isFetching) {
+    try {
+      await retryAsync(
+        async () => {
+          geoRecords = await redis.exists(geoRecordsKey);
+          return geoRecords;
+        },
+        {
+          delay: 100,
+          maxTry: 5,
+          until: (lastResult) => lastResult === 1,
+        },
+      );
+    } catch (err) {}
+  }
 
   if (geoRecords) {
     const vehicleRecords = await redis.georadius(
@@ -101,13 +118,13 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
   }
 
   if (isFetching) {
-    res.end();
+    res.status(StatusCodes.LOCKED).json({ vehicleUpdates: [] });
+    // res.status(StatusCodes.OK).json({ vehicleUpdates: [] });
     return;
   }
 
   isFetching = true;
 
-  console.log("redis cache miss, setting new vehicle updates");
   console.log("redis cache miss, setting new vehicle updates");
 
   const response = await fetch(API_URL, {

@@ -9,6 +9,7 @@ import camelcaseKeys from "camelcase-keys";
 
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 import { ApiErrorResponse, ApiHandler } from "@/lib/FetchHelper";
+import { retryAsync } from "ts-retry";
 
 const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/TripUpdates?format=json";
@@ -37,14 +38,14 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     return;
   }
 
-  console.log("[trip-updates] called:", new Date().toLocaleString());
+  console.log("trip-updates called:", new Date().toLocaleString());
 
   const tripUpdateKey = "tripUpdates";
   const addedTripsKey = "addTrips";
 
   // try fetch cached data
-  const cachedAdded = await redis.exists(addedTripsKey);
-  const cachedUpdates = await redis.exists(tripUpdateKey);
+  let cachedAdded = await redis.exists(addedTripsKey);
+  let cachedUpdates = await redis.exists(tripUpdateKey);
 
   let idArray: string[] = [];
 
@@ -52,6 +53,23 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     idArray = tripIds.split(",").map((tripId) => decodeURI(tripId));
   } else {
     idArray = !!tripIds ? [decodeURI(tripIds)] : [];
+  }
+
+  if (isFetching) {
+    try {
+      await retryAsync(
+        async () => {
+          let cachedAdded = await redis.exists(addedTripsKey);
+          let cachedUpdates = await redis.exists(tripUpdateKey);
+          return cachedUpdates || cachedAdded;
+        },
+        {
+          delay: 100,
+          maxTry: 5,
+          until: (lastResult) => lastResult === 1,
+        },
+      );
+    } catch (err) {}
   }
 
   if (cachedAdded && cachedUpdates) {

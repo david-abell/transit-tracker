@@ -10,6 +10,7 @@ import {
   Popup,
   Pane,
   useMapEvents,
+  Tooltip,
 } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
 import {
@@ -23,7 +24,7 @@ import {
 } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
-import type { Stop, StopTime } from "@prisma/client";
+import type { Route, Stop, StopTime } from "@prisma/client";
 import {
   formatReadableDelay,
   getDelayedTime,
@@ -63,6 +64,7 @@ type Props = {
   handleSelectedTrip: TripHandler;
   handleDestinationStop: (stopId: string) => void;
   center: LatLngTuple;
+  routesById: Map<string, Route>;
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
@@ -79,6 +81,7 @@ function MapContentLayer({
   handleDestinationStop,
   height,
   center,
+  routesById,
   selectedDateTime,
   stopTimes,
   stopTimesByStopId,
@@ -108,6 +111,7 @@ function MapContentLayer({
     lat: center[0],
     lng: center[1],
   });
+  console.log();
 
   const [mapKM, setMapKM] = useState(getWidthHeightInKM());
   const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
@@ -182,11 +186,12 @@ function MapContentLayer({
       const zoom = map.getZoom();
       map.invalidateSize();
       map.setView(center, zoom);
+      setMapKM(getWidthHeightInKM());
     }
-  }, [map, height]);
+  }, [map, height, getWidthHeightInKM]);
 
   // Realtime state
-  const { realtimeScheduledByTripId, addedTripStopTimes, realtimeAddedTrips } =
+  const { realtimeScheduledByTripId, addedTripStopTimes } =
     useTripUpdates(tripId);
 
   const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM);
@@ -294,54 +299,24 @@ function MapContentLayer({
         </LayerGroup>
       </LayersControl.Overlay>
 
-      <LayersControl.Overlay name="Realtime Vehicles" checked>
+      <LayersControl.Overlay name="Nearby buses" checked>
         <FeatureGroup>
-          {!!vehicleUpdates &&
-            vehicleUpdates.map((vehicle) => {
-              // const { routeShortName, routeLongName, routeId } = route;
+          {!!vehicleUpdates.length &&
+            vehicleUpdates.flatMap((vehicle) => {
               const { latitude, longitude } = vehicle.position;
-              const { tripId = "", directionId } = vehicle.trip;
+              const { tripId, routeId } = vehicle.trip;
+
+              if (!tripId) return [];
 
               return (
                 <GPSGhost
-                  key={tripId + latitude + longitude}
-                  lat={latitude}
-                  lon={longitude}
-                  vehicleId={vehicle.vehicle.id}
+                  key={"gps" + vehicle.vehicle.id + latitude + longitude}
+                  vehicle={vehicle}
+                  // route={route as NonNullableFields<Route>}
+                  routesById={routesById}
                   zoom={zoomLevel}
-                >
-                  <Popup interactive>
-                    {/* <p>{routeShortName}</p> */}
-                    {/* <p>{routeLongName}</p> */}
-                    <p>{directionId}</p>
-                    <p>{tripId}</p>
-                    <p>
-                      Last reported:{" "}
-                      {
-                        <LiveText
-                          content={() =>
-                            timeSinceLastVehicleUpdate(vehicle.timestamp)
-                          }
-                          delayInSeconds={10}
-                        />
-                      }{" "}
-                      ago
-                    </p>
-
-                    <p>{vehicle.vehicle.id}</p>
-                    {/* <Button
-                      onClick={() =>
-                        handleSelectedTrip({
-                          tripId,
-                          newRouteId: routeId,
-                          from: [latitude, longitude],
-                        })
-                      }
-                    >
-                      Select this trip
-                    </Button> */}
-                  </Popup>
-                </GPSGhost>
+                  handleTrip={handleSelectedTrip}
+                />
               );
             })}
         </FeatureGroup>

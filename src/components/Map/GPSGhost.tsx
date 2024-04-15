@@ -41,7 +41,7 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
       fillOpacity={100}
       fillColor={color}
       stroke={false}
-      radius={5}
+      radius={6}
     >
       <Popup interactive>
         <p>

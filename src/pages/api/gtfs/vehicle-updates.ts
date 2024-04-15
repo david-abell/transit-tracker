@@ -15,15 +15,13 @@ import distance from "@turf/distance";
 const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/Vehicles?format=json";
 
-// const UPSTASH_MAX_REQUEST_BYTES = 1048576;
-// const TRIP_UPDATE_BYTE_size = 1442;
-
 const REDIS_CACHE_EXPIRE_SECONDS = 120;
-// const REDIS_CACHE_EXPIRE_SECONDS = 120;
 
 type GeoRecord = [string, number, number];
 const DISTANCE_OPTIONS = { units: "kilometers" } as const;
 const REDIS_DISTANCE_UNIT = "KM";
+
+let isFetching = false;
 
 export type NTAVehicleUpdate = {
   trip: RealTimeTrip;
@@ -102,6 +100,14 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
     return res.status(StatusCodes.OK).json({ vehicleUpdates });
   }
 
+  if (isFetching) {
+    res.end();
+    return;
+  }
+
+  isFetching = true;
+
+  console.log("redis cache miss, setting new vehicle updates");
   console.log("redis cache miss, setting new vehicle updates");
 
   const response = await fetch(API_URL, {
@@ -111,10 +117,19 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
     },
   });
 
+  isFetching = false;
+
   if (!response.ok) {
     console.error(
       `[vehicle-updates] response error: Status: ${response.status}, StatusText: ${response.statusText}`,
     );
+
+    if (response.status === StatusCodes.TOO_MANY_REQUESTS) {
+      throw new ApiError(
+        StatusCodes.TOO_MANY_REQUESTS,
+        ReasonPhrases.TOO_MANY_REQUESTS,
+      );
+    }
     throw new ApiError(StatusCodes.BAD_GATEWAY, ReasonPhrases.BAD_GATEWAY);
   }
 

@@ -9,16 +9,9 @@ import { ApiError } from "next/dist/server/api-utils";
 
 const API_URL = "/api/gtfs/trip-updates";
 
-// Api limited to 1 call per minute
-// test revalidate only at 5 minute intervals
-// const revalidateOptions = {
-//   focusThrottleInterval: 300000,
-//   dedupingInterval: 300000,
-// };
-// Api limited to 1 call per minute
 const revalidateOptions = {
-  focusThrottleInterval: 10000,
-  dedupingInterval: 10000,
+  focusThrottleInterval: 10_000,
+  dedupingInterval: 10_000,
 };
 
 type AddedStopTime = Pick<
@@ -26,22 +19,17 @@ type AddedStopTime = Pick<
   "arrivalTime" | "departureTime" | "stopSequence"
 >;
 
-function useTripUpdates(tripIds: string | string[] | undefined | null) {
+function useTripUpdates(tripIds?: string | string[] | null) {
+  const params = !!tripIds
+    ? `?${new URLSearchParams({
+        tripIds: encodeURI(tripIds.toString()),
+      })}`
+    : "";
+
   const { data, error, isValidating, mutate } = useSWR<
     RealtimeTripUpdateResponse,
     ApiError
-  >(
-    !!tripIds && tripIds.length
-      ? [
-          `${API_URL}?${new URLSearchParams({
-            tripIds: encodeURI(tripIds.toString()),
-          })}`,
-          tripIds,
-        ]
-      : null,
-    fetchHelper,
-    revalidateOptions,
-  );
+  >(`${API_URL}${params}`, fetchHelper, revalidateOptions);
 
   const { addedTrips, tripUpdates } = data || {};
 

@@ -13,8 +13,8 @@ import { vehicleStore } from "../stores/vehicleStore";
 const API_URL = "/api/gtfs/vehicle-updates";
 
 const revalidateOptions = {
-  focusThrottleInterval: 30_000,
-  dedupingInterval: 30_000,
+  focusThrottleInterval: 10_000,
+  dedupingInterval: 10_000,
 };
 
 type Point = { lat: number; lng: number };

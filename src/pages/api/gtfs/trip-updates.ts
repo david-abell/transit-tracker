@@ -13,10 +13,7 @@ import { ApiErrorResponse, ApiHandler } from "@/lib/FetchHelper";
 const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/TripUpdates?format=json";
 
-// const UPSTASH_MAX_REQUEST_BYTES = 1048576;
-// const TRIP_UPDATE_BYTE_size = 1442;
-
-const BATCH_LIMIT = 700;
+const BATCH_LIMIT = 500;
 
 const REDIS_CACHE_EXPIRE_SECONDS = 120;
 
@@ -24,6 +21,8 @@ export type RealtimeTripUpdateResponse = {
   tripUpdates: [string, TripUpdate][];
   addedTrips: [string, TripUpdate][];
 };
+
+let isFetching = false;
 
 const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   req: NextApiRequest,
@@ -38,7 +37,7 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     return;
   }
 
-  console.log("realtime called:", new Date().toLocaleString());
+  console.log("[trip-updates] called:", new Date().toLocaleString());
 
   const tripUpdateKey = "tripUpdates";
   const addedTripsKey = "addTrips";
@@ -58,11 +57,7 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   if (cachedAdded && cachedUpdates) {
     console.log(`redis cache hit: searching for ${idArray.length} trip ids.`);
 
-    const addedTripRecords = await redis.hgetall(addedTripsKey);
-
-    const addedTrips = Object.entries(addedTripRecords).map<
-      [string, TripUpdate]
-    >(([key, trip]) => [key, JSON.parse(trip)]);
+    let addedTrips: [string, TripUpdate][] = [];
 
     let tripUpdates: [string, TripUpdate][] = [];
 
@@ -77,12 +72,23 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
         tripUpdate.trip.tripId!,
         tripUpdate,
       ]);
+    } else {
+      const addedTripRecords = await redis.hgetall(addedTripsKey);
+      addedTrips = Object.entries(addedTripRecords).map<[string, TripUpdate]>(
+        ([key, trip]) => [key, JSON.parse(trip)],
+      );
     }
 
     return res.status(StatusCodes.OK).json({ addedTrips, tripUpdates });
   }
 
+  if (isFetching) {
+    res.end();
+    return;
+  }
   console.log("redis cache miss, setting new trip updates");
+
+  isFetching = true;
 
   const response = await fetch(API_URL, {
     method: "GET",
@@ -92,10 +98,18 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     },
   });
 
+  isFetching = false;
+
   if (!response.ok) {
     console.error(
-      `Realtime response error: Status: ${response.status}, StatusText: ${response.statusText}`,
+      `[trip-updates] error: Status: ${response.status}, StatusText: ${response.statusText}`,
     );
+    if (response.status === StatusCodes.TOO_MANY_REQUESTS) {
+      throw new ApiError(
+        StatusCodes.TOO_MANY_REQUESTS,
+        ReasonPhrases.TOO_MANY_REQUESTS,
+      );
+    }
     throw new ApiError(StatusCodes.BAD_GATEWAY, ReasonPhrases.BAD_GATEWAY);
   }
 
@@ -122,7 +136,10 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     // Set it here
     if (!tripUpdate.trip.tripId) {
       addedTripsMap.set(encodedKey, JSON.stringify(tripUpdate));
-      addedTrips.push([encodedKey, tripUpdate]);
+      // only send added trips when no tripIds have been requested
+      if (!idArray.length) {
+        addedTrips.push([encodedKey, tripUpdate]);
+      }
       tripUpdate.trip["tripId"] = encodedKey;
     }
     tripUpdates.set(tripUpdate.trip.tripId, JSON.stringify(tripUpdate));

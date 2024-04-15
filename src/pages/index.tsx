@@ -34,6 +34,7 @@ import NewUserPrompt from "@/components/NewUserPrompt";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { LatLngExpression, LatLngTuple } from "leaflet";
+import useRoute from "@/hooks/useRoute";
 
 const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,
@@ -62,12 +63,12 @@ export default function Home() {
   );
 
   // Query string helpers
-  const removeQueryParams = () => {
+  const removeQueryParams = useCallback(() => {
     setRouteId(null);
     setTripId(null);
     setStopId(null);
     setDestId(null);
-  };
+  }, [setDestId, setRouteId, setStopId, setTripId]);
 
   // clear Destination stop on state change
   useEffect(() => {
@@ -82,6 +83,9 @@ export default function Home() {
   const [showTripModal, setShowTripModal] = useState(false);
   const [showSavedStops, setShowSavedStops] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showNewUser, setShowNewUser] = useState(
+    !(!!routeId || !!tripId || !!stopId || !!destId),
+  );
 
   const { height: windowHeight } = useWindowSize();
   const [navContainer, { height: navHeight }] =
@@ -99,6 +103,13 @@ export default function Home() {
     error: routeError,
     isLoadingRoute,
   } = useRouteId(routeId);
+
+  const { routes } = useRoute("", { all: true });
+
+  const routesById = useMemo(
+    () => new Map(routes?.map((route) => [route.routeId, route])),
+    [routes],
+  );
 
   const { selectedStop, error: stopError, isLoadingStop } = useStopId(stopId);
 
@@ -120,11 +131,13 @@ export default function Home() {
   const { shape, shapeError, isLoadingShape } = useShape(tripId);
 
   // Realtime state
+
   const {
+    realtimeAddedTrips,
     realtimeScheduledByTripId: tripUpdatesByTripId,
     isLoadingRealtime,
     error: realTimeError,
-  } = useTripUpdates(tripId);
+  } = useTripUpdates(tripId ?? "");
 
   const [isChildApiLoading, setIsChildApiLoading] = useState(false);
 
@@ -192,6 +205,8 @@ export default function Home() {
     stopTimesError ||
     shapeError ||
     realTimeError;
+
+  if (realTimeError) console.error({ realTimeError });
 
   const isNewUser =
     !isWarmingDB && !apiError && !routeId && !tripId && !stopId && !destId;
@@ -314,6 +329,7 @@ export default function Home() {
         <div className="relative">
           <MapContainer
             center={mapCenter}
+            routesById={routesById}
             shape={shape}
             selectedDateTime={selectedDateTime}
             selectedStopId={stopId}
@@ -369,10 +385,15 @@ export default function Home() {
           {apiError?.message || "An Unknown error occurred."}
         </GlobalAlert>
       ) : (
+        ""
+      )}
+
+      {showNewUser && (
         <NewUserPrompt
           isMobile={isMobile}
           visible={isNewUser}
           setShowMenu={setShowMobileMenu}
+          setShowNewUser={setShowNewUser}
           showMenu={showMobileMenu}
         />
       )}

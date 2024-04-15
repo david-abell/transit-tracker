@@ -20,7 +20,12 @@ function useRouteId(routeId: string | null) {
   return {
     error,
     isLoadingRoute: isValidating,
-    route: data,
+    route: data
+      ? ({
+          ...data,
+          routeLongName: data.routeLongName?.replaceAll("–", "-"),
+        } as SingleRouteAPIResponse)
+      : undefined,
   };
 }
 

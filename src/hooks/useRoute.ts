@@ -4,6 +4,7 @@ import { fetchHelper } from "@/lib/FetchHelper";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
 import { RouteAPIResponse } from "@/pages/api/gtfs/static/route";
+import { Route } from "@prisma/client";
 
 type Options = {
   all?: boolean;
@@ -27,8 +28,19 @@ function useRoute(query: string, options?: Options) {
   return {
     error,
     isLoadingRoute: isValidating,
-    routes,
+    routes: replaceRouteLongNameDashes(routes),
   };
 }
 
 export default useRoute;
+
+export function replaceRouteLongNameDashes(
+  routes: RouteAPIResponse | undefined,
+): RouteAPIResponse | undefined {
+  return routes?.map((route) => {
+    return {
+      ...route,
+      routeLongName: route.routeLongName?.replaceAll("–", "-"),
+    } as Route;
+  });
+}

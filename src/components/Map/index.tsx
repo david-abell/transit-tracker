@@ -1,20 +1,22 @@
 "use-client";
 
 import { MapContainer, TileLayer } from "react-leaflet";
-import { LatLngExpression } from "leaflet";
+import { LatLngExpression, LatLngTuple } from "leaflet";
 import MapContentLayer from "./MapContentLayer";
 
 type MapContentLayerProps = React.ComponentProps<typeof MapContentLayer>;
 
 interface Props extends MapContentLayerProps {
-  center: LatLngExpression;
+  center: LatLngTuple;
 }
+
+export const MAP_DEFAULT_ZOOM = 13;
 
 function Map({ center, ...props }: Props) {
   return (
     <MapContainer
       center={center}
-      zoom={12}
+      zoom={MAP_DEFAULT_ZOOM}
       minZoom={8}
       className={`relative h-full w-[100max]`}
     >

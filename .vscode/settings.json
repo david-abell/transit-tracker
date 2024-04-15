@@ -4,16 +4,20 @@
     "camelcase",
     "consola",
     "Elio",
+    "geoadd",
+    "georadius",
     "headsign",
     "hmset",
     "ILIKE",
     "luxon",
+    "moveend",
     "ontime",
     "papaparse",
     "Struyf's",
     "tailwindcss",
     "tempy",
-    "timepoint"
+    "timepoint",
+    "zoomend"
   ],
   "tailwindCSS.classAttributes": [".*Classes", "className"]
 }

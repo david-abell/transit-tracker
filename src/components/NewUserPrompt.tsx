@@ -1,13 +1,14 @@
 import { Alert, AlertDescription, AlertVariants } from "./ui/alert";
 import { Dispatch, SetStateAction } from "react";
 import { Button } from "./ui/button";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 
 type Props = {
   isMobile: boolean;
   variant?: AlertVariants;
   visible?: boolean;
   setShowMenu: Dispatch<SetStateAction<boolean>>;
+  setShowNewUser: Dispatch<SetStateAction<boolean>>;
   showMenu: boolean;
 };
 
@@ -16,6 +17,7 @@ export function NewUserPrompt({
   variant = "default",
   visible = true,
   setShowMenu,
+  setShowNewUser,
   showMenu,
 }: Props) {
   if (!visible) return null;
@@ -53,7 +55,14 @@ export function NewUserPrompt({
         <AlertCircle className="h-4 w-4" />
       )}
       {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
-      <AlertDescription className="bg-transparent min-h-10 text-lg">
+      <AlertDescription className="bg-transparent min-h-10 text-lg mx-1">
+        <Button
+          variant={"ghost"}
+          className="pointer-events-auto float-right h-6 w-6 p-0 -mr-2 -mt-2"
+          onClick={() => setShowNewUser(false)}
+        >
+          <X className="inline-block" />
+        </Button>
         Welcome to the Irish bus tracker. Try searching for a bus name like{" "}
         <b>Ballycullen Road</b>, a route number like <b>15</b>, or a specific
         stop code like <b>4495</b>.

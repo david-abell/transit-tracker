@@ -5,10 +5,14 @@ import {
   FeatureGroup,
   useMap,
   LayersControl,
-  Pane,
   LayerGroup,
+  Marker,
+  Popup,
+  Pane,
+  useMapEvents,
+  Tooltip,
 } from "react-leaflet";
-import { LatLngExpression, LatLngTuple } from "leaflet";
+import { LatLngTuple } from "leaflet";
 import {
   Dispatch,
   SetStateAction,
@@ -16,26 +20,35 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
-import type { Stop, StopTime } from "@prisma/client";
+import type { Route, Stop, StopTime } from "@prisma/client";
 import {
   formatReadableDelay,
   getDelayedTime,
   parseDatetimeLocale,
+  timeSinceLastVehicleUpdate,
 } from "@/lib/timeHelpers";
 import Bus from "./Bus";
 import usePrevious from "@/hooks/usePrevious";
 import isEqual from "react-fast-compare";
 import { DateTime } from "luxon";
-import useRealtime from "@/hooks/useRealtime";
+import useTripUpdates from "@/hooks/useTripUpdates";
 import useStopId from "@/hooks/useStopId";
 import { SavedStop } from "../SavedStops";
 import { Position } from "@turf/helpers";
 import MarkerClusterGroup from "./MarkerClusterGroup";
 import StopMarker from "./StopMarker";
 import StopPopup from "./StopPopup";
+import useVehicleUpdates from "@/hooks/useVehicleUpdates";
+import { Button } from "../ui/button";
+import { TripHandler } from "@/pages";
+import LiveText from "../LiveText";
+import L from "leaflet";
+import GPSGhost from "./GPSGhost";
+import { MAP_DEFAULT_ZOOM } from ".";
 
 type ValidStop = Stop & {
   stopLat: NonNullable<Stop["stopLat"]>;
@@ -48,8 +61,10 @@ type Props = {
   selectedDateTime: string;
   tripId: string | null;
   handleSelectedStop: (stopId: string) => void;
+  handleSelectedTrip: TripHandler;
   handleDestinationStop: (stopId: string) => void;
-  center: LatLngExpression;
+  center: LatLngTuple;
+  routesById: Map<string, Route>;
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
@@ -62,9 +77,11 @@ type Props = {
 
 function MapContentLayer({
   handleSelectedStop,
+  handleSelectedTrip,
   handleDestinationStop,
   height,
   center,
+  routesById,
   selectedDateTime,
   stopTimes,
   stopTimesByStopId,
@@ -78,6 +95,37 @@ function MapContentLayer({
 }: Props) {
   const map = useMap();
   const markerGroupRef = useRef<L.FeatureGroup>(null);
+
+  const getWidthHeightInKM = useCallback(() => {
+    const bounds = map.getBounds();
+
+    const width =
+      map.distance(bounds.getNorthWest(), bounds.getNorthEast()) / 1000;
+    const height =
+      map.distance(bounds.getNorthWest(), bounds.getSouthWest()) / 1000;
+
+    return Math.min(width, height);
+  }, [map]);
+
+  const [mapCenter, setMapCenter] = useState({
+    lat: center[0],
+    lng: center[1],
+  });
+  console.log();
+
+  const [mapKM, setMapKM] = useState(getWidthHeightInKM());
+  const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
+
+  const mapEvents = useMapEvents({
+    moveend() {
+      const { lat, lng } = mapEvents.getCenter();
+      setMapCenter({ lat, lng });
+    },
+    zoomend() {
+      setMapKM(getWidthHeightInKM());
+      setZoomLevel(map.getZoom());
+    },
+  });
 
   const stopIds = useMemo(() => {
     return stops ? stops.map(({ stopId }) => stopId) : [];
@@ -113,45 +161,40 @@ function MapContentLayer({
   );
 
   useEffect(() => {
-    if (center !== prevCenter) {
-      if (stopIds.length) {
-        const group = markerGroupRef.current;
+    if (!stopIds.length) return;
 
-        if (!group || !group.getBounds().isValid()) return;
+    const group = markerGroupRef.current;
 
+    if (prevCenter !== center && !isEqual(stopIds, previousStopIds)) {
+      if (group?.getBounds().isValid()) {
         map.flyToBounds(group.getBounds());
-        return;
+      } else {
+        map.setView(center);
       }
-    }
-
-    if (stopIds.length && !isEqual(stopIds, previousStopIds)) {
-      const group = markerGroupRef.current;
-
-      if (group && group.getBounds().isValid()) {
+    } else if (!isEqual(stopIds, previousStopIds)) {
+      if (group?.getBounds().isValid()) {
         map.flyToBounds(group.getBounds());
       }
-    } else {
-      if (!stopIds.length) {
-        const { stopLat, stopLon } = selectedStop || {};
-
-        if (!stopLat || !stopLon) return;
-
-        map.flyTo([stopLat, stopLon], 12);
-      }
     }
-  }, [map, stopIds, previousStopIds, selectedStop, center, prevCenter]);
+  }, [center, map, prevCenter, previousStopIds, stopIds]);
 
   useEffect(() => {
     if (map != null) {
       const mapContainer = map.getContainer();
       mapContainer.style.cssText = `height: ${height}px; width: 100%; position: relative;`;
+      const center = map.getCenter();
+      const zoom = map.getZoom();
       map.invalidateSize();
+      map.setView(center, zoom);
+      setMapKM(getWidthHeightInKM());
     }
-  }, [map, height]);
+  }, [map, height, getWidthHeightInKM]);
 
   // Realtime state
-  const { realtimeScheduledByTripId, addedTripStopTimes, realtimeAddedTrips } =
-    useRealtime(tripId);
+  const { realtimeScheduledByTripId, addedTripStopTimes } =
+    useTripUpdates(tripId);
+
+  const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM);
 
   const realtimeTrip = useMemo(
     () => !!tripId && realtimeScheduledByTripId.get(tripId),
@@ -242,7 +285,6 @@ function MapContentLayer({
       {/* Vehicle marker */}
       <LayersControl.Overlay name="Estimated Vehicle Position" checked>
         <LayerGroup>
-          {/* width required for icon not to be 0*0 px */}
           <Pane name="Bus" style={{ zIndex: 640, width: "2.5rem" }}>
             <Bus
               realtimeScheduledByTripId={realtimeScheduledByTripId}
@@ -257,6 +299,28 @@ function MapContentLayer({
         </LayerGroup>
       </LayersControl.Overlay>
 
+      <LayersControl.Overlay name="Nearby buses" checked>
+        <FeatureGroup>
+          {!!vehicleUpdates.length &&
+            vehicleUpdates.flatMap((vehicle) => {
+              const { latitude, longitude } = vehicle.position;
+              const { tripId, routeId } = vehicle.trip;
+
+              if (!tripId) return [];
+
+              return (
+                <GPSGhost
+                  key={"gps" + vehicle.vehicle.id + latitude + longitude}
+                  vehicle={vehicle}
+                  // route={route as NonNullableFields<Route>}
+                  routesById={routesById}
+                  zoom={zoomLevel}
+                  handleTrip={handleSelectedTrip}
+                />
+              );
+            })}
+        </FeatureGroup>
+      </LayersControl.Overlay>
       {/* Route stop markers */}
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>

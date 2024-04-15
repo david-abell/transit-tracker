@@ -10,18 +10,21 @@ import { ApiHandler } from "@/lib/FetchHelper";
 export type RouteAPIResponse = Route[];
 
 const handler: ApiHandler<RouteAPIResponse> = async (req, res) => {
-  const { routeName = "" } = req.query;
+  const { q = "" } = req.query;
 
-  if (!routeName || typeof routeName !== "string") {
+  if (typeof q !== "string") {
     res.status(StatusCodes.BAD_REQUEST).end();
     return;
   }
 
-  const likeShortNameQuery = `${routeName}%`;
-  const likeLongNameQuery = `%${routeName}%`;
-  const globQuery = `${routeName}[a-zA-Z]`;
+  const likeShortNameQuery = `${q}%`;
+  const likeLongNameQuery = `%${q}%`;
+  const globQuery = `${q}[a-zA-Z]`;
 
-  const routes = await prisma.$queryRaw<Route[]>`
+  let routes: Route[] | undefined;
+
+  if (q.length) {
+    routes = await prisma.$queryRaw<Route[]>`
     SELECT r.route_short_name,
           r.route_long_name,
           r.agency_id,
@@ -30,17 +33,20 @@ const handler: ApiHandler<RouteAPIResponse> = async (req, res) => {
     FROM route r
     WHERE route_short_name ILIKE ${likeShortNameQuery} OR 
           route_long_name ILIKE ${likeLongNameQuery}
-    ORDER BY route_short_name = ${routeName} DESC,
+    ORDER BY route_short_name = ${q} DESC,
           COALESCE(SUBSTRING(route_short_name FROM '^(\\d+)')::INTEGER, 99999999),
           SUBSTRING(route_short_name FROM '^\\d* *(.*?)( \\d+)?$'),
           COALESCE(SUBSTRING(route_short_name FROM ' (\\d+)$')::INTEGER, 0),
           substring(route_short_name, ${globQuery} ) DESC
     LIMIT 20;
- `;
+    `;
+  } else {
+    routes = await prisma.route.findMany();
+  }
 
-  if (!routes) {
+  if (q.length && !routes) {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      error: `There was an error searching for routes with the query ${routeName}`,
+      error: `There was an error searching for routes with the query ${q}`,
     });
   }
 
@@ -48,7 +54,11 @@ const handler: ApiHandler<RouteAPIResponse> = async (req, res) => {
     return res.status(StatusCodes.OK).json([]);
   }
 
-  return res.status(StatusCodes.OK).json(camelcaseKeys(routes));
+  if (q.length) {
+    return res.status(StatusCodes.OK).json(camelcaseKeys(routes));
+  }
+
+  return res.status(StatusCodes.OK).json(routes);
 };
 
 export default withErrorHandler(handler);

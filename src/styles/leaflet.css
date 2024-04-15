@@ -674,14 +674,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Custom styles */
 
 /* Custom schedule change */
-.leaflet-tooltip .tooltip-schedule-change {
-  background-color: red;
-  color: white;
+.gps-bus-popup .leaflet-popup-content > p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
-
-.leaflet-tooltip .tooltip-schedule-change {
-  background-color: red;
-  color: white;
+.leaflet-tooltip.gps-bus:hover {
+  border: 3px solid green;
 }
 
 /* Dark mode */

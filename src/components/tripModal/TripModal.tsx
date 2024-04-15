@@ -8,7 +8,7 @@ import { Route, Stop } from "@prisma/client";
 import { useContext, useEffect, useState } from "react";
 import { DialogRefContext } from "../Modal";
 import useUpcoming from "@/hooks/useUpcoming";
-import useRealtime from "@/hooks/useRealtime";
+import useTripUpdates from "@/hooks/useTripUpdates";
 import { DateTime } from "luxon";
 
 import Time from "./Time";
@@ -18,17 +18,10 @@ import TripList from "./TripList";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircle } from "lucide-react";
 import { LatLngExpression } from "leaflet";
+import { TripHandler } from "@/pages";
 
 type Props = {
-  handleSelectedTrip: ({
-    tripId,
-    newRouteId,
-    from,
-  }: {
-    tripId: string;
-    newRouteId?: string | undefined;
-    from: LatLngExpression;
-  }) => void;
+  handleSelectedTrip: TripHandler;
   handleApiLoading: (val: boolean) => void;
   selectedDateTime: string;
   selectedRoute: Route | undefined;
@@ -65,7 +58,7 @@ function TripModal({
     realtimeScheduledByTripId,
     realtimeRouteIds,
     realtimeCanceledTripIds,
-  } = useRealtime(tripIds);
+  } = useTripUpdates(tripIds);
 
   useEffect(() => {
     handleApiLoading(isLoadingRealtime || isLoadingUpcoming);

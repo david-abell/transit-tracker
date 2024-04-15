@@ -16,12 +16,7 @@ type Props = {
   zoom: number;
 };
 
-const GPSGhost = memo(function GPSGhost({
-  handleTrip,
-  routesById,
-  vehicle,
-  zoom,
-}: Props) {
+function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
   const {
     directionId,
     scheduleRelationship,
@@ -93,6 +88,6 @@ const GPSGhost = memo(function GPSGhost({
       )}
     </CircleMarker>
   );
-}, isEqual);
+}
 
 export default GPSGhost;

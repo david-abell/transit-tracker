@@ -1,8 +1,11 @@
 "use-client";
 
 import { MapContainer, TileLayer } from "react-leaflet";
-import { LatLngExpression, LatLngTuple } from "leaflet";
+import { LatLngTuple } from "leaflet";
 import MapContentLayer from "./MapContentLayer";
+import L from "leaflet";
+
+export const canvasRenderer = L.canvas();
 
 type MapContentLayerProps = React.ComponentProps<typeof MapContentLayer>;
 
@@ -19,6 +22,8 @@ function Map({ center, ...props }: Props) {
       zoom={MAP_DEFAULT_ZOOM}
       minZoom={8}
       className={`relative h-full w-[100max]`}
+      preferCanvas
+      renderer={canvasRenderer}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

@@ -1,6 +1,5 @@
-import { CircleMarker, Tooltip, Popup } from "react-leaflet";
-import { memo } from "react";
-import isEqual from "react-fast-compare";
+import { Popup } from "react-leaflet";
+import { useMemo } from "react";
 import { Icon } from "leaflet";
 import { NTAVehicleUpdate } from "@/pages/api/gtfs/vehicle-updates";
 import { Route } from "@prisma/client";
@@ -8,6 +7,7 @@ import LiveText from "../LiveText";
 import { timeSinceLastVehicleUpdate } from "@/lib/timeHelpers";
 import { Button } from "../ui/button";
 import { TripHandler } from "@/pages";
+import CircleOrIcon from "./CircleOrIcon";
 
 type Props = {
   handleTrip: TripHandler;
@@ -25,7 +25,7 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
     tripId,
     routeId,
   } = vehicle.trip;
-  const route = routesById.get(routeId);
+  const route = useMemo(() => routesById.get(routeId), [routeId, routesById]);
 
   if (!route || !route.routeShortName || !route.routeLongName) return null;
 
@@ -35,15 +35,13 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
   const names = routeLongName?.split("-");
   const destination = directionId ? names[0] : names.toReversed()[0];
   return (
-    <CircleMarker
-      center={[latitude, longitude]}
-      fill
-      fillOpacity={100}
-      fillColor={color}
-      stroke={false}
-      radius={6}
+    <CircleOrIcon
+      position={[latitude, longitude]}
+      color={color}
+      textContent={routeShortName}
+      zoom={zoom}
     >
-      <Popup interactive className="gps-bus-popup">
+      <Popup interactive className="gps-bus-popup !max-w-60 !text-wrap">
         <p>
           <b>{routeShortName}</b> to {destination}
         </p>
@@ -55,9 +53,10 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
           ago
         </p>
         {scheduleRelationship === "ADDED" && (
-          <p>
-            This vehicles schedule has been changed. It could be replacing a
-            canceled trip or passing a delayed bus ahead of it.
+          <p className="pb-2">
+            This vehicle schedule has changed and its current trip cannot yet be
+            predicted. It could be replacing a canceled trip or passing a
+            delayed bus.
           </p>
         )}
 
@@ -75,17 +74,7 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
           Select bus
         </Button>
       </Popup>
-      {zoom > 12 && (
-        <Tooltip
-          direction="right"
-          permanent
-          interactive
-          className="gps-bus !min-w-10 text-center"
-        >
-          <b>{routeShortName}</b>
-        </Tooltip>
-      )}
-    </CircleMarker>
+    </CircleOrIcon>
   );
 }
 

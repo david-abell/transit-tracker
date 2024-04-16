@@ -27,7 +27,7 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
   } = vehicle.trip;
   const route = routesById.get(routeId);
 
-  if (!route || !route.routeShortName || !route.routeLongName) return [];
+  if (!route || !route.routeShortName || !route.routeLongName) return null;
 
   const { routeShortName, routeLongName } = route;
   const color = scheduleRelationship === "ADDED" ? "red" : "green";

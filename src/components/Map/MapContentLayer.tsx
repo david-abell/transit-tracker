@@ -42,7 +42,7 @@ import { Position } from "@turf/helpers";
 import MarkerClusterGroup from "./MarkerClusterGroup";
 import StopMarker from "./StopMarker";
 import StopPopup from "./StopPopup";
-// import useVehicleUpdates from "@/hooks/useVehicleUpdates";
+import useVehicleUpdates from "@/hooks/useVehicleUpdates";
 import { Button } from "../ui/button";
 import { TripHandler } from "@/pages";
 import LiveText from "../LiveText";
@@ -194,7 +194,7 @@ function MapContentLayer({
   const { realtimeScheduledByTripId, addedTripStopTimes } =
     useTripUpdates(tripId);
 
-  // const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM);
+  const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM);
 
   const realtimeTrip = useMemo(
     () => !!tripId && realtimeScheduledByTripId.get(tripId),
@@ -299,28 +299,27 @@ function MapContentLayer({
         </LayerGroup>
       </LayersControl.Overlay>
 
-      {/* <LayersControl.Overlay name="Nearby buses" checked>
+      <LayersControl.Overlay name="Nearby buses" checked>
         <FeatureGroup>
           {!!vehicleUpdates.length &&
-            vehicleUpdates.flatMap((vehicle) => {
-              const { latitude, longitude } = vehicle.position;
-              const { tripId, routeId } = vehicle.trip;
-
-              if (!tripId) return [];
-
-              return (
+            vehicleUpdates
+              .filter((v) => Boolean(v.trip.tripId))
+              .map((vehicle) => (
                 <GPSGhost
-                  key={"gps" + vehicle.vehicle.id + latitude + longitude}
+                  key={
+                    "gps" +
+                    vehicle.vehicle.id +
+                    vehicle.position.latitude +
+                    vehicle.position.longitude
+                  }
                   vehicle={vehicle}
-                  // route={route as NonNullableFields<Route>}
                   routesById={routesById}
                   zoom={zoomLevel}
                   handleTrip={handleSelectedTrip}
                 />
-              );
-            })}
+              ))}
         </FeatureGroup>
-      </LayersControl.Overlay> */}
+      </LayersControl.Overlay>
       {/* Route stop markers */}
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>

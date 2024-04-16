@@ -23,6 +23,9 @@ export type RealtimeTripUpdateResponse = {
   addedTrips: [string, TripUpdate][];
 };
 
+const TRIP_UPDATE_KEY = "tripUpdates";
+const ADDED_TRIPS_KEY = "addTrips";
+
 let isFetching = false;
 
 const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
@@ -40,13 +43,9 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
 
   console.log("trip-updates called:", new Date().toLocaleString());
 
-  const tripUpdateKey = "tripUpdates";
-  const addedTripsKey = "addTrips";
-
   // try fetch cached data
-  let cachedAdded = await redis.exists(addedTripsKey);
-  let cachedUpdates = await redis.exists(tripUpdateKey);
-
+  let cachedAdded = await redis.exists(ADDED_TRIPS_KEY);
+  let cachedUpdates = await redis.exists(TRIP_UPDATE_KEY);
   let idArray: string[] = [];
 
   if (tripIds?.includes(",")) {
@@ -59,20 +58,22 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     try {
       await retryAsync(
         async () => {
-          let cachedAdded = await redis.exists(addedTripsKey);
-          let cachedUpdates = await redis.exists(tripUpdateKey);
+          cachedAdded = await redis.exists(ADDED_TRIPS_KEY);
+          cachedUpdates = await redis.exists(TRIP_UPDATE_KEY);
           return cachedUpdates || cachedAdded;
         },
         {
-          delay: 100,
+          delay: 250,
           maxTry: 5,
           until: (lastResult) => lastResult === 1,
         },
       );
-    } catch (err) {}
+    } catch (err) {
+      if (err instanceof Error) console.error(err.message);
+    }
   }
 
-  if (cachedAdded && cachedUpdates) {
+  if (cachedUpdates || cachedAdded) {
     console.log(`redis cache hit: searching for ${idArray.length} trip ids.`);
 
     let addedTrips: [string, TripUpdate][] = [];
@@ -80,7 +81,7 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     let tripUpdates: [string, TripUpdate][] = [];
 
     if (idArray.length) {
-      const storedTrips = await redis.hmget(tripUpdateKey, ...idArray);
+      const storedTrips = await redis.hmget(TRIP_UPDATE_KEY, ...idArray);
       const parsedTrips: TripUpdate[] = storedTrips.flatMap((val) =>
         val ? JSON.parse(val) : [],
       );
@@ -91,7 +92,7 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
         tripUpdate,
       ]);
     } else {
-      const addedTripRecords = await redis.hgetall(addedTripsKey);
+      const addedTripRecords = await redis.hgetall(ADDED_TRIPS_KEY);
       addedTrips = Object.entries(addedTripRecords).map<[string, TripUpdate]>(
         ([key, trip]) => [key, JSON.parse(trip)],
       );
@@ -101,8 +102,7 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   }
 
   if (isFetching) {
-    res.end();
-    return;
+    throw new ApiError(StatusCodes.LOCKED, ReasonPhrases.LOCKED);
   }
   console.log("redis cache miss, setting new trip updates");
 
@@ -168,25 +168,25 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
 
     // Upstash has an hmset size limit of 1048576 bytes. Batch updates to stay under this threshold.
     if (tripUpdates.size > BATCH_LIMIT) {
-      await redis.hmset(tripUpdateKey, tripUpdates);
+      await redis.hmset(TRIP_UPDATE_KEY, tripUpdates);
       tripUpdates.clear();
     }
     if (addedTripsMap.size > BATCH_LIMIT) {
-      await redis.hmset(addedTripsKey, addedTripsMap);
+      await redis.hmset(ADDED_TRIPS_KEY, addedTripsMap);
       addedTripsMap.clear();
     }
   }
 
   if (tripUpdates.size) {
-    await redis.hmset(tripUpdateKey, tripUpdates);
+    await redis.hmset(TRIP_UPDATE_KEY, tripUpdates);
   }
   if (addedTripsMap.size) {
-    await redis.hmset(addedTripsKey, addedTripsMap);
+    await redis.hmset(ADDED_TRIPS_KEY, addedTripsMap);
   }
 
   // expire after 120 seconds
-  redis.expire(tripUpdateKey, REDIS_CACHE_EXPIRE_SECONDS);
-  redis.expire(addedTripsKey, REDIS_CACHE_EXPIRE_SECONDS);
+  redis.expire(TRIP_UPDATE_KEY, REDIS_CACHE_EXPIRE_SECONDS);
+  redis.expire(ADDED_TRIPS_KEY, REDIS_CACHE_EXPIRE_SECONDS);
 
   return res
     .status(200)

@@ -86,15 +86,18 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
   let geoRecords = await redis.exists(GEO_RECORDS_KEY);
 
   if (isFetching) {
+    // let vehicleRetryCount = 0;
     try {
       await retryAsync(
         async () => {
+          // vehicleRetryCount++;
+          // console.log("tripRetryCount: %s", vehicleRetryCount);
           geoRecords = await redis.exists(GEO_RECORDS_KEY);
           return geoRecords;
         },
         {
           delay: 250,
-          maxTry: 5,
+          maxTry: 30,
           until: (lastResult) => lastResult === 1,
         },
       );
@@ -126,75 +129,81 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
 
   console.log("redis cache miss, setting new vehicle updates");
 
-  const response = await fetch(API_URL, {
-    method: "GET",
-    headers: {
-      "x-api-key": API_KEY as string,
-    },
-  });
+  try {
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        "x-api-key": API_KEY as string,
+      },
+    });
 
-  isFetching = false;
-
-  if (!response.ok) {
-    console.error(
-      `[vehicle-updates] response error: Status: ${response.status}, StatusText: ${response.statusText}`,
-    );
-
-    if (response.status === StatusCodes.TOO_MANY_REQUESTS) {
-      throw new ApiError(
-        StatusCodes.TOO_MANY_REQUESTS,
-        ReasonPhrases.TOO_MANY_REQUESTS,
+    if (!response.ok) {
+      console.error(
+        `[vehicle-updates] response error: Status: ${response.status}, StatusText: ${response.statusText}`,
       );
-    }
-    throw new ApiError(StatusCodes.BAD_GATEWAY, ReasonPhrases.BAD_GATEWAY);
-  }
 
-  const json = await response.json();
-
-  const data: GTFSResponse = camelcaseKeys(json, { deep: true });
-
-  console.log("Downloaded %s vehicle updates", data?.entity?.length);
-
-  const vehiclesWithinRadius: NTAVehicleUpdate[] = [];
-
-  const mapCenter = point([Number(lat), Number(lng)]);
-
-  for (const { vehicle } of data.entity) {
-    // this is the vehicle feed, it will not be undefined,
-    if (!vehicle) continue;
-
-    if (
-      !vehicle.trip?.tripId ||
-      !vehicle.position?.latitude ||
-      !vehicle.position.longitude
-    ) {
-      //just in case this is invalid
-      continue;
+      if (response.status === StatusCodes.TOO_MANY_REQUESTS) {
+        throw new ApiError(
+          StatusCodes.TOO_MANY_REQUESTS,
+          ReasonPhrases.TOO_MANY_REQUESTS,
+        );
+      }
+      throw new ApiError(StatusCodes.BAD_GATEWAY, ReasonPhrases.BAD_GATEWAY);
     }
 
-    await redis.geoadd(
-      GEO_RECORDS_KEY,
-      vehicle.position.longitude,
-      vehicle.position.latitude,
-      JSON.stringify(vehicle),
-    );
+    const json = await response.json();
+    const data: GTFSResponse = camelcaseKeys(json, { deep: true });
 
-    const to = point([vehicle.position.latitude, vehicle.position.longitude]);
+    await redis.expire(GEO_RECORDS_KEY, 0);
 
-    const distanceFromCenter = distance(mapCenter, to, DISTANCE_OPTIONS);
+    console.log("Downloaded %s vehicle updates", data?.entity?.length);
 
-    if (distanceFromCenter <= Number(rad) / 2) {
-      vehiclesWithinRadius.push(
-        // NTA Vehicle update does not fully match GTFS spec
-        vehicle as unknown as NTAVehicleUpdate,
+    const vehiclesWithinRadius: NTAVehicleUpdate[] = [];
+
+    const mapCenter = point([Number(lat), Number(lng)]);
+
+    for (const { vehicle } of data.entity) {
+      // this is the vehicle feed, it will not be undefined,
+      if (!vehicle) continue;
+
+      if (
+        !vehicle.trip?.tripId ||
+        !vehicle.position?.latitude ||
+        !vehicle.position.longitude
+      ) {
+        //just in case this is invalid
+        continue;
+      }
+
+      await redis.geoadd(
+        GEO_RECORDS_KEY,
+        vehicle.position.longitude,
+        vehicle.position.latitude,
+        JSON.stringify(vehicle),
       );
+
+      const to = point([vehicle.position.latitude, vehicle.position.longitude]);
+
+      const distanceFromCenter = distance(mapCenter, to, DISTANCE_OPTIONS);
+
+      if (distanceFromCenter <= Number(rad) / 2) {
+        vehiclesWithinRadius.push(
+          // NTA Vehicle update does not fully match GTFS spec
+          vehicle as unknown as NTAVehicleUpdate,
+        );
+      }
     }
+
+    // expire after 120 seconds
+    await redis.expire(GEO_RECORDS_KEY, REDIS_CACHE_EXPIRE_SECONDS);
+
+    return res.status(200).json({ vehicleUpdates: vehiclesWithinRadius });
+  } catch (error) {
+    throw error;
+  } finally {
+    isFetching = false;
+    // await redis.set(REDIS_AWAITING_UPDATE_KEY, "false");
   }
-
-  // expire after 120 seconds
-  redis.expire(GEO_RECORDS_KEY, REDIS_CACHE_EXPIRE_SECONDS);
-
-  return res.status(200).json({ vehicleUpdates: vehiclesWithinRadius });
 };
 
 export default withErrorHandler(handler);

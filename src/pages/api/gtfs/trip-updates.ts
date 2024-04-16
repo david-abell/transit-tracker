@@ -23,7 +23,8 @@ export type RealtimeTripUpdateResponse = {
   addedTrips: [string, TripUpdate][];
 };
 
-const TRIP_UPDATE_KEY = "tripUpdates";
+const REDIS_AWAITING_UPDATE_KEY = "redisAwaitingUpdate";
+const TRIP_UPDATE_KEY = "tripUpdates1";
 const ADDED_TRIPS_KEY = "addTrips";
 
 let isFetching = false;
@@ -46,6 +47,8 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
   // try fetch cached data
   let cachedAdded = await redis.exists(ADDED_TRIPS_KEY);
   let cachedUpdates = await redis.exists(TRIP_UPDATE_KEY);
+  let redisAwaitingUpdate = await redis.get(REDIS_AWAITING_UPDATE_KEY);
+
   let idArray: string[] = [];
 
   if (tripIds?.includes(",")) {
@@ -54,17 +57,23 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     idArray = !!tripIds ? [decodeURI(tripIds)] : [];
   }
 
-  if (isFetching) {
+  if (isFetching || redisAwaitingUpdate === "true") {
+    // let tripRetryCount = 0;
     try {
       await retryAsync(
         async () => {
+          // tripRetryCount++;
+          // console.log("tripRetryCount: %s", tripRetryCount);
           cachedAdded = await redis.exists(ADDED_TRIPS_KEY);
           cachedUpdates = await redis.exists(TRIP_UPDATE_KEY);
-          return cachedUpdates || cachedAdded;
+          redisAwaitingUpdate = await redis.get(REDIS_AWAITING_UPDATE_KEY);
+          return cachedUpdates || cachedAdded || redisAwaitingUpdate === "true"
+            ? 1
+            : 0;
         },
         {
           delay: 250,
-          maxTry: 5,
+          maxTry: 30,
           until: (lastResult) => lastResult === 1,
         },
       );
@@ -101,96 +110,105 @@ const handler: ApiHandler<RealtimeTripUpdateResponse> = async (
     return res.status(StatusCodes.OK).json({ addedTrips, tripUpdates });
   }
 
-  if (isFetching) {
+  if (isFetching || redisAwaitingUpdate === "true") {
     throw new ApiError(StatusCodes.LOCKED, ReasonPhrases.LOCKED);
   }
   console.log("redis cache miss, setting new trip updates");
 
   isFetching = true;
 
-  const response = await fetch(API_URL, {
-    method: "GET",
-    // Request headers
-    headers: {
-      "x-api-key": API_KEY as string,
-    },
-  });
+  try {
+    const response = await fetch(API_URL, {
+      method: "GET",
+      // Request headers
+      headers: {
+        "x-api-key": API_KEY as string,
+      },
+    });
+    await redis.set(REDIS_AWAITING_UPDATE_KEY, "false");
+    isFetching = false;
 
-  isFetching = false;
-
-  if (!response.ok) {
-    console.error(
-      `[trip-updates] error: Status: ${response.status}, StatusText: ${response.statusText}`,
-    );
-    if (response.status === StatusCodes.TOO_MANY_REQUESTS) {
-      throw new ApiError(
-        StatusCodes.TOO_MANY_REQUESTS,
-        ReasonPhrases.TOO_MANY_REQUESTS,
+    if (!response.ok) {
+      console.error(
+        `[trip-updates] error: Status: ${response.status}, StatusText: ${response.statusText}`,
       );
-    }
-    throw new ApiError(StatusCodes.BAD_GATEWAY, ReasonPhrases.BAD_GATEWAY);
-  }
-
-  const json = await response.json();
-
-  const data: GTFSResponse = camelcaseKeys(json, { deep: true });
-
-  console.log("Downloaded %s trip updates", data?.entity?.length);
-  const requestedTripSet = tripIds ? new Set(idArray) : new Set();
-
-  const tripUpdates = new Map<string, string>();
-  const addedTripsMap = new Map<string, string>();
-  const requestedTripUpdates: [string, TripUpdate][] = [];
-  const addedTrips: [string, TripUpdate][] = [];
-
-  for (const { tripUpdate } of data.entity) {
-    // this is the tripUpdate feed, it will not be undefined,
-    // todo: update type defs for Zod
-    if (!tripUpdate) continue;
-
-    const encodedKey = createTripKey(tripUpdate.trip);
-
-    // Trips with scheduleRelationship === "ADDED" don't have a defined tripId
-    // Set it here
-    if (!tripUpdate.trip.tripId) {
-      addedTripsMap.set(encodedKey, JSON.stringify(tripUpdate));
-      // only send added trips when no tripIds have been requested
-      if (!idArray.length) {
-        addedTrips.push([encodedKey, tripUpdate]);
+      if (response.status === StatusCodes.TOO_MANY_REQUESTS) {
+        throw new ApiError(
+          StatusCodes.TOO_MANY_REQUESTS,
+          ReasonPhrases.TOO_MANY_REQUESTS,
+        );
       }
-      tripUpdate.trip["tripId"] = encodedKey;
-    }
-    tripUpdates.set(tripUpdate.trip.tripId, JSON.stringify(tripUpdate));
-
-    if (requestedTripSet.has(tripUpdate.trip.tripId)) {
-      requestedTripUpdates.push([tripUpdate.trip.tripId, tripUpdate]);
+      throw new ApiError(StatusCodes.BAD_GATEWAY, ReasonPhrases.BAD_GATEWAY);
     }
 
-    // Upstash has an hmset size limit of 1048576 bytes. Batch updates to stay under this threshold.
-    if (tripUpdates.size > BATCH_LIMIT) {
+    const json = await response.json();
+    await redis.expire(TRIP_UPDATE_KEY, 0);
+    await redis.expire(ADDED_TRIPS_KEY, 0);
+
+    const data: GTFSResponse = camelcaseKeys(json, { deep: true });
+
+    console.log("Downloaded %s trip updates", data?.entity?.length);
+    const requestedTripSet = tripIds ? new Set(idArray) : new Set();
+
+    const tripUpdates = new Map<string, string>();
+    const addedTripsMap = new Map<string, string>();
+    const requestedTripUpdates: [string, TripUpdate][] = [];
+    const addedTrips: [string, TripUpdate][] = [];
+
+    for (const { tripUpdate } of data.entity) {
+      // this is the tripUpdate feed, it will not be undefined,
+      // todo: update type defs for Zod
+      if (!tripUpdate) continue;
+
+      const encodedKey = createTripKey(tripUpdate.trip);
+
+      // Trips with scheduleRelationship === "ADDED" don't have a defined tripId
+      // Set it here
+      if (!tripUpdate.trip.tripId) {
+        addedTripsMap.set(encodedKey, JSON.stringify(tripUpdate));
+        // only send added trips when no tripIds have been requested
+        if (!idArray.length) {
+          addedTrips.push([encodedKey, tripUpdate]);
+        }
+        tripUpdate.trip["tripId"] = encodedKey;
+      }
+      tripUpdates.set(tripUpdate.trip.tripId, JSON.stringify(tripUpdate));
+
+      if (requestedTripSet.has(tripUpdate.trip.tripId)) {
+        requestedTripUpdates.push([tripUpdate.trip.tripId, tripUpdate]);
+      }
+
+      // Upstash has an hmset size limit of 1048576 bytes. Batch updates to stay under this threshold.
+      if (tripUpdates.size > BATCH_LIMIT) {
+        await redis.hmset(TRIP_UPDATE_KEY, tripUpdates);
+        tripUpdates.clear();
+      }
+      if (addedTripsMap.size > BATCH_LIMIT) {
+        await redis.hmset(ADDED_TRIPS_KEY, addedTripsMap);
+        addedTripsMap.clear();
+      }
+    }
+
+    if (tripUpdates.size) {
       await redis.hmset(TRIP_UPDATE_KEY, tripUpdates);
-      tripUpdates.clear();
     }
-    if (addedTripsMap.size > BATCH_LIMIT) {
+    if (addedTripsMap.size) {
       await redis.hmset(ADDED_TRIPS_KEY, addedTripsMap);
-      addedTripsMap.clear();
     }
-  }
 
-  if (tripUpdates.size) {
-    await redis.hmset(TRIP_UPDATE_KEY, tripUpdates);
-  }
-  if (addedTripsMap.size) {
-    await redis.hmset(ADDED_TRIPS_KEY, addedTripsMap);
-  }
+    // expire after 120 seconds
+    await redis.expire(TRIP_UPDATE_KEY, REDIS_CACHE_EXPIRE_SECONDS);
+    await redis.expire(ADDED_TRIPS_KEY, REDIS_CACHE_EXPIRE_SECONDS);
 
-  // expire after 120 seconds
-  redis.expire(TRIP_UPDATE_KEY, REDIS_CACHE_EXPIRE_SECONDS);
-  redis.expire(ADDED_TRIPS_KEY, REDIS_CACHE_EXPIRE_SECONDS);
-
-  return res
-    .status(200)
-    .json({ tripUpdates: requestedTripUpdates, addedTrips });
+    return res
+      .status(200)
+      .json({ tripUpdates: requestedTripUpdates, addedTrips });
+  } catch (error) {
+    throw error;
+  } finally {
+    isFetching = false;
+    await redis.set(REDIS_AWAITING_UPDATE_KEY, "false");
+  }
 };
 
 export default withErrorHandler(handler);

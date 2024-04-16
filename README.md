@@ -140,8 +140,16 @@ Deployment is automated with Github workflows `push`` or `merges` to main and ni
 - install flyctl available from [fly.io](fly.io)
 - run `fly launch`
 - run `fly secrets set DATABASE_URL=postgreSQL connection string`
+- run `fly secrets set REDIS_HOST=[your password]`
+- run `fly secrets set REDIS_PASSWORD=[your password]`
 - run `fly secrets set NTA_REALTIME_API_KEY=api key from NTA GTFS realtime api below`
 - run `npm run deploy`
+
+> Upstash connection REDIS_HOST=
+> REDIS_HOST=[region].[app-name].internal exa cdg.transit-redis.internal
+
+> fly.io self-hosted docker container
+> REDIS_HOST=[redis-app-name].internal
 
 ## Useful resources
 

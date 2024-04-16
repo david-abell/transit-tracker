@@ -3,7 +3,10 @@ import Redis, { RedisOptions } from "ioredis";
 const options: RedisOptions = {
   enableAutoPipelining: true,
   family: process.env.NODE_ENV === "production" ? 6 : 4,
+  // Upstash connection host
   // host: [region].[app-name].internal exa cdg.transit-redis.internal
+  // fly.io selfhosted container
+  // host: [app-name].internal
   host: process.env.REDIS_HOST || "127.0.0.1",
   lazyConnect: true,
   maxRetriesPerRequest: 0,

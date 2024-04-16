@@ -32,6 +32,7 @@ function Map({ center, ...props }: Props) {
       className={`relative h-full w-[100max]`}
       preferCanvas
       renderer={canvasRenderer}
+      zoomSnap={0.2}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

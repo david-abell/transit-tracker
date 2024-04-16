@@ -23,6 +23,7 @@ const DISTANCE_OPTIONS = { units: "kilometers" } as const;
 const REDIS_DISTANCE_UNIT = "KM";
 
 let isFetching = false;
+const GEO_RECORDS_KEY = "vehicleGeo";
 
 export type NTAVehicleUpdate = {
   trip: RealTimeTrip;
@@ -74,37 +75,37 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
     typeof rad !== "string"
   ) {
     // shouldn't happen
-    console.error("Shouldn't happen: lat or long was an array...");
+    console.error("Shouldn't happen: lat or lng was an array...");
     res.status(StatusCodes.BAD_REQUEST).end();
     return;
   }
 
   console.log("Vehicle updates called:", new Date().toLocaleString());
 
-  const geoRecordsKey = "vehicleGeo";
-
   // try fetch cached data
-  let geoRecords = await redis.exists(geoRecordsKey);
+  let geoRecords = await redis.exists(GEO_RECORDS_KEY);
 
   if (isFetching) {
     try {
       await retryAsync(
         async () => {
-          geoRecords = await redis.exists(geoRecordsKey);
+          geoRecords = await redis.exists(GEO_RECORDS_KEY);
           return geoRecords;
         },
         {
-          delay: 100,
+          delay: 250,
           maxTry: 5,
           until: (lastResult) => lastResult === 1,
         },
       );
-    } catch (err) {}
+    } catch (err) {
+      if (err instanceof Error) console.error(err.message);
+    }
   }
 
   if (geoRecords) {
     const vehicleRecords = await redis.georadius(
-      geoRecordsKey,
+      GEO_RECORDS_KEY,
       lng,
       lat,
       Number(rad) / 2,
@@ -118,9 +119,7 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
   }
 
   if (isFetching) {
-    res.status(StatusCodes.LOCKED).json({ vehicleUpdates: [] });
-    // res.status(StatusCodes.OK).json({ vehicleUpdates: [] });
-    return;
+    throw new ApiError(StatusCodes.LOCKED, ReasonPhrases.LOCKED);
   }
 
   isFetching = true;
@@ -174,7 +173,7 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
     }
 
     await redis.geoadd(
-      geoRecordsKey,
+      GEO_RECORDS_KEY,
       vehicle.position.longitude,
       vehicle.position.latitude,
       JSON.stringify(vehicle),
@@ -193,7 +192,7 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
   }
 
   // expire after 120 seconds
-  redis.expire(geoRecordsKey, REDIS_CACHE_EXPIRE_SECONDS);
+  redis.expire(GEO_RECORDS_KEY, REDIS_CACHE_EXPIRE_SECONDS);
 
   return res.status(200).json({ vehicleUpdates: vehiclesWithinRadius });
 };

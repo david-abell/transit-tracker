@@ -1,6 +1,6 @@
 {
   "name": "irish-buses",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -39,6 +39,7 @@
     "http-status-codes": "^2.3.0",
     "ioredis": "^5.3.2",
     "leaflet": "^1.9.4",
+    "leaflet-edgebuffer": "^1.0.6",
     "leaflet.markercluster": "^1.5.3",
     "lucide-react": "^0.365.0",
     "luxon": "^3.4.4",

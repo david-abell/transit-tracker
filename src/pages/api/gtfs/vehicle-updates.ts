@@ -20,7 +20,7 @@ const REDIS_CACHE_EXPIRE_SECONDS = 120;
 
 type GeoRecord = [string, number, number];
 const DISTANCE_OPTIONS = { units: "kilometers" } as const;
-const REDIS_DISTANCE_UNIT = "KM";
+const REDIS_DISTANCE_UNIT = "km";
 
 let isFetching = false;
 const GEO_RECORDS_KEY = "vehicleGeo";

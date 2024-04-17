@@ -193,7 +193,7 @@ function MapContentLayer({
   const { realtimeScheduledByTripId, addedTripStopTimes } =
     useTripUpdates(tripId);
 
-  const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM);
+  const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM, zoomLevel);
 
   const realtimeTrip = useMemo(
     () => !!tripId && realtimeScheduledByTripId.get(tripId),

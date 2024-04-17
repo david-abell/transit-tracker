@@ -59,7 +59,7 @@ export function NewUserPrompt({
         <Button
           size={"icon"}
           variant={"ghost"}
-          className="pointer-events-auto float-right p-0 -mr-4 -mt-2"
+          className="pointer-events-auto float-right p-0 -mr-4 -mt-2 bg-transparent"
           onClick={() => setShowNewUser(false)}
         >
           <X className="inline-block" />

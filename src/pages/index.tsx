@@ -398,14 +398,16 @@ export default function Home() {
         />
       )}
 
-      <Footer
-        destination={destinationStop}
-        route={selectedRoute}
-        stop={selectedStop}
-        stopTimes={stopTimes}
-        trip={selectedTrip}
-        tripUpdatesByTripId={tripUpdatesByTripId}
-      />
+      {!!routeId && (
+        <Footer
+          destination={destinationStop}
+          route={selectedRoute}
+          stop={selectedStop}
+          stopTimes={stopTimes}
+          trip={selectedTrip}
+          tripUpdatesByTripId={tripUpdatesByTripId}
+        />
+      )}
     </main>
   );
 }

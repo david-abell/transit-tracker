@@ -17,6 +17,7 @@ const API_URL =
   "https://api.nationaltransport.ie/gtfsr/v2/Vehicles?format=json";
 
 const REDIS_CACHE_EXPIRE_SECONDS = 120;
+const BATCH_LIMIT = 500;
 
 type GeoRecord = [string, number, number];
 const DISTANCE_OPTIONS = { units: "kilometers" } as const;
@@ -161,6 +162,7 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
     const vehiclesWithinRadius: NTAVehicleUpdate[] = [];
 
     const mapCenter = point([Number(lat), Number(lng)]);
+    let records = [];
 
     for (const { vehicle } of data.entity) {
       // this is the vehicle feed, it will not be undefined,
@@ -175,12 +177,14 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
         continue;
       }
 
-      await redis.geoadd(
-        GEO_RECORDS_KEY,
-        vehicle.position.longitude,
-        vehicle.position.latitude,
-        JSON.stringify(vehicle),
-      );
+      records.push(vehicle.position.longitude);
+      records.push(vehicle.position.latitude);
+      records.push(JSON.stringify(vehicle));
+
+      if (records.length > 3 * BATCH_LIMIT) {
+        await redis.geoadd(GEO_RECORDS_KEY, ...records);
+        records = [];
+      }
 
       const to = point([vehicle.position.latitude, vehicle.position.longitude]);
 
@@ -192,6 +196,11 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
           vehicle as unknown as NTAVehicleUpdate,
         );
       }
+    }
+
+    // add remaining records
+    if (records.length) {
+      await redis.geoadd(GEO_RECORDS_KEY, ...records);
     }
 
     // expire after 120 seconds

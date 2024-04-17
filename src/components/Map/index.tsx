@@ -27,7 +27,7 @@ function Map({ center, ...props }: Props) {
       zoom={MAP_DEFAULT_ZOOM}
       minZoom={8}
       className={`relative h-full w-[100max]`}
-      zoomSnap={0.2}
+      zoomSnap={0.5}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

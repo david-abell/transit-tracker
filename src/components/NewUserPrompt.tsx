@@ -57,8 +57,9 @@ export function NewUserPrompt({
       {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}
       <AlertDescription className="bg-transparent min-h-10 text-lg mx-1">
         <Button
+          size={"icon"}
           variant={"ghost"}
-          className="pointer-events-auto float-right h-6 w-6 p-0 -mr-2 -mt-2"
+          className="pointer-events-auto float-right p-0 -mr-4 -mt-2"
           onClick={() => setShowNewUser(false)}
         >
           <X className="inline-block" />

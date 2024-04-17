@@ -7,7 +7,7 @@ import {
   NTAVehicleUpdate,
 } from "@/pages/api/gtfs/vehicle-updates";
 import { Route } from "@prisma/client";
-import { useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { vehicleStore } from "../stores/vehicleStore";
 
 const API_URL = "/api/gtfs/vehicle-updates";
@@ -19,12 +19,19 @@ const revalidateOptions = {
 
 type Point = { lat: number; lng: number };
 
-function useVehicleUpdates({ lat, lng }: Point, radius: number) {
-  const url = `${API_URL}?${new URLSearchParams({
-    lat: String(lat),
-    lng: String(lng),
-    rad: String(radius),
-  })}`;
+function useVehicleUpdates({ lat, lng }: Point, radius: number, zoom: number) {
+  const prevZoom = useRef(0);
+
+  const url =
+    zoom > prevZoom.current
+      ? null
+      : `${API_URL}?${new URLSearchParams({
+          lat: String(lat),
+          lng: String(lng),
+          rad: String(radius),
+        })}`;
+
+  prevZoom.current = zoom;
 
   const { data, error, isValidating, mutate } = useSWR<
     VehicleUpdatesResponse,

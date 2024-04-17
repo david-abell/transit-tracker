@@ -111,7 +111,6 @@ function MapContentLayer({
     lat: center[0],
     lng: center[1],
   });
-  console.log();
 
   const [mapKM, setMapKM] = useState(getWidthHeightInKM());
   const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
@@ -194,7 +193,7 @@ function MapContentLayer({
   const { realtimeScheduledByTripId, addedTripStopTimes } =
     useTripUpdates(tripId);
 
-  const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM);
+  const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM, zoomLevel);
 
   const realtimeTrip = useMemo(
     () => !!tripId && realtimeScheduledByTripId.get(tripId),

@@ -1,6 +1,5 @@
 import { Popup } from "react-leaflet";
-import { useMemo } from "react";
-import { Icon } from "leaflet";
+import { useCallback, useMemo, useState } from "react";
 import { NTAVehicleUpdate } from "@/pages/api/gtfs/vehicle-updates";
 import { Route } from "@prisma/client";
 import LiveText from "../LiveText";
@@ -8,6 +7,8 @@ import { timeSinceLastVehicleUpdate } from "@/lib/timeHelpers";
 import { Button } from "../ui/button";
 import { TripHandler } from "@/pages";
 import DotOrSVG from "./DotOrSVG";
+import { useInterval } from "usehooks-ts";
+import { DateTime } from "luxon";
 
 type Props = {
   handleTrip: TripHandler;
@@ -27,17 +28,36 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
   } = vehicle.trip;
   const route = useMemo(() => routesById.get(routeId), [routeId, routesById]);
 
+  const [colorScaleValue, setColorScaleValue] = useState(
+    getScaledColor(vehicle.timestamp),
+  );
+
+  useInterval(() => {
+    if (vehicle.timestamp) {
+      setColorScaleValue(getScaledColor(vehicle.timestamp));
+    }
+  }, 5_000);
+
+  const handleContentUpdate = useCallback(() => {
+    const time = timeSinceLastVehicleUpdate(vehicle.timestamp);
+    if (!time) {
+      console.log(vehicle.timestamp);
+      return "";
+    }
+    return time + " ago";
+  }, [vehicle.timestamp]);
+
   if (!route || !route.routeShortName || !route.routeLongName) return null;
 
   const { routeShortName, routeLongName } = route;
-  const color = scheduleRelationship === "ADDED" ? "red" : "green";
   const { latitude, longitude } = vehicle.position;
   const names = routeLongName?.split("-");
   const destination = directionId ? names[0] : names.toReversed()[0];
+
   return (
     <DotOrSVG
       position={[latitude, longitude]}
-      color={color}
+      color={colorScaleValue}
       textContent={routeShortName}
       zoom={zoom}
     >
@@ -46,11 +66,7 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
           <b>{routeShortName}</b> to {destination}
         </p>
         <p className="whitespace-nowrap">
-          <LiveText
-            content={() => timeSinceLastVehicleUpdate(vehicle.timestamp)}
-            delayInSeconds={10}
-          />{" "}
-          ago
+          <LiveText content={handleContentUpdate} delayInSeconds={1} />
         </p>
         {scheduleRelationship === "ADDED" && (
           <p className="pb-2">
@@ -79,3 +95,27 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
 }
 
 export default GPSGhost;
+
+const MAX_SCALE_SECONDS = 360;
+
+// use rgb since no encoding is necessary when creating svg url string
+const COLORS = [
+  "rgb(0, 107, 61)",
+  "rgb(6, 156, 86)",
+  "rgb(255, 195, 14)",
+  "rgb(255, 152, 14)",
+  "rgb(255, 104, 30)",
+  "rgb(211, 33, 44)",
+];
+
+function getScaledColor(vehicleTimestamp: string) {
+  const now = DateTime.now();
+  const updateTime = DateTime.fromSeconds(Number(vehicleTimestamp));
+  const { seconds } = now.diff(updateTime, "seconds").toObject();
+  const colorIndex = Math.floor(
+    COLORS.length *
+      (Math.min(seconds || 0, MAX_SCALE_SECONDS - 1) / MAX_SCALE_SECONDS),
+  );
+
+  return COLORS[colorIndex];
+}

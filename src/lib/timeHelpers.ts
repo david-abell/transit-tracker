@@ -227,7 +227,7 @@ export function timeSinceLastVehicleUpdate(timestamp: string) {
   const updateTime = DateTime.fromSeconds(Number(timestamp));
   const { seconds } = updateTime.diff(now, "seconds").toObject();
 
-  return formatReadableDelay(seconds) ?? "";
+  return formatReadableDelay(seconds, true) ?? "";
 }
 
 export function getPercentageToArrival(

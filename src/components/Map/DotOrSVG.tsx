@@ -1,7 +1,6 @@
 import { Icon } from "leaflet";
 import { ReactNode } from "react";
 import { CircleMarker, Marker } from "react-leaflet";
-// import { canvasRenderer } from ".";
 
 type Props = {
   color: string;
@@ -27,7 +26,6 @@ function DotOrSVG({ children, color, position, textContent, zoom }: Props) {
       fillColor={color}
       stroke={false}
       radius={6}
-      // renderer={canvasRenderer}
     >
       {children}
     </CircleMarker>

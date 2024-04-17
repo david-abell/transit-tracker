@@ -3,10 +3,7 @@
 import { MapContainer, TileLayer } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
 import MapContentLayer from "./MapContentLayer";
-import L from "leaflet";
 import "leaflet-edgebuffer";
-
-export const canvasRenderer = L.canvas();
 
 type MapContentLayerProps = React.ComponentProps<typeof MapContentLayer>;
 
@@ -30,8 +27,6 @@ function Map({ center, ...props }: Props) {
       zoom={MAP_DEFAULT_ZOOM}
       minZoom={8}
       className={`relative h-full w-[100max]`}
-      preferCanvas
-      renderer={canvasRenderer}
       zoomSnap={0.2}
     >
       <TileLayer

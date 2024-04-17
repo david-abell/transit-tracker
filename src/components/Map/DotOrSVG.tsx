@@ -11,7 +11,7 @@ type Props = {
   children: ReactNode;
 };
 
-function CircleOrIcon({ children, color, position, textContent, zoom }: Props) {
+function DotOrSVG({ children, color, position, textContent, zoom }: Props) {
   if (zoom > 14) {
     return (
       <Marker position={position} icon={getIcon(textContent, color)}>
@@ -34,7 +34,7 @@ function CircleOrIcon({ children, color, position, textContent, zoom }: Props) {
   );
 }
 
-export default CircleOrIcon;
+export default DotOrSVG;
 
 const FONT_FAMILY =
   'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';

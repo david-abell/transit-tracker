@@ -18,7 +18,7 @@ declare module "react-leaflet" {
   }
 }
 
-export const MAP_DEFAULT_ZOOM = 13;
+export const MAP_DEFAULT_ZOOM = 15;
 
 function Map({ center, ...props }: Props) {
   return (
@@ -37,6 +37,8 @@ function Map({ center, ...props }: Props) {
         edgeBufferTiles={1}
         keepBuffer={1}
         updateWhenIdle={false}
+        maxNativeZoom={20}
+        maxZoom={20}
       />
       <MapContentLayer center={center} {...props} />
     </MapContainer>

@@ -7,7 +7,7 @@ import LiveText from "../LiveText";
 import { timeSinceLastVehicleUpdate } from "@/lib/timeHelpers";
 import { Button } from "../ui/button";
 import { TripHandler } from "@/pages";
-import CircleOrIcon from "./CircleOrIcon";
+import DotOrSVG from "./DotOrSVG";
 
 type Props = {
   handleTrip: TripHandler;
@@ -35,7 +35,7 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
   const names = routeLongName?.split("-");
   const destination = directionId ? names[0] : names.toReversed()[0];
   return (
-    <CircleOrIcon
+    <DotOrSVG
       position={[latitude, longitude]}
       color={color}
       textContent={routeShortName}
@@ -74,7 +74,7 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
           Select bus
         </Button>
       </Popup>
-    </CircleOrIcon>
+    </DotOrSVG>
   );
 }
 

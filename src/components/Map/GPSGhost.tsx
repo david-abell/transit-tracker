@@ -100,12 +100,12 @@ const MAX_SCALE_SECONDS = 360;
 
 // use rgb since no encoding is necessary when creating svg url string
 const COLORS = [
-  "rgb(0, 107, 61)",
   "rgb(6, 156, 86)",
   "rgb(255, 195, 14)",
   "rgb(255, 152, 14)",
   "rgb(255, 104, 30)",
   "rgb(211, 33, 44)",
+  "rgb(138, 4, 153)",
 ];
 
 function getScaledColor(vehicleTimestamp: string) {

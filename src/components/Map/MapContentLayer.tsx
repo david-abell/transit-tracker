@@ -322,7 +322,7 @@ function MapContentLayer({
       {/* Route stop markers */}
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>
-          <MarkerClusterGroup>
+          <MarkerClusterGroup maxClusterRadius={60}>
             {stopList.map(({ stop, times }) => {
               const { stopLat, stopLon, stopName, stopId, stopCode } = stop;
 

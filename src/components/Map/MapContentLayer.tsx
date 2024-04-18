@@ -104,7 +104,7 @@ function MapContentLayer({
     const height =
       map.distance(bounds.getNorthWest(), bounds.getSouthWest()) / 1000;
 
-    return Math.min(width, height);
+    return (width + height) / 2;
   }, [map]);
 
   const [mapCenter, setMapCenter] = useState({

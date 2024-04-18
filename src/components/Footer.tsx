@@ -124,8 +124,8 @@ function Footer({
     isPastArrivalTime(realtimeDropOffArrivalTime ?? dropOffArrivalTime);
 
   const liveTextArrivalTime = isPastPickup
-    ? realtimeDropOffArrivalTime
-    : realtimePickupArrivalTime;
+    ? realtimeDropOffArrivalTime || dropOffArrivalTime
+    : realtimePickupArrivalTime || pickupArrivalTime;
 
   const liveTextContent = liveTextArrivalTime
     ? formatReadableDelay(getDifferenceInSeconds(liveTextArrivalTime), true)
@@ -156,7 +156,7 @@ function Footer({
                     )}
                   </p>
 
-                  {!!trip && (
+                  {!!trip && !!stop && (
                     <p>
                       {isPastDropOff ? (
                         "Completed"

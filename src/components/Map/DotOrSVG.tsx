@@ -36,18 +36,18 @@ export default DotOrSVG;
 
 const FONT_FAMILY =
   'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
-const BG_COLOR = "%23f9fafb";
-const BORDER_COLOR = "green";
+// const BG_COLOR = "%23f9fafb";
+// const BORDER_COLOR = "green";
+
 function getIcon(textContent: string, color: string) {
   return new Icon({
-    iconUrl:
-      new URL(`data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' fill='${BG_COLOR}' xmlns='http://www.w3.org/2000/svg'%3E
-    %3Cpath x='0' y='0' stroke='${BORDER_COLOR}' stroke-width='1' d='M6.69811 0.5H46C47.3807 0.5 48.5 1.61929 48.5 3V23C48.5 24.3807 47.3807 25.5 46 25.5H6.69811C5.3174 25.5 4.19811 24.3807 4.19811 23V18.1743C4.19811 17.2935 3.86601 16.4451 3.26807 15.7983L2.25 14.6971C1.36424 13.7391 1.36424 12.2609 2.25 11.3029L3.26807 10.2017C3.86601 9.55493 4.19811 8.7065 4.19811 7.82569V3C4.19811 1.61929 5.3174 0.5 6.69811 0.5Z'/%3E
-    %3Ctext x='50%25' y='55%25' fill='${color}' font-family='${FONT_FAMILY}' font-size='13' font-weight='bold' dominant-baseline='middle' text-anchor='middle' %3E${textContent}%3C/text%3E%3C/svg%3E%0A`)
-        .href,
+    iconUrl: new URL(
+      `data:image/svg+xml,%3Csvg width='60' height='30' viewBox='0 0 60 30' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M46.473 20.761a4.391 4.391 0 1 0-.002 8.783 4.391 4.391 0 0 0 .002-8.783Zm-2.408 4.39a2.407 2.407 0 1 1 4.814 0 2.407 2.407 0 0 1-4.814 0ZM12.634 20.761a4.391 4.391 0 1 0-.002 8.783 4.391 4.391 0 0 0 .002-8.783Zm-2.408 4.39a2.407 2.407 0 1 1 4.814 0 2.407 2.407 0 0 1-4.814 0Z' fill='${color}'/%3E%3Cmask id='a' fill='white'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M58.932 21.472c.119-4.032.084-7.52-.12-10.42-.207-2.935-.587-5.285-1.15-7.008-.507-1.548-1.157-2.443-2.055-2.961-.886-.511-1.965-.625-3.36-.625h-39.05c-1.233 0-2.391.017-3.527.185C8.517.815 7.4 1.14 6.28 1.757a5.663 5.663 0 0 0-1.74 1.503C2.686 5.608 2.69 7.605 1.985 10.701A55.982 55.982 0 0 0 1 16.186l.002 5.676c.095 1.68.81 2.649 1.878 3.207 1.016.532 2.333.657 3.718.676 15.856 0 28.038 0 47.745-.002 0 0 2.3-.474 3.084-1.158.793-.693 1.308-1.69 1.5-3.04l.005-.073Z'/%3E%3C/mask%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M58.932 21.472c.119-4.032.084-7.52-.12-10.42-.207-2.935-.587-5.285-1.15-7.008-.507-1.548-1.157-2.443-2.055-2.961-.886-.511-1.965-.625-3.36-.625h-39.05c-1.233 0-2.391.017-3.527.185C8.517.815 7.4 1.14 6.28 1.757a5.663 5.663 0 0 0-1.74 1.503C2.686 5.608 2.69 7.605 1.985 10.701A55.982 55.982 0 0 0 1 16.186l.002 5.676c.095 1.68.81 2.649 1.878 3.207 1.016.532 2.333.657 3.718.676 15.856 0 28.038 0 47.745-.002 0 0 2.3-.474 3.084-1.158.793-.693 1.308-1.69 1.5-3.04l.005-.073Z' fill='white' stroke='${color}' stroke-width='6' mask='url(%23a)'/%3E%3Cpath d='M0 0h60v30H0z'/%3E
+      %3Ctext fill='black' xml:space='preserve' font-family='${FONT_FAMILY}' font-size='16' font-weight='bold' x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle'%3E${textContent}%3C/text%3E%3C/svg%3E`,
+    ).href,
     // shadowUrl: gpsShadow,
-    iconSize: [52, 26],
-    iconAnchor: [26, 14],
+    iconSize: [55, 25],
+    iconAnchor: [27.5, 12.5],
     popupAnchor: [1, -34],
     // shadowSize: [54, 28],
   });

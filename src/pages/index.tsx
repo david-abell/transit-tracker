@@ -215,20 +215,23 @@ export default function Home() {
   const handleSelectedTrip: TripHandler = useCallback(
     ({ tripId, newRouteId, from }) => {
       setShowTripModal(false);
-      setTripId(tripId);
       if (newRouteId) {
+        removeQueryParams();
         setRouteId((prev) => (prev !== newRouteId ? newRouteId : prev));
       }
+      setTripId(tripId);
       setMapCenter(from);
     },
-    [setRouteId, setTripId],
+    [removeQueryParams, setRouteId, setTripId],
   );
 
   const handleSelectedStop = useCallback(
-    (stopId: string) => {
+    (stopId: string, showModal: boolean = true) => {
       setStopId(stopId);
 
-      setShowTripModal(true);
+      if (showModal) {
+        setShowTripModal(true);
+      }
     },
     [setStopId],
   );

@@ -11,7 +11,7 @@ type Props = {
   formattedDelay: string | undefined;
   handleDestinationStop: (stopId: string) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
-  handleSelectedStop: (stopId: string) => void;
+  handleSelectedStop: (stopId: string, showModal?: boolean) => void;
   isValidDestination: boolean;
   status?: "early" | "late" | "default";
   stop: Stop;
@@ -62,6 +62,10 @@ const StopPopup = memo(function StopPopup({
         </>
       )}
       <div className="flex flex-col gap-2 mt-4">
+        <Button onClick={() => handleSelectedStop(stopId, false)}>
+          Board here
+        </Button>
+
         <Button onClick={() => handleSelectedStop(stopId)}>View trips</Button>
         {isValidDestination && (
           <Button onClick={() => handleDestinationStop(stopId)}>

@@ -268,6 +268,10 @@ function MapContentLayer({
       return [...orderedStops.values()];
     }
 
+    return [];
+  }, [stopTimes, stops, stopsById]);
+
+  const singleStop: StopWithTimes[] = useMemo(() => {
     if (
       selectedStop &&
       selectedStop.stopLat !== null &&
@@ -275,9 +279,8 @@ function MapContentLayer({
     ) {
       return [{ stop: selectedStop as ValidStop }];
     }
-
     return [];
-  }, [selectedStop, stopTimes, stops, stopsById]);
+  }, [selectedStop]);
 
   return (
     <LayersControl>
@@ -323,73 +326,75 @@ function MapContentLayer({
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>
           <MarkerClusterGroup maxClusterRadius={60}>
-            {stopList.map(({ stop, times }) => {
-              const { stopLat, stopLon, stopName, stopId, stopCode } = stop;
+            {(stopList.length ? stopList : singleStop).map(
+              ({ stop, times }) => {
+                const { stopLat, stopLon, stopName, stopId, stopCode } = stop;
 
-              const { arrivalTime, departureTime, stopSequence } =
-                times?.at(0) || {};
+                const { arrivalTime, departureTime, stopSequence } =
+                  times?.at(0) || {};
 
-              const closestStopUpdate =
-                (stopTimeUpdate &&
-                  stopTimeUpdate.find(
-                    ({ stopId, stopSequence: realtimeSequence }) =>
+                const closestStopUpdate =
+                  (stopTimeUpdate &&
+                    stopTimeUpdate.find(
+                      ({ stopId, stopSequence: realtimeSequence }) =>
+                        stopId === selectedStopId ||
+                        (stopSequence && realtimeSequence >= stopSequence),
+                    )) ||
+                  lastStopTimeUpdate;
+
+                // arrival delay is sometimes very wrong from realtime api exa. -1687598071
+                const { arrival, departure } = closestStopUpdate || {};
+
+                const delayedArrivalTime = getDelayedTime(
+                  departureTime,
+                  arrival?.delay || departure?.delay,
+                );
+
+                const prettyDelay = formatReadableDelay(
+                  arrival?.delay || departure?.delay,
+                );
+
+                const isEarly = arrival?.delay
+                  ? arrival?.delay < 0
+                  : departure?.delay
+                    ? departure.delay < 0
+                    : false;
+
+                const isValidDestination =
+                  (selectedStoptime &&
+                    stopSequence &&
+                    selectedStoptime.stopSequence < stopSequence) ||
+                  false;
+
+                return (
+                  <StopMarker
+                    big={
                       stopId === selectedStopId ||
-                      (stopSequence && realtimeSequence >= stopSequence),
-                  )) ||
-                lastStopTimeUpdate;
-
-              // arrival delay is sometimes very wrong from realtime api exa. -1687598071
-              const { arrival, departure } = closestStopUpdate || {};
-
-              const delayedArrivalTime = getDelayedTime(
-                departureTime,
-                arrival?.delay || departure?.delay,
-              );
-
-              const prettyDelay = formatReadableDelay(
-                arrival?.delay || departure?.delay,
-              );
-
-              const isEarly = arrival?.delay
-                ? arrival?.delay < 0
-                : departure?.delay
-                  ? departure.delay < 0
-                  : false;
-
-              const isValidDestination =
-                (selectedStoptime &&
-                  stopSequence &&
-                  selectedStoptime.stopSequence < stopSequence) ||
-                false;
-
-              return (
-                <StopMarker
-                  big={
-                    stopId === selectedStopId ||
-                    stopId === selectedDestinationStopId
-                  }
-                  key={"mm" + stopId + stopSequence}
-                  stopLat={stopLat}
-                  stopLon={stopLon}
-                  stopId={stopId}
-                  stopSequence={stopSequence}
-                >
-                  <StopPopup
-                    arrivalTime={arrivalTime ?? ""}
-                    delayedArrivalTime={delayedArrivalTime}
-                    formattedDelay={prettyDelay}
-                    handleDestinationStop={handleDestinationStop}
-                    handleSaveStop={handleSaveStop}
-                    handleSelectedStop={handleSelectedStop}
-                    isValidDestination={isValidDestination}
-                    status={
-                      isEarly ? "early" : !!prettyDelay ? "late" : "default"
+                      stopId === selectedDestinationStopId
                     }
-                    stop={stop}
-                  />
-                </StopMarker>
-              );
-            })}
+                    key={"mm" + stopId + stopSequence}
+                    stopLat={stopLat}
+                    stopLon={stopLon}
+                    stopId={stopId}
+                    stopSequence={stopSequence}
+                  >
+                    <StopPopup
+                      arrivalTime={arrivalTime ?? ""}
+                      delayedArrivalTime={delayedArrivalTime}
+                      formattedDelay={prettyDelay}
+                      handleDestinationStop={handleDestinationStop}
+                      handleSaveStop={handleSaveStop}
+                      handleSelectedStop={handleSelectedStop}
+                      isValidDestination={isValidDestination}
+                      status={
+                        isEarly ? "early" : !!prettyDelay ? "late" : "default"
+                      }
+                      stop={stop}
+                    />
+                  </StopMarker>
+                );
+              },
+            )}
           </MarkerClusterGroup>
         </FeatureGroup>
       </LayersControl.Overlay>

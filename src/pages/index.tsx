@@ -10,8 +10,13 @@ import Modal from "@/components/Modal";
 
 import useRouteId from "@/hooks/useRouteId";
 import MainNav from "@/components/MainNav";
-import { useElementSize, useMediaQuery, useWindowSize } from "usehooks-ts";
-import SavedStops from "@/components/SavedStops";
+import {
+  useElementSize,
+  useLocalStorage,
+  useMediaQuery,
+  useWindowSize,
+} from "usehooks-ts";
+import SavedStops, { SavedStop } from "@/components/SavedStops";
 import useStopId from "@/hooks/useStopId";
 
 import { Star } from "lucide-react";
@@ -75,8 +80,13 @@ export default function Home() {
     setDestId(null);
   }, [routeId, tripId, stopId, setDestId]);
 
-  // user input state
+  // user state
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
+
+  const [savedStops, setSavedStops] = useLocalStorage<SavedStop>(
+    "savedSTops",
+    {},
+  );
 
   // component visibility state
   const [mapCenter, setMapCenter] = useState<LatLngTuple>(INITIAL_LOCATION);
@@ -212,6 +222,20 @@ export default function Home() {
     !isWarmingDB && !apiError && !routeId && !tripId && !stopId && !destId;
 
   // event handlers
+
+  const handleSaveStop = useCallback(
+    (stopId: string, stopName: string | null) => {
+      setSavedStops((prev) => {
+        const stops = { ...prev };
+
+        stops[stopId] = stopName || stopId;
+
+        return stops;
+      });
+      setShowSavedStops(true);
+    },
+    [setSavedStops, setShowSavedStops],
+  );
   const handleSelectedTrip: TripHandler = useCallback(
     ({ tripId, newRouteId, from }) => {
       setShowTripModal(false);
@@ -342,6 +366,7 @@ export default function Home() {
             setShowSavedStops={setShowSavedStops}
             stops={stops}
             stopsById={stopsById}
+            handleSaveStop={handleSaveStop}
             handleSelectedStop={handleSelectedStop}
             handleSelectedTrip={handleSelectedTrip}
             handleDestinationStop={handleDestinationStop}

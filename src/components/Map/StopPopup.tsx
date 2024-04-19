@@ -1,34 +1,75 @@
 import { Popup } from "react-leaflet";
 import { Button } from "../ui/button";
 import { Star } from "lucide-react";
-import { memo } from "react";
-import { Stop } from "@prisma/client";
+import { memo, useMemo } from "react";
+import { StopTime } from "@prisma/client";
 import LiveMarkerTooltip from "./LiveMarkerTooltip";
+import { useQueryState } from "nuqs";
+import { TripUpdate } from "@/types/realtime";
+import { StopWithTimes } from "./MapContentLayer";
+import { formatReadableDelay, getDelayedTime } from "@/lib/timeHelpers";
 
 type Props = {
-  arrivalTime: string;
-  delayedArrivalTime: string | null;
-  formattedDelay: string | undefined;
   handleDestinationStop: (stopId: string) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
   handleSelectedStop: (stopId: string, showModal?: boolean) => void;
-  isValidDestination: boolean;
-  status?: "early" | "late" | "default";
-  stop: Stop;
+  realtimeTrip: TripUpdate | undefined;
+  stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
+  stopWithTimes: StopWithTimes;
 };
 
 const StopPopup = memo(function StopPopup({
-  arrivalTime,
-  delayedArrivalTime,
-  formattedDelay,
   handleDestinationStop,
   handleSaveStop,
   handleSelectedStop,
-  isValidDestination,
-  status = "default",
-  stop,
+  realtimeTrip,
+  stopTimesByStopId,
+  stopWithTimes,
 }: Props) {
-  const { stopId, stopCode, stopName } = stop;
+  const { stopId, stopCode, stopName } = stopWithTimes.stop;
+  const [selectedStopId] = useQueryState("stopId", { history: "push" });
+
+  const { arrivalTime, departureTime, stopSequence } =
+    stopWithTimes.times?.at(0) || {};
+
+  const closestStopUpdate =
+    realtimeTrip?.stopTimeUpdate?.find(
+      ({ stopId, stopSequence: realtimeSequence }) =>
+        stopId === selectedStopId ||
+        (stopSequence && realtimeSequence >= stopSequence),
+    ) || realtimeTrip?.stopTimeUpdate?.at(-1);
+
+  // arrival delay is sometimes very wrong from realtime api exa. -1687598071
+  const { arrival, departure } = closestStopUpdate || {};
+
+  const delayedArrivalTime = getDelayedTime(
+    departureTime,
+    arrival?.delay || departure?.delay,
+  );
+
+  const formattedDelay = formatReadableDelay(
+    arrival?.delay || departure?.delay,
+  );
+
+  const isEarly = arrival?.delay
+    ? arrival?.delay < 0
+    : departure?.delay
+      ? departure.delay < 0
+      : false;
+
+  const selectedStoptime = useMemo(
+    () => selectedStopId && stopTimesByStopId.get(selectedStopId),
+    [selectedStopId, stopTimesByStopId],
+  );
+
+  const isValidDestination =
+    (selectedStoptime &&
+      stopSequence &&
+      selectedStoptime.stopSequence < stopSequence) ||
+    false;
+
+  const status = isEarly ? "early" : !!formattedDelay ? "late" : "default";
+
   return (
     <Popup interactive>
       <p>Stop {stopCode}</p>

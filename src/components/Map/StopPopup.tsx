@@ -1,15 +1,22 @@
 import { Popup } from "react-leaflet";
 import { Button } from "../ui/button";
 import { Star } from "lucide-react";
-import { memo, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { StopTime } from "@prisma/client";
 import LiveMarkerTooltip from "./LiveMarkerTooltip";
 import { useQueryState } from "nuqs";
 import { TripUpdate } from "@/types/realtime";
 import { StopWithTimes } from "./MapContentLayer";
-import { formatReadableDelay, getDelayedTime } from "@/lib/timeHelpers";
+import {
+  formatReadableDelay,
+  getDelayedTime,
+  isPastArrivalTime,
+  stopTimeStringToDate,
+} from "@/lib/timeHelpers";
+import { DateTime } from "luxon";
 
 type Props = {
+  show: boolean;
   handleDestinationStop: (stopId: string) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
   handleSelectedStop: (stopId: string, showModal?: boolean) => void;
@@ -18,7 +25,8 @@ type Props = {
   stopWithTimes: StopWithTimes;
 };
 
-const StopPopup = memo(function StopPopup({
+function StopPopup({
+  show, // React doesn't rerender popup content without this Prop
   handleDestinationStop,
   handleSaveStop,
   handleSelectedStop,
@@ -32,29 +40,31 @@ const StopPopup = memo(function StopPopup({
   const { arrivalTime, departureTime, stopSequence } =
     stopWithTimes.times?.at(0) || {};
 
-  const closestStopUpdate =
-    realtimeTrip?.stopTimeUpdate?.find(
-      ({ stopId, stopSequence: realtimeSequence }) =>
-        stopId === selectedStopId ||
-        (stopSequence && realtimeSequence >= stopSequence),
-    ) || realtimeTrip?.stopTimeUpdate?.at(-1);
+  const thisStopUpdate = realtimeTrip?.stopTimeUpdate?.find(
+    ({ stopId: thisId, stopSequence: realtimeSequence }) => stopId === thisId,
+  );
+
+  const lastStopUpdate = realtimeTrip?.stopTimeUpdate?.at(-1);
+
+  const activeStopUpdate = thisStopUpdate ?? lastStopUpdate;
 
   // arrival delay is sometimes very wrong from realtime api exa. -1687598071
-  const { arrival, departure } = closestStopUpdate || {};
+  const { arrival: activeArrivalUpdate, departure: activeDepartureUpdate } =
+    activeStopUpdate || {};
 
   const delayedArrivalTime = getDelayedTime(
     departureTime,
-    arrival?.delay || departure?.delay,
+    activeArrivalUpdate?.delay || activeDepartureUpdate?.delay,
   );
 
   const formattedDelay = formatReadableDelay(
-    arrival?.delay || departure?.delay,
+    activeArrivalUpdate?.delay || activeDepartureUpdate?.delay,
   );
 
-  const isEarly = arrival?.delay
-    ? arrival?.delay < 0
-    : departure?.delay
-      ? departure.delay < 0
+  const isEarly = activeArrivalUpdate?.delay
+    ? activeArrivalUpdate?.delay < 0
+    : activeDepartureUpdate?.delay
+      ? activeDepartureUpdate.delay < 0
       : false;
 
   const selectedStoptime = useMemo(
@@ -70,8 +80,40 @@ const StopPopup = memo(function StopPopup({
 
   const status = isEarly ? "early" : !!formattedDelay ? "late" : "default";
 
+  const hasArrivalTime = !!arrivalTime;
+
+  const isPastThisStop = delayedArrivalTime
+    ? isPastArrivalTime(delayedArrivalTime)
+    : arrivalTime
+      ? isPastArrivalTime(arrivalTime)
+      : false;
+
+  useEffect(() => {
+    console.log({
+      stopWithTimes,
+      isPastThisStop,
+      delayedArrivalTime,
+      arrivalTime,
+      thisStopUpdate,
+      formattedDelay,
+    });
+
+    if (!arrivalTime) {
+      console.log("not arrivalTime");
+      return;
+    }
+  }, [
+    arrivalTime,
+    delayedArrivalTime,
+    thisStopUpdate,
+    isPastThisStop,
+    stopWithTimes,
+    show,
+    formattedDelay,
+  ]);
+
   return (
-    <Popup interactive>
+    <Popup>
       <p>Stop {stopCode}</p>
       <h3 className="text-lg font-bold">{stopName}</h3>
       {!!arrivalTime && (
@@ -103,7 +145,10 @@ const StopPopup = memo(function StopPopup({
         </>
       )}
       <div className="flex flex-col gap-2 mt-4">
-        <Button onClick={() => handleSelectedStop(stopId, false)}>
+        <Button
+          onClick={() => handleSelectedStop(stopId, false)}
+          disabled={isPastThisStop}
+        >
           Board here
         </Button>
 
@@ -124,6 +169,6 @@ const StopPopup = memo(function StopPopup({
       </div>
     </Popup>
   );
-});
+}
 
 export default StopPopup;

@@ -303,17 +303,17 @@ function MapContentLayer({
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>
           <MarkerClusterGroup maxClusterRadius={60}>
-            {stopList.map((stopWithTimes) => {
+            {(stopList.length ? stopList : singleStop).map((stopWithTimes) => {
               return (
                 <StopMarker
                   key={"mm" + stopWithTimes.stop.stopId}
-                  realtimeTrip={realtimeTrip}
+                  stopWithTimes={stopWithTimes}
                   handleDestinationStop={handleDestinationStop}
                   handleSaveStop={handleSaveStop}
                   handleSelectedStop={handleSelectedStop}
+                  realtimeTrip={realtimeTrip}
                   stopTimesByStopId={stopTimesByStopId}
-                  stopWithTimes={stopWithTimes}
-                />
+                ></StopMarker>
               );
             })}
           </MarkerClusterGroup>

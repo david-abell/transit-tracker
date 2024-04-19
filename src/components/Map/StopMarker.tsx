@@ -1,6 +1,6 @@
 import { Marker } from "react-leaflet";
 import { stopMarkerIcon } from "./stopMarkerIcon";
-import { memo } from "react";
+import { useRef, useState } from "react";
 import isEqual from "react-fast-compare";
 import { TripUpdate } from "@/types/realtime";
 import { StopWithTimes } from "./MapContentLayer";
@@ -10,28 +10,43 @@ import StopPopup from "./StopPopup";
 type Props = {
   animate?: boolean;
   big?: boolean;
-  handleSaveStop: (stopId: string, stopName: string | null) => void;
-  handleSelectedStop: (stopId: string) => void;
-  handleDestinationStop: (stopId: string) => void;
   isPast?: boolean;
+  handleDestinationStop: (stopId: string) => void;
+  handleSaveStop: (stopId: string, stopName: string | null) => void;
+  handleSelectedStop: (stopId: string, showModal?: boolean) => void;
+  stopWithTimes: StopWithTimes;
   realtimeTrip: TripUpdate | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
-  stopWithTimes: StopWithTimes;
 };
-const StopMarker = memo(function StopMarker({
+
+function StopMarker({
   big,
-  handleDestinationStop,
-  handleSelectedStop,
   isPast,
-  realtimeTrip,
+  handleDestinationStop,
   handleSaveStop,
-  stopTimesByStopId,
+  handleSelectedStop,
+  realtimeTrip,
   stopWithTimes,
+  stopTimesByStopId,
   animate,
 }: Props) {
+  // showPopup is required for React to properly rerender the popup content
+  const [showPopup, setShowPopup] = useState(false);
+  const ref = useRef<L.Marker<L.Popup>>(null);
+
   return (
     <Marker
+      ref={ref}
+      interactive
       position={[stopWithTimes.stop.stopLat, stopWithTimes.stop.stopLon]}
+      eventHandlers={{
+        popupopen() {
+          setShowPopup(true);
+        },
+        popupclose() {
+          setShowPopup(false);
+        },
+      }}
       icon={stopMarkerIcon({
         animate: animate,
         isPast: isPast ?? false,
@@ -39,15 +54,16 @@ const StopMarker = memo(function StopMarker({
       })}
     >
       <StopPopup
+        show={showPopup}
+        stopWithTimes={stopWithTimes}
+        realtimeTrip={realtimeTrip}
+        stopTimesByStopId={stopTimesByStopId}
         handleDestinationStop={handleDestinationStop}
         handleSaveStop={handleSaveStop}
         handleSelectedStop={handleSelectedStop}
-        realtimeTrip={realtimeTrip}
-        stopTimesByStopId={stopTimesByStopId}
-        stopWithTimes={stopWithTimes}
       />
     </Marker>
   );
-}, isEqual);
+}
 
 export default StopMarker;

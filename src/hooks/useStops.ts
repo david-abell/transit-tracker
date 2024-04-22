@@ -5,6 +5,7 @@ import { fetchHelper } from "@/lib/FetchHelper";
 import { skipRevalidationOptions } from "@/lib/api/static/consts";
 import { ApiError } from "next/dist/server/api-utils";
 import { StopsAPIResponse } from "@/pages/api/gtfs/static/stops";
+import { useMemo } from "react";
 
 type Props = {
   stopQuery?: string | null;
@@ -49,11 +50,15 @@ function useStops({ stopQuery, routeId }: Props) {
     skipRevalidationOptions,
   );
 
-  const stopsById = new Map(
-    stops?.map((stop) => {
-      const { stopId } = stop;
-      return [stopId, stop];
-    }),
+  const stopsById = useMemo(
+    () =>
+      new Map(
+        stops?.map((stop) => {
+          const { stopId } = stop;
+          return [stopId, stop];
+        }),
+      ),
+    [stops],
   );
 
   return {

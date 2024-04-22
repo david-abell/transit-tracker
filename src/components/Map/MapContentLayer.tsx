@@ -50,16 +50,17 @@ import L from "leaflet";
 import GPSGhost from "./GPSGhost";
 import { MAP_DEFAULT_ZOOM } from ".";
 
-type ValidStop = Stop & {
+export type ValidStop = Stop & {
   stopLat: NonNullable<Stop["stopLat"]>;
   stopLon: NonNullable<Stop["stopLon"]>;
 };
-type StopWithTimes = { stop: ValidStop; times?: StopTime[] };
+export type StopWithTimes = { stop: ValidStop; times?: StopTime[] };
 
 type Props = {
   height: number;
   selectedDateTime: string;
   tripId: string | null;
+  handleSaveStop: (stopId: string, stopName: string | null) => void;
   handleSelectedStop: (stopId: string) => void;
   handleSelectedTrip: TripHandler;
   handleDestinationStop: (stopId: string) => void;
@@ -83,6 +84,7 @@ function MapContentLayer({
   center,
   routesById,
   selectedDateTime,
+  handleSaveStop,
   stopTimes,
   stopTimesByStopId,
   setShowSavedStops,
@@ -133,31 +135,7 @@ function MapContentLayer({
   const previousStopIds = usePrevious(stopIds);
   const prevCenter = usePrevious(center);
 
-  const [savedStops, setSavedStops] = useLocalStorage<SavedStop>(
-    "savedSTops",
-    {},
-  );
-
-  const handleSaveStop = useCallback(
-    (stopId: string, stopName: string | null) => {
-      setSavedStops((prev) => {
-        const stops = { ...prev };
-
-        stops[stopId] = stopName || stopId;
-
-        return stops;
-      });
-      setShowSavedStops(true);
-    },
-    [setSavedStops, setShowSavedStops],
-  );
-
   const { selectedStop } = useStopId(selectedStopId);
-
-  const selectedStoptime = useMemo(
-    () => selectedStopId && stopTimesByStopId.get(selectedStopId),
-    [selectedStopId, stopTimesByStopId],
-  );
 
   useEffect(() => {
     if (!stopIds.length) return;
@@ -196,11 +174,10 @@ function MapContentLayer({
   const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM, zoomLevel);
 
   const realtimeTrip = useMemo(
-    () => !!tripId && realtimeScheduledByTripId.get(tripId),
+    () => (!!tripId ? realtimeScheduledByTripId.get(tripId) : undefined),
     [realtimeScheduledByTripId, tripId],
   );
-  const { stopTimeUpdate } = realtimeTrip || {};
-  const lastStopTimeUpdate = stopTimeUpdate && stopTimeUpdate.at(-1);
+  // const { stopTimeUpdate } = realtimeTrip || {};
 
   // const isAddedTrip = useMemo(
   //   () =>
@@ -268,6 +245,10 @@ function MapContentLayer({
       return [...orderedStops.values()];
     }
 
+    return [];
+  }, [stopTimes, stops, stopsById]);
+
+  const singleStop: StopWithTimes[] = useMemo(() => {
     if (
       selectedStop &&
       selectedStop.stopLat !== null &&
@@ -275,9 +256,8 @@ function MapContentLayer({
     ) {
       return [{ stop: selectedStop as ValidStop }];
     }
-
     return [];
-  }, [selectedStop, stopTimes, stops, stopsById]);
+  }, [selectedStop]);
 
   return (
     <LayersControl>
@@ -323,71 +303,17 @@ function MapContentLayer({
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>
           <MarkerClusterGroup maxClusterRadius={60}>
-            {stopList.map(({ stop, times }) => {
-              const { stopLat, stopLon, stopName, stopId, stopCode } = stop;
-
-              const { arrivalTime, departureTime, stopSequence } =
-                times?.at(0) || {};
-
-              const closestStopUpdate =
-                (stopTimeUpdate &&
-                  stopTimeUpdate.find(
-                    ({ stopId, stopSequence: realtimeSequence }) =>
-                      stopId === selectedStopId ||
-                      (stopSequence && realtimeSequence >= stopSequence),
-                  )) ||
-                lastStopTimeUpdate;
-
-              // arrival delay is sometimes very wrong from realtime api exa. -1687598071
-              const { arrival, departure } = closestStopUpdate || {};
-
-              const delayedArrivalTime = getDelayedTime(
-                departureTime,
-                arrival?.delay || departure?.delay,
-              );
-
-              const prettyDelay = formatReadableDelay(
-                arrival?.delay || departure?.delay,
-              );
-
-              const isEarly = arrival?.delay
-                ? arrival?.delay < 0
-                : departure?.delay
-                  ? departure.delay < 0
-                  : false;
-
-              const isValidDestination =
-                (selectedStoptime &&
-                  stopSequence &&
-                  selectedStoptime.stopSequence < stopSequence) ||
-                false;
-
+            {(stopList.length ? stopList : singleStop).map((stopWithTimes) => {
               return (
                 <StopMarker
-                  big={
-                    stopId === selectedStopId ||
-                    stopId === selectedDestinationStopId
-                  }
-                  key={"mm" + stopId + stopSequence}
-                  stopLat={stopLat}
-                  stopLon={stopLon}
-                  stopId={stopId}
-                  stopSequence={stopSequence}
-                >
-                  <StopPopup
-                    arrivalTime={arrivalTime ?? ""}
-                    delayedArrivalTime={delayedArrivalTime}
-                    formattedDelay={prettyDelay}
-                    handleDestinationStop={handleDestinationStop}
-                    handleSaveStop={handleSaveStop}
-                    handleSelectedStop={handleSelectedStop}
-                    isValidDestination={isValidDestination}
-                    status={
-                      isEarly ? "early" : !!prettyDelay ? "late" : "default"
-                    }
-                    stop={stop}
-                  />
-                </StopMarker>
+                  key={"mm" + stopWithTimes.stop.stopId}
+                  stopWithTimes={stopWithTimes}
+                  handleDestinationStop={handleDestinationStop}
+                  handleSaveStop={handleSaveStop}
+                  handleSelectedStop={handleSelectedStop}
+                  realtimeTrip={realtimeTrip}
+                  stopTimesByStopId={stopTimesByStopId}
+                ></StopMarker>
               );
             })}
           </MarkerClusterGroup>

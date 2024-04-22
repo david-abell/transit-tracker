@@ -122,7 +122,6 @@ function useVehiclePosition({
             delayedArrivalTime: getDelayedTime(
               arrivalTime,
               arrival?.delay || departure?.delay,
-              true,
             ),
             coordinates: [stop.stopLat, stop.stopLon],
             stopSequence,

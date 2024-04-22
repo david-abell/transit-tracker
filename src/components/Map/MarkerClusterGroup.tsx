@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import {
   extendContext,
   createElementObject,
@@ -7,6 +7,7 @@ import {
 } from "@react-leaflet/core";
 import L, { LeafletMouseEventHandlerFn } from "leaflet";
 import "leaflet.markercluster";
+import isEqual from "react-fast-compare";
 
 delete (L.Icon.Default as any).prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -78,9 +79,12 @@ const updateMarkerCluster = (
   // }
 };
 
-const MarkerClusterGroup = createPathComponent<
-  L.MarkerClusterGroup,
-  MarkerClusterControl
->(createMarkerClusterGroup, updateMarkerCluster);
+const MarkerClusterGroup = memo(
+  createPathComponent<L.MarkerClusterGroup, MarkerClusterControl>(
+    createMarkerClusterGroup,
+    updateMarkerCluster,
+  ),
+  isEqual,
+);
 
 export default MarkerClusterGroup;

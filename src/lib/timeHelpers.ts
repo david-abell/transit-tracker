@@ -1,4 +1,4 @@
-import { StopTimeUpdate } from "@/types/realtime";
+import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
 import { Calendar, Stop, StopTime, Trip } from "@prisma/client";
 import { format, getDay } from "date-fns";
 
@@ -93,7 +93,6 @@ export function isPastArrivalTime(
 export function getDelayedTime(
   timeString: string | null | undefined,
   delay: number | undefined,
-  precise: boolean = false,
 ) {
   if (!timeString || delay === undefined) return null;
 
@@ -104,12 +103,6 @@ export function getDelayedTime(
   const date = stopTimeStringToDate(timeString);
 
   const delayedDate = date.plus({ seconds: delay });
-  const { seconds } = delayedDate.diff(date, "seconds").toObject();
-
-  // ignore any diff less than a minute
-  if (!precise && seconds && seconds < 30 && seconds > -30) {
-    return null;
-  }
 
   return dateToStopTimeString(delayedDate);
 }
@@ -145,19 +138,12 @@ export function formatDelayAsDuration(
   return `${hourString}${minuteString}${secondsString}`;
 }
 
-export function formatReadableDelay(
-  delayInSeconds: number | undefined,
-  exact = false,
-) {
+export function formatReadableDelay(delayInSeconds: number | undefined) {
   if (!delayInSeconds) return undefined;
   const positiveDelay = Math.round(Math.abs(delayInSeconds));
   const hours = Math.floor(positiveDelay / 3600);
   const minutes = Math.floor((positiveDelay - hours * 3600) / 60);
   const seconds = positiveDelay - hours * 3600 - minutes * 60;
-
-  if (!exact && positiveDelay < 30) {
-    return;
-  }
 
   if (positiveDelay < 60) {
     return `${positiveDelay}s`;
@@ -227,7 +213,31 @@ export function timeSinceLastVehicleUpdate(timestamp: string) {
   const updateTime = DateTime.fromSeconds(Number(timestamp));
   const { seconds } = updateTime.diff(now, "seconds").toObject();
 
-  return formatReadableDelay(seconds, true) ?? "";
+  return formatReadableDelay(seconds) ?? "";
+}
+
+export function getDelayedTimeFromTripUpdate(
+  stopTime?: StopTime,
+  tripUpdate?: TripUpdate,
+) {
+  if (!stopTime || !stopTime.arrivalTime || !stopTime.stopSequence) {
+    return null;
+  }
+
+  const closestStopUpdate =
+    tripUpdate?.stopTimeUpdate?.find(
+      ({ stopSequence: realtimeSequence }) =>
+        stopTime.stopSequence && realtimeSequence >= stopTime.stopSequence,
+      // && scheduleRelationship !== "SKIPPED"
+    ) || tripUpdate?.stopTimeUpdate?.at(-1);
+
+  const { arrival, departure } = closestStopUpdate || {};
+
+  const delayedArrivalTime = getDelayedTime(
+    stopTime.arrivalTime,
+    arrival?.delay || departure?.delay,
+  );
+  return delayedArrivalTime;
 }
 
 export function getPercentageToArrival(

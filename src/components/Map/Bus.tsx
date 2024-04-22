@@ -9,12 +9,10 @@ import {
   getDifferenceInSeconds,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
-import { useInterval } from "usehooks-ts";
 import { Stop, StopTime } from "@prisma/client";
 import { Position } from "@turf/helpers";
 import { TripUpdate } from "@/types/realtime";
 import LiveText, { LiveTextColor } from "../LiveText";
-import LiveVehicleTooltip from "./LiveVehicleTooltip";
 
 type Props = {
   realtimeScheduledByTripId: Map<string, TripUpdate>;
@@ -55,7 +53,6 @@ function Bus({
 
   const [prevPos, setPrevPos] = useState<LatLngTuple>([0, 0]);
   const [prevAngle, setPrevAngle] = useState<number>(bearing ?? 0);
-  const [arrivingIn, setArrivingIn] = useState("");
 
   useEffect(() => {
     if (vehicleError) return;
@@ -65,36 +62,29 @@ function Bus({
     if (prevAngle !== bearing) setPrevAngle(bearing);
   }, [prevPos, prevAngle, vehiclePosition, vehicleError, bearing]);
 
-  useInterval(
-    () => {
-      if (!nextStop) return;
-      if (
-        isPastArrivalTime(nextStop.delayedArrivalTime ?? nextStop.arrivalTime)
-      )
-        return;
+  const handleArrivalCountdown = useCallback(() => {
+    if (
+      !nextStop ||
+      isPastArrivalTime(nextStop.delayedArrivalTime ?? nextStop.arrivalTime)
+    )
+      return "";
 
-      const arrivalSeconds = getDifferenceInSeconds(
-        nextStop.delayedArrivalTime ?? nextStop.arrivalTime,
-      );
-      // Your custom logic here
-      setArrivingIn(formatReadableDelay(arrivalSeconds, true) ?? "");
-    },
-    // Delay in milliseconds or null to stop it
-    1000,
-  );
+    const arrivalSeconds = getDifferenceInSeconds(
+      nextStop.delayedArrivalTime ?? nextStop.arrivalTime,
+    );
 
-  const onTextUpdate = useCallback(() => {
-    if (nextStop) {
-      return (
-        formatReadableDelay(
-          nextStop?.stopUpdate?.arrival?.delay ||
-            nextStop?.stopUpdate?.departure?.delay,
-        ) ?? ""
-      );
-    }
-
-    return "";
+    return formatReadableDelay(arrivalSeconds) ?? "";
   }, [nextStop]);
+
+  const handleDelayTextUpdate = useCallback(() => {
+    return (
+      formatReadableDelay(
+        nextStop?.stopUpdate?.arrival?.delay ||
+          nextStop?.stopUpdate?.departure?.delay,
+      ) ?? ""
+    );
+  }, [nextStop]);
+
   if (vehicleError) return null;
 
   const arrivalDelay = nextStop?.stopUpdate?.arrival?.delay;
@@ -156,10 +146,11 @@ function Bus({
           </h3>
 
           <p className="!mt-1 !mb-0">
-            <b className="text-lg whitespace-nowrap">
-              <LiveText content={arrivingIn} color={liveTextColor} />{" "}
-              <LiveVehicleTooltip />
-            </b>
+            <LiveText
+              content={handleArrivalCountdown}
+              color={liveTextColor}
+              tooltip="vehicle"
+            />
           </p>
 
           <p className="!mt-2 !mb-0">
@@ -169,18 +160,6 @@ function Bus({
             <span>
               <b>Arriving at </b> {nextStop.delayedArrivalTime}
             </span>
-          )}
-
-          {hasDelay && (
-            <>
-              <p>
-                <b>
-                  {"Vehicle is "}
-                  <LiveText content={onTextUpdate} color={liveTextColor} />
-                </b>
-                <span className="mr-1">{isEarly ? " early" : " late"}</span>
-              </p>
-            </>
           )}
         </Popup>
       </LeafletTrackingMarker>

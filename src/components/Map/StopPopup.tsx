@@ -97,7 +97,7 @@ function StopPopup({
       delayedArrivalTime ?? arrivalTime,
     );
 
-    const delay = formatReadableDelay(arrivalSeconds, true);
+    const delay = formatReadableDelay(arrivalSeconds);
 
     return delay ?? "";
   }, [arrivalTime, realtimeTrip, stopWithTimes.times]);

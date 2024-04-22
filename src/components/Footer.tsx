@@ -128,7 +128,7 @@ function Footer({
     : realtimePickupArrivalTime || pickupArrivalTime;
 
   const liveTextContent = liveTextArrivalTime
-    ? formatReadableDelay(getDifferenceInSeconds(liveTextArrivalTime), true)
+    ? formatReadableDelay(getDifferenceInSeconds(liveTextArrivalTime))
     : "";
 
   return (

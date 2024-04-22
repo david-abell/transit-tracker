@@ -13,7 +13,6 @@ import { Stop, StopTime } from "@prisma/client";
 import { Position } from "@turf/helpers";
 import { TripUpdate } from "@/types/realtime";
 import LiveText, { LiveTextColor } from "../LiveText";
-import LiveVehicleTooltip from "./LiveVehicleTooltip";
 
 type Props = {
   realtimeScheduledByTripId: Map<string, TripUpdate>;
@@ -74,21 +73,18 @@ function Bus({
       nextStop.delayedArrivalTime ?? nextStop.arrivalTime,
     );
 
-    return formatReadableDelay(arrivalSeconds, true) ?? "";
+    return formatReadableDelay(arrivalSeconds) ?? "";
   }, [nextStop]);
 
   const handleDelayTextUpdate = useCallback(() => {
-    if (nextStop) {
-      return (
-        formatReadableDelay(
-          nextStop?.stopUpdate?.arrival?.delay ||
-            nextStop?.stopUpdate?.departure?.delay,
-        ) ?? ""
-      );
-    }
-
-    return "";
+    return (
+      formatReadableDelay(
+        nextStop?.stopUpdate?.arrival?.delay ||
+          nextStop?.stopUpdate?.departure?.delay,
+      ) ?? ""
+    );
   }, [nextStop]);
+
   if (vehicleError) return null;
 
   const arrivalDelay = nextStop?.stopUpdate?.arrival?.delay;

@@ -138,19 +138,12 @@ export function formatDelayAsDuration(
   return `${hourString}${minuteString}${secondsString}`;
 }
 
-export function formatReadableDelay(
-  delayInSeconds: number | undefined,
-  exact = false,
-) {
+export function formatReadableDelay(delayInSeconds: number | undefined) {
   if (!delayInSeconds) return undefined;
   const positiveDelay = Math.round(Math.abs(delayInSeconds));
   const hours = Math.floor(positiveDelay / 3600);
   const minutes = Math.floor((positiveDelay - hours * 3600) / 60);
   const seconds = positiveDelay - hours * 3600 - minutes * 60;
-
-  if (!exact && positiveDelay < 30) {
-    return;
-  }
 
   if (positiveDelay < 60) {
     return `${positiveDelay}s`;
@@ -220,7 +213,7 @@ export function timeSinceLastVehicleUpdate(timestamp: string) {
   const updateTime = DateTime.fromSeconds(Number(timestamp));
   const { seconds } = updateTime.diff(now, "seconds").toObject();
 
-  return formatReadableDelay(seconds, true) ?? "";
+  return formatReadableDelay(seconds) ?? "";
 }
 
 export function getDelayedTimeFromTripUpdate(

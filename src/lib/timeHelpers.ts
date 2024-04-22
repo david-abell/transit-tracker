@@ -1,4 +1,4 @@
-import { StopTimeUpdate } from "@/types/realtime";
+import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
 import { Calendar, Stop, StopTime, Trip } from "@prisma/client";
 import { format, getDay } from "date-fns";
 
@@ -228,6 +228,30 @@ export function timeSinceLastVehicleUpdate(timestamp: string) {
   const { seconds } = updateTime.diff(now, "seconds").toObject();
 
   return formatReadableDelay(seconds, true) ?? "";
+}
+
+export function getDelayedTimeFromTripUpdate(
+  stopTime?: StopTime,
+  tripUpdate?: TripUpdate,
+) {
+  if (!stopTime || !stopTime.arrivalTime || !stopTime.stopSequence) {
+    return null;
+  }
+
+  const closestStopUpdate =
+    tripUpdate?.stopTimeUpdate?.find(
+      ({ stopSequence: realtimeSequence }) =>
+        stopTime.stopSequence && realtimeSequence >= stopTime.stopSequence,
+      // && scheduleRelationship !== "SKIPPED"
+    ) || tripUpdate?.stopTimeUpdate?.at(-1);
+
+  const { arrival, departure } = closestStopUpdate || {};
+
+  const delayedArrivalTime = getDelayedTime(
+    stopTime.arrivalTime,
+    arrival?.delay || departure?.delay,
+  );
+  return delayedArrivalTime;
 }
 
 export function getPercentageToArrival(

@@ -1,7 +1,7 @@
 import { Popup } from "react-leaflet";
 import { Button } from "../ui/button";
 import { Star } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { StopTime } from "@prisma/client";
 import LiveMarkerTooltip from "./LiveMarkerTooltip";
 import { useQueryState } from "nuqs";
@@ -10,10 +10,11 @@ import { StopWithTimes } from "./MapContentLayer";
 import {
   formatReadableDelay,
   getDelayedTime,
+  getDelayedTimeFromTripUpdate,
+  getDifferenceInSeconds,
   isPastArrivalTime,
-  stopTimeStringToDate,
 } from "@/lib/timeHelpers";
-import { DateTime } from "luxon";
+import LiveText from "../LiveText";
 
 type Props = {
   show: boolean;
@@ -37,23 +38,17 @@ function StopPopup({
   const { stopId, stopCode, stopName } = stopWithTimes.stop;
   const [selectedStopId] = useQueryState("stopId", { history: "push" });
 
-  const { arrivalTime, departureTime, stopSequence } =
-    stopWithTimes.times?.at(0) || {};
+  const { arrivalTime, stopSequence } = stopWithTimes.times?.at(0) || {};
 
   const thisStopUpdate = realtimeTrip?.stopTimeUpdate?.find(
-    ({ stopId: thisId, stopSequence: realtimeSequence }) => stopId === thisId,
+    ({ stopId: thisId }) => stopId === thisId,
   );
 
-  const lastStopUpdate = realtimeTrip?.stopTimeUpdate?.at(-1);
-
-  const activeStopUpdate = thisStopUpdate ?? lastStopUpdate;
-
-  // arrival delay is sometimes very wrong from realtime api exa. -1687598071
   const { arrival: activeArrivalUpdate, departure: activeDepartureUpdate } =
-    activeStopUpdate || {};
+    thisStopUpdate ?? realtimeTrip?.stopTimeUpdate?.at(-1) ?? {};
 
   const delayedArrivalTime = getDelayedTime(
-    departureTime,
+    arrivalTime,
     activeArrivalUpdate?.delay || activeDepartureUpdate?.delay,
   );
 
@@ -79,6 +74,8 @@ function StopPopup({
     false;
 
   const status = isEarly ? "early" : !!formattedDelay ? "late" : "default";
+  const liveTextColor =
+    status === "late" ? "alert" : status === "early" ? "info" : "default";
 
   const hasArrivalTime = !!arrivalTime;
 
@@ -88,29 +85,22 @@ function StopPopup({
       ? isPastArrivalTime(arrivalTime)
       : false;
 
-  useEffect(() => {
-    console.log({
-      stopWithTimes,
-      isPastThisStop,
-      delayedArrivalTime,
-      arrivalTime,
-      thisStopUpdate,
-      formattedDelay,
-    });
+  const handleArrivalCountdown = useCallback(() => {
+    const delayedArrivalTime = getDelayedTimeFromTripUpdate(
+      stopWithTimes.times?.at(0),
+      realtimeTrip,
+    );
 
-    if (!arrivalTime) {
-      console.log("not arrivalTime");
-      return;
-    }
-  }, [
-    arrivalTime,
-    delayedArrivalTime,
-    thisStopUpdate,
-    isPastThisStop,
-    stopWithTimes,
-    show,
-    formattedDelay,
-  ]);
+    if (!delayedArrivalTime || isPastArrivalTime(delayedArrivalTime)) return "";
+
+    const arrivalSeconds = getDifferenceInSeconds(
+      delayedArrivalTime ?? arrivalTime,
+    );
+
+    const delay = formatReadableDelay(arrivalSeconds, true);
+
+    return delay ?? "";
+  }, [arrivalTime, realtimeTrip, stopWithTimes.times]);
 
   return (
     <Popup>
@@ -121,13 +111,21 @@ function StopPopup({
           <b>Scheduled arrival</b>: {arrivalTime}
         </p>
       )}
-      {status !== "default" && (
+
+      {hasArrivalTime && !isPastThisStop && (
+        <p className="font-bold">
+          <LiveText
+            content={handleArrivalCountdown}
+            color={liveTextColor}
+            tooltip="marker"
+          />
+        </p>
+      )}
+
+      {hasArrivalTime && !isPastThisStop && (
         <>
-          <p className="tooltip-schedule-change !mt-0">
-            <b>Estimated arrival</b>: {delayedArrivalTime ?? ""}
-          </p>
           {!!formattedDelay && status === "early" && (
-            <p className="text-lg">
+            <p className="!mt-2 !mb-2">
               <span className="text-green-700 dark:text-green-500">
                 {formattedDelay}
               </span>{" "}
@@ -135,7 +133,7 @@ function StopPopup({
             </p>
           )}
           {!!formattedDelay && status === "late" && (
-            <p className="text-lg">
+            <p className="!mt-2 !mb-2">
               <span className="text-red-700 dark:text-red-500">
                 {formattedDelay}
               </span>{" "}
@@ -144,6 +142,7 @@ function StopPopup({
           )}
         </>
       )}
+
       <div className="flex flex-col gap-2 mt-4">
         <Button
           onClick={() => handleSelectedStop(stopId, false)}

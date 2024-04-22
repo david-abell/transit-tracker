@@ -26,9 +26,9 @@ function Tooltip({
     <Popover modal>
       <PopoverTrigger>
         {variant === "default" ? (
-          <HelpCircle className="text-green-700 dark:text-green-500 inline-block ml-2" />
+          <HelpCircle className="text-green-700 dark:text-green-500 inline-block" />
         ) : (
-          <Info className="text-yellow-700 dark:text-yellow-500 inline-block ml-2" />
+          <Info className="text-yellow-700 dark:text-yellow-500 inline-block" />
         )}
       </PopoverTrigger>
       <PopoverContent align={align} side={side} sideOffset={sideOffset}>

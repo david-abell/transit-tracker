@@ -8,7 +8,6 @@ function LiveMarkerTooltip() {
   return (
     <Tooltip sideOffset={-100}>
       <h3 className="font-bold mt-8 mb-3">
-        {" "}
         <HelpCircle className="text-green-700 dark:text-green-500 absolute inset-4" />
         How is this calculated?
       </h3>

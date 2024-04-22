@@ -40,12 +40,22 @@ function LiveText({
     setTextContent(typeof content === "string" ? content : content());
   }, delayInSeconds * 1000);
   return (
-    <span className={cn(className, "whitespace-nowrap text-lg ")}>
+    <span
+      className={cn(className, "whitespace-nowrap text-lg flex flex-row gap-1")}
+    >
       {!!contentBefore && <span>{contentBefore} </span>}
       <span className={cn("font-bold", colors[color])}>{textContent}</span>
       <span>{contentAfter} </span>
-      {textContent && tooltip === "marker" && <LiveMarkerTooltip />}
-      {textContent && tooltip === "vehicle" && <LiveVehicleTooltip />}
+      {textContent && tooltip === "marker" && (
+        <span className="self-center [&>button]:flex">
+          <LiveMarkerTooltip />
+        </span>
+      )}
+      {textContent && tooltip === "vehicle" && (
+        <span className="self-center [&>button]:flex">
+          <LiveVehicleTooltip />
+        </span>
+      )}
     </span>
   );
 }

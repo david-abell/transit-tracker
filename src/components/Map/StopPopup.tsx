@@ -144,19 +144,19 @@ function StopPopup({
       )}
 
       <div className="flex flex-col gap-2 mt-4">
-        {/* <Button
+        <Button
           onClick={() => handleSelectedStop(stopId, false)}
           disabled={isPastThisStop}
         >
           Board here
-        </Button> */}
+        </Button>
 
         <Button onClick={() => handleSelectedStop(stopId)}>View trips</Button>
-        {/* {isValidDestination && (
+        {isValidDestination && (
           <Button onClick={() => handleDestinationStop(stopId)}>
             set Destination
           </Button>
-        )} */}
+        )}
         <Button
           onClick={() => handleSaveStop(stopId, stopName)}
           className="flex flex-row justify-between gap-1"

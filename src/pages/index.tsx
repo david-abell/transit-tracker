@@ -48,10 +48,12 @@ const MapContainer = dynamic(() => import("../components/Map"), {
 const INITIAL_LOCATION: LatLngTuple = [53.3477999659065, -6.25849647173381];
 
 export type TripHandler = ({
+  stopId,
   tripId,
   newRouteId,
   from,
 }: {
+  stopId?: string;
   tripId: string;
   newRouteId?: string | undefined;
   from: LatLngTuple;
@@ -237,16 +239,19 @@ export default function Home() {
     [setSavedStops, setShowSavedStops],
   );
   const handleSelectedTrip: TripHandler = useCallback(
-    ({ tripId, newRouteId, from }) => {
+    ({ stopId, tripId, newRouteId, from }) => {
       setShowTripModal(false);
       if (newRouteId) {
         removeQueryParams();
         setRouteId((prev) => (prev !== newRouteId ? newRouteId : prev));
       }
+      if (stopId) {
+        setStopId(stopId);
+      }
       setTripId(tripId);
       setMapCenter(from);
     },
-    [removeQueryParams, setRouteId, setTripId],
+    [removeQueryParams, setRouteId, setStopId, setTripId],
   );
 
   const handleSelectedStop = useCallback(

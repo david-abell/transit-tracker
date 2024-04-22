@@ -200,6 +200,7 @@ function TripModal({
                       type="button"
                       onClick={() =>
                         handleSelectedTrip({
+                          stopId: selectedStop.stopId,
                           tripId,
                           newRouteId: routeId,
                           from: stopLocation,

@@ -161,17 +161,6 @@ function Bus({
               <b>Arriving at </b> {nextStop.delayedArrivalTime}
             </span>
           )}
-
-          {hasDelay && (
-            <p className="font-bold">
-              <LiveText
-                content={handleDelayTextUpdate}
-                contentBefore="Vehicle is "
-                contentAfter={isEarly ? "early" : "late"}
-                color={liveTextColor}
-              />
-            </p>
-          )}
         </Popup>
       </LeafletTrackingMarker>
     </>

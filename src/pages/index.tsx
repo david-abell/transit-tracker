@@ -278,6 +278,8 @@ export default function Home() {
     setDestId(null);
   };
 
+  const showFooter = useMemo(() => !!routeId, [routeId]);
+
   return (
     <main className="flex min-h-[100svh] flex-col items-center justify-between text-slate-950 dark:text-white">
       <div className="relative w-full">
@@ -366,6 +368,7 @@ export default function Home() {
             selectedDateTime={selectedDateTime}
             selectedStopId={stopId}
             selectedDestinationStopId={destId}
+            showFooter={showFooter}
             stopTimes={stopTimes}
             stopTimesByStopId={stopTimesByStopId}
             setShowSavedStops={setShowSavedStops}
@@ -431,7 +434,7 @@ export default function Home() {
         />
       )}
 
-      {!!routeId && (
+      {!!showFooter && (
         <Footer
           destination={destinationStop}
           route={selectedRoute}

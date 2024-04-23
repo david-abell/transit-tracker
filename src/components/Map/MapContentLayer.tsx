@@ -55,6 +55,7 @@ type Props = {
   center: LatLngTuple;
   routesById: Map<string, Route>;
   shape: Position[] | undefined;
+  showFooter: boolean;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
@@ -77,6 +78,7 @@ function MapContentLayer({
   stopTimesByStopId,
   setShowSavedStops,
   shape,
+  showFooter,
   stops,
   stopsById,
   selectedStopId,
@@ -312,7 +314,7 @@ function MapContentLayer({
       </LayersControl.Overlay>
 
       {/* User Location dot */}
-      <UserLocation />
+      <UserLocation className={showFooter ? "!mb-24" : ""} />
 
       {/* Trip line shape */}
       {!!shape && (

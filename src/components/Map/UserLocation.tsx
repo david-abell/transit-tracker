@@ -4,8 +4,11 @@ import { Locate } from "lucide-react";
 import LeafletControl from "./LeafletControl";
 import { Button } from "../ui/button";
 import { LocationEvent } from "leaflet";
+import { cn } from "@/lib/utils";
 
-function UserLocation() {
+type Props = { className?: string };
+
+function UserLocation({ className = "" }: Props) {
   const map = useMap();
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
   const [radius, setRadius] = useState(0);
@@ -51,7 +54,7 @@ function UserLocation() {
           }
         }}
         size={"icon"}
-        className="mb-4 mr-2 lg:mb-10 lg:mr-10"
+        className={cn(className, "mb-4 mr-2 lg:mb-10 lg:mr-10")}
       >
         <Locate />
       </Button>

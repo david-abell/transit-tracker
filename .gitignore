@@ -41,3 +41,5 @@ prisma/*.tgz
 prisma/backup/*
 last_modified_log.txt
 prisma/*.db-journal
+
+certificates

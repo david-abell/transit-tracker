@@ -6,11 +6,8 @@ import {
   useMap,
   LayersControl,
   LayerGroup,
-  Marker,
-  Popup,
   Pane,
   useMapEvents,
-  Tooltip,
 } from "react-leaflet";
 import { LatLngTuple } from "leaflet";
 import {
@@ -22,33 +19,24 @@ import {
   useRef,
   useState,
 } from "react";
-import { useLocalStorage } from "usehooks-ts";
 
 import type { Route, Stop, StopTime } from "@prisma/client";
-import {
-  formatReadableDelay,
-  getDelayedTime,
-  parseDatetimeLocale,
-  timeSinceLastVehicleUpdate,
-} from "@/lib/timeHelpers";
+import { parseDatetimeLocale } from "@/lib/timeHelpers";
 import Bus from "./Bus";
 import usePrevious from "@/hooks/usePrevious";
 import isEqual from "react-fast-compare";
 import { DateTime } from "luxon";
 import useTripUpdates from "@/hooks/useTripUpdates";
 import useStopId from "@/hooks/useStopId";
-import { SavedStop } from "../SavedStops";
 import { Position } from "@turf/helpers";
 import MarkerClusterGroup from "./MarkerClusterGroup";
 import StopMarker from "./StopMarker";
-import StopPopup from "./StopPopup";
 import useVehicleUpdates from "@/hooks/useVehicleUpdates";
-import { Button } from "../ui/button";
 import { TripHandler } from "@/pages";
-import LiveText from "../LiveText";
 import L from "leaflet";
 import GPSGhost from "./GPSGhost";
 import { MAP_DEFAULT_ZOOM } from ".";
+import UserLocation from "./UserLocation";
 
 export type ValidStop = Stop & {
   stopLat: NonNullable<Stop["stopLat"]>;
@@ -137,6 +125,7 @@ function MapContentLayer({
 
   const { selectedStop } = useStopId(selectedStopId);
 
+  // Set map center location on new route selection
   useEffect(() => {
     if (!stopIds.length) return;
 
@@ -155,6 +144,7 @@ function MapContentLayer({
     }
   }, [center, map, prevCenter, previousStopIds, stopIds]);
 
+  // Set map dimensions onload/onresize
   useEffect(() => {
     if (map != null) {
       const mapContainer = map.getContainer();
@@ -299,6 +289,7 @@ function MapContentLayer({
               ))}
         </FeatureGroup>
       </LayersControl.Overlay>
+
       {/* Route stop markers */}
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>
@@ -319,6 +310,9 @@ function MapContentLayer({
           </MarkerClusterGroup>
         </FeatureGroup>
       </LayersControl.Overlay>
+
+      {/* User Location dot */}
+      <UserLocation />
 
       {/* Trip line shape */}
       {!!shape && (

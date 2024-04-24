@@ -21,6 +21,10 @@ export const vehicleStore = {
     emitChange();
   },
 
+  clear() {
+    store.clear();
+  },
+
   subscribe(listener: any) {
     listeners = [...listeners, listener];
     return () => {

@@ -25,6 +25,7 @@ const REDIS_DISTANCE_UNIT = "km";
 
 let isFetching = false;
 const GEO_RECORDS_KEY = "vehicleGeo";
+const VEHICLE_TIMESTAMP_KEY = "vehicleTimestamp";
 
 export type NTAVehicleUpdate = {
   trip: RealTimeTrip;
@@ -40,6 +41,7 @@ export type NTAVehicleUpdate = {
 
 export type VehicleUpdatesResponse = {
   vehicleUpdates: NTAVehicleUpdate[];
+  timestamp: string | null;
 };
 
 // const updateExample = {
@@ -119,7 +121,8 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
     const vehicleUpdates = vehicleRecords.map<NTAVehicleUpdate>((record) =>
       JSON.parse(record as string),
     );
-    return res.status(StatusCodes.OK).json({ vehicleUpdates });
+    const timestamp = await redis.get(VEHICLE_TIMESTAMP_KEY);
+    return res.status(StatusCodes.OK).json({ vehicleUpdates, timestamp });
   }
 
   if (isFetching) {
@@ -154,10 +157,13 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
 
     const json = await response.json();
     const data: GTFSResponse = camelcaseKeys(json, { deep: true });
+    const { timestamp } = data.header;
 
     await redis.expire(GEO_RECORDS_KEY, 0);
 
     console.log("Downloaded %s vehicle updates", data?.entity?.length);
+
+    await redis.set(VEHICLE_TIMESTAMP_KEY, timestamp);
 
     const vehiclesWithinRadius: NTAVehicleUpdate[] = [];
 
@@ -206,7 +212,12 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
     // expire after 120 seconds
     await redis.expire(GEO_RECORDS_KEY, REDIS_CACHE_EXPIRE_SECONDS);
 
-    return res.status(200).json({ vehicleUpdates: vehiclesWithinRadius });
+    return res
+      .status(200)
+      .json({
+        vehicleUpdates: vehiclesWithinRadius,
+        timestamp: String(timestamp),
+      });
   } catch (error) {
     throw error;
   } finally {

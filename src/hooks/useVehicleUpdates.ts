@@ -20,6 +20,7 @@ const revalidateOptions = {
 type Point = { lat: number; lng: number };
 
 function useVehicleUpdates({ lat, lng }: Point, radius: number, zoom: number) {
+  const [storeTimestamp, setStoreTimestamp] = useState<string | null>(null);
   const prevZoom = useRef(0);
 
   const url =
@@ -44,6 +45,10 @@ function useVehicleUpdates({ lat, lng }: Point, radius: number, zoom: number) {
   );
 
   if (data) {
+    if (data.timestamp !== storeTimestamp) {
+      setStoreTimestamp(data.timestamp);
+      vehicleStore.clear();
+    }
     vehicleStore.add(data.vehicleUpdates);
   }
 

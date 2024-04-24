@@ -96,16 +96,17 @@ function GPSGhost({ handleTrip, routesById, vehicle, zoom }: Props) {
 
 export default GPSGhost;
 
-const MAX_SCALE_SECONDS = 360;
+const MAX_SCALE_SECONDS = 420;
 
 // use rgb since no encoding is necessary when creating svg url string
 const COLORS = [
   "rgb(6, 156, 86)",
   "rgb(255, 195, 14)",
   "rgb(255, 152, 14)",
-  "rgb(255, 104, 30)",
+  "rgb(255, 110, 37)",
   "rgb(211, 33, 44)",
   "rgb(138, 4, 153)",
+  "black",
 ];
 
 function getScaledColor(vehicleTimestamp: string) {

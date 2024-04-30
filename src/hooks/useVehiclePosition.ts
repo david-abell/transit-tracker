@@ -117,14 +117,8 @@ function useVehiclePosition({
 
   // some stops in sequence have same arrival time
   // check upcoming arrival times for stops with same arrival time and take last
-  const allNextStops = arrivals.filter(
-    ({ arrivalTime }) =>
-      arrivalTime === arrivals[currentArrivalsIndex].arrivalTime,
-  );
+  const nextStop = getNextStop(arrivals, currentArrivalsIndex);
 
-  const nextStop = allNextStops.at(-1)!;
-
-  // let chunks: FeatureCollection<LineString, Properties>;
   const slicePositions = getOrUpdateSlicePositions(
     nextStop,
     prevStop,
@@ -137,12 +131,22 @@ function useVehiclePosition({
     nextStop,
     slicePositions,
   );
+
   const bearing = getBearing(vehiclePosition, nextStop.coordinates);
 
   return { vehiclePosition, bearing, nextStop, vehicleError: undefined };
 }
 
 export default useVehiclePosition;
+
+function getNextStop(arrivals: Arrival[], currentArrivalsIndex: number) {
+  return arrivals
+    .filter(
+      ({ arrivalTime }) =>
+        arrivalTime === arrivals[currentArrivalsIndex].arrivalTime,
+    )
+    .at(-1)!;
+}
 
 function getOrUpdateSlicePositions(
   nextStop: Arrival,

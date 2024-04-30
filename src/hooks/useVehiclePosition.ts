@@ -133,20 +133,16 @@ function useVehiclePosition({
 
   const nextStop = allNextStops.at(-1)!;
 
-  let currentShapeSection: Feature<LineString, Properties>;
-  let chunks: FeatureCollection<LineString, Properties>;
+  // let chunks: FeatureCollection<LineString, Properties>;
   let slicePositions: Position[];
 
   // calling lineSlice is expensive. Storing results reduced call time by 450ms on longer routes...
   const sliceKey = JSON.stringify(nextStop.coordinates, lastStop.coordinates);
 
   if (lineSlices.current.has(sliceKey)) {
-    const slice = lineSlices.current.get(sliceKey)!;
-    currentShapeSection = slice.shapeSlice;
-    chunks = slice.chunks;
-    slicePositions = slice.slicePositions;
+    slicePositions = lineSlices.current.get(sliceKey)!.slicePositions;
   } else {
-    currentShapeSection = lineSlice(
+    const currentShapeSection = lineSlice(
       nextStop.coordinates,
       lastStop.coordinates,
       {
@@ -155,7 +151,7 @@ function useVehiclePosition({
       },
     );
 
-    chunks = lineChunk(currentShapeSection, 20, { units: "meters" });
+    const chunks = lineChunk(currentShapeSection, 20, { units: "meters" });
 
     slicePositions = chunks.features.flatMap(
       ({ geometry }) => geometry.coordinates,

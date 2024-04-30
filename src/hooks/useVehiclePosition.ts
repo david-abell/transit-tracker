@@ -7,15 +7,7 @@ import {
 import { RealtimeTripUpdateResponse } from "@/pages/api/gtfs/trip-updates";
 import { StopTimeUpdate } from "@/types/realtime";
 import { Stop, StopTime } from "@prisma/client";
-import {
-  Coord,
-  Feature,
-  FeatureCollection,
-  LineString,
-  Position,
-  Properties,
-  point,
-} from "@turf/helpers";
+import { Position, point } from "@turf/helpers";
 import lineChunk from "@turf/line-chunk";
 import lineSlice from "@turf/line-slice";
 import rhumbDistance from "@turf/rhumb-distance";

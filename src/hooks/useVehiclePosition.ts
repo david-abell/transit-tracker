@@ -39,7 +39,7 @@ type ShapeSlices = {
   nextShapeSlice: Position[];
 };
 
-type Props = {
+export type VehiclePositionProps = {
   stopIds: string[] | undefined;
   shape: Position[] | undefined;
   stopTimesByStopId: Map<StopTime["stopId"], StopTime>;
@@ -71,7 +71,7 @@ function useVehiclePosition({
   stopsById,
   stopTimeUpdate,
   options,
-}: Props): VehiclePosition | VehicleError {
+}: VehiclePositionProps): VehiclePosition | VehicleError {
   const [count, setCount] = useState<number>(0);
   useInterval(() => {
     setCount(count + 1);
@@ -238,6 +238,7 @@ function useVehiclePosition({
   const vehiclePosition = nextShapeSlice[sliceIndex] as LatLngTuple;
 
   const bearing = getBearing(vehiclePosition, nextStop.coordinates);
+  debugger;
   return { vehiclePosition, bearing, nextStop, vehicleError: undefined };
 }
 

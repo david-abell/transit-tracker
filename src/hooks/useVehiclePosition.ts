@@ -73,6 +73,8 @@ function useVehiclePosition({
     setCount(count + 1);
   }, 500);
 
+  // calling lineSlice is expensive. storing reduced call time by 450ms on longer routes...
+  // Here we store results from getOrUpdateSlicePositions
   const seenSlices = useRef(new Map<[number, number][], Position[]>());
 
   const prevStopTimeUpdate = useMemo(
@@ -130,34 +132,14 @@ function useVehiclePosition({
     shape,
   );
 
-  maybeReverseSliceDirection();
-
   const vehiclePosition = getCurrentSlicePosition(
     prevStop,
     nextStop,
     slicePositions,
   );
-
   const bearing = getBearing(vehiclePosition, nextStop.coordinates);
+
   return { vehiclePosition, bearing, nextStop, vehicleError: undefined };
-
-  function maybeReverseSliceDirection() {
-    // Check if slice is correct direction of travel
-    const nextStopPoint = point(nextStop.coordinates);
-    const sliceStart = slicePositions.at(0);
-    const sliceEnd = slicePositions.at(-1);
-    const sliceStartDistance =
-      sliceStart && rhumbDistance(sliceStart, nextStopPoint);
-    const sliceEndDistance = sliceEnd && rhumbDistance(sliceEnd, nextStopPoint);
-
-    if (
-      sliceStartDistance &&
-      sliceEndDistance &&
-      sliceStartDistance > sliceEndDistance
-    ) {
-      slicePositions.reverse();
-    }
-  }
 }
 
 export default useVehiclePosition;
@@ -168,9 +150,6 @@ function getOrUpdateSlicePositions(
   seenSlices: MutableRefObject<Map<[number, number][], Position[]>>,
   shape: Position[],
 ) {
-  // let slicePositions: Position[];
-
-  // calling lineSlice is expensive. Storing results reduced call time by 450ms on longer routes...
   const currentSliceKey = [nextStop.coordinates, prevStop.coordinates];
 
   if (seenSlices.current.has(currentSliceKey)) {
@@ -189,6 +168,22 @@ function getOrUpdateSlicePositions(
     const slicePositions = chunks.features.flatMap(
       ({ geometry }) => geometry.coordinates,
     );
+
+    // Check if slice is correct direction of travel
+    const nextStopPoint = point(nextStop.coordinates);
+    const sliceStart = slicePositions.at(0);
+    const sliceEnd = slicePositions.at(-1);
+    const sliceStartDistance =
+      sliceStart && rhumbDistance(sliceStart, nextStopPoint);
+    const sliceEndDistance = sliceEnd && rhumbDistance(sliceEnd, nextStopPoint);
+
+    if (
+      sliceStartDistance &&
+      sliceEndDistance &&
+      sliceStartDistance > sliceEndDistance
+    ) {
+      slicePositions.reverse();
+    }
 
     seenSlices.current.set(currentSliceKey, slicePositions);
 

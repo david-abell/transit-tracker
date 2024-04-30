@@ -51,19 +51,14 @@ type VehiclePosition = {
   vehicleError: undefined;
 };
 
-type VehicleError = {
-  bearing: undefined;
-  nextStop: undefined;
-  vehiclePosition: undefined;
-  vehicleError: true;
-};
-
-const errorResult = {
+const vehicleError = {
   vehiclePosition: undefined,
   bearing: undefined,
   nextStop: undefined,
   vehicleError: true,
 } as const;
+
+type VehicleError = typeof vehicleError;
 
 function useVehiclePosition({
   stopIds,
@@ -106,14 +101,14 @@ function useVehiclePosition({
     !arrivals ||
     arrivals.length < 2
   ) {
-    return errorResult;
+    return vehicleError;
   }
 
   const currentStopSequence = findCurrentArrivalIndex(arrivals);
 
   // bail early if two coordinates not possible
   if (currentStopSequence <= 0 || currentStopSequence > arrivals.length - 1) {
-    return errorResult;
+    return vehicleError;
   }
 
   const lastStop = arrivals[currentStopSequence - 1];

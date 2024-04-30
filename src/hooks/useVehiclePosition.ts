@@ -73,7 +73,7 @@ function useVehiclePosition({
     setCount(count + 1);
   }, 500);
 
-  const lineSlices = useRef(new Map<[number, number][], Position[]>());
+  const seenSlices = useRef(new Map<[number, number][], Position[]>());
 
   const lastStopTimeUpdate = useMemo(
     () => stopTimeUpdate && stopTimeUpdate.at(-1),
@@ -126,7 +126,7 @@ function useVehiclePosition({
   const slicePositions = getOrUpdateSlicePositions(
     nextStop,
     lastStop,
-    lineSlices,
+    seenSlices,
     shape,
   );
 
@@ -165,7 +165,7 @@ export default useVehiclePosition;
 function getOrUpdateSlicePositions(
   nextStop: Arrival,
   lastStop: Arrival,
-  lineSlices: MutableRefObject<Map<[number, number][], Position[]>>,
+  seenSlices: MutableRefObject<Map<[number, number][], Position[]>>,
   shape: Position[],
 ) {
   // let slicePositions: Position[];
@@ -173,8 +173,8 @@ function getOrUpdateSlicePositions(
   // calling lineSlice is expensive. Storing results reduced call time by 450ms on longer routes...
   const currentSliceKey = [nextStop.coordinates, lastStop.coordinates];
 
-  if (lineSlices.current.has(currentSliceKey)) {
-    return lineSlices.current.get(currentSliceKey)!;
+  if (seenSlices.current.has(currentSliceKey)) {
+    return seenSlices.current.get(currentSliceKey)!;
   } else {
     const currentShapeSection = lineSlice(
       nextStop.coordinates,
@@ -190,7 +190,7 @@ function getOrUpdateSlicePositions(
       ({ geometry }) => geometry.coordinates,
     );
 
-    lineSlices.current.set(currentSliceKey, slicePositions);
+    seenSlices.current.set(currentSliceKey, slicePositions);
 
     return slicePositions;
   }

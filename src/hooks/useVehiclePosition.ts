@@ -113,10 +113,7 @@ function useVehiclePosition({
     };
   }
 
-  const currentStopSequence = arrivals.findIndex(
-    ({ arrivalTime, delayedArrivalTime }) =>
-      !isPastArrivalTime(delayedArrivalTime || arrivalTime),
-  );
+  const currentStopSequence = findCurrentArrivalIndex(arrivals);
 
   // bail early if two coordinates not possible
   if (currentStopSequence <= 0 || currentStopSequence > arrivals.length - 1) {
@@ -205,6 +202,13 @@ function useVehiclePosition({
 }
 
 export default useVehiclePosition;
+function findCurrentArrivalIndex(arrivals: Arrival[]) {
+  return arrivals.findIndex(
+    ({ arrivalTime, delayedArrivalTime }) =>
+      !isPastArrivalTime(delayedArrivalTime || arrivalTime),
+  );
+}
+
 function createArrivalList(
   stopIds: string[] | undefined,
   stopsById: Map<

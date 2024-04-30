@@ -86,50 +86,13 @@ function useVehiclePosition({
 
   const arrivals = useMemo(
     () =>
-      stopIds &&
-      stopIds
-        .flatMap((stopId): Arrival | [] => {
-          const stop = stopsById.get(stopId);
-          if (!stop?.stopLat || !stop?.stopLon) {
-            return [];
-          }
-          const { arrivalTime, stopSequence } =
-            stopTimesByStopId.get(stopId) || {};
-          if (!arrivalTime || !stopSequence) {
-            return [];
-          }
-
-          const closestStopUpdate =
-            (stopTimeUpdate &&
-              stopTimeUpdate.find(
-                ({ stopSequence: realtimeSequence }) =>
-                  stopSequence && realtimeSequence >= stopSequence,
-                // && scheduleRelationship !== "SKIPPED"
-              )) ||
-            lastStopTimeUpdate;
-
-          // Not sure if the below accurately reflects vehicle behaviour
-          // if (closestStopUpdate?.scheduleRelationship === "SKIPPED") {
-          //   closestStopUpdate = stopTimeUpdate!.find(
-          //     ({ arrival, departure }) => !!arrival?.delay || !!departure?.delay
-          //   );
-          // }
-
-          const { arrival, departure } = closestStopUpdate || {};
-
-          return {
-            arrivalTime,
-            delayedArrivalTime: getDelayedTime(
-              arrivalTime,
-              arrival?.delay || departure?.delay,
-            ),
-            coordinates: [stop.stopLat, stop.stopLon],
-            stopSequence,
-            stopUpdate: closestStopUpdate,
-            stop,
-          };
-        })
-        .sort((a, b) => a.stopSequence - b.stopSequence),
+      createArrivalList(
+        stopIds,
+        stopsById,
+        stopTimesByStopId,
+        stopTimeUpdate,
+        lastStopTimeUpdate,
+      ),
     [lastStopTimeUpdate, stopTimesByStopId, stopIds, stopTimeUpdate, stopsById],
   );
 
@@ -238,8 +201,84 @@ function useVehiclePosition({
   const vehiclePosition = nextShapeSlice[sliceIndex] as LatLngTuple;
 
   const bearing = getBearing(vehiclePosition, nextStop.coordinates);
-  debugger;
   return { vehiclePosition, bearing, nextStop, vehicleError: undefined };
 }
 
 export default useVehiclePosition;
+function createArrivalList(
+  stopIds: string[] | undefined,
+  stopsById: Map<
+    string,
+    {
+      stopId: string;
+      stopCode: string | null;
+      stopName: string | null;
+      stopLat: number | null;
+      stopLon: number | null;
+    }
+  >,
+  stopTimesByStopId: Map<
+    string,
+    {
+      tripId: string;
+      arrivalTime: string | null;
+      arrivalTimestamp: number | null;
+      departureTime: string | null;
+      departureTimestamp: number | null;
+      stopId: string;
+      stopSequence: number;
+      stopHeadsign: string | null;
+      pickupType: number | null;
+      dropOffType: number | null;
+      timepoint: number | null;
+      id: number;
+    }
+  >,
+  stopTimeUpdate: StopTimeUpdate[] | undefined,
+  lastStopTimeUpdate: StopTimeUpdate | undefined,
+): Arrival[] | undefined {
+  return (
+    stopIds &&
+    stopIds
+      .flatMap((stopId): Arrival | [] => {
+        const stop = stopsById.get(stopId);
+        if (!stop?.stopLat || !stop?.stopLon) {
+          return [];
+        }
+        const { arrivalTime, stopSequence } =
+          stopTimesByStopId.get(stopId) || {};
+        if (!arrivalTime || !stopSequence) {
+          return [];
+        }
+
+        const closestStopUpdate =
+          (stopTimeUpdate &&
+            stopTimeUpdate.find(
+              ({ stopSequence: realtimeSequence }) =>
+                stopSequence && realtimeSequence >= stopSequence,
+            )) ||
+          lastStopTimeUpdate;
+
+        // Not sure if the below accurately reflects vehicle behaviour
+        // if (closestStopUpdate?.scheduleRelationship === "SKIPPED") {
+        //   closestStopUpdate = stopTimeUpdate!.find(
+        //     ({ arrival, departure }) => !!arrival?.delay || !!departure?.delay
+        //   );
+        // }
+        const { arrival, departure } = closestStopUpdate || {};
+
+        return {
+          arrivalTime,
+          delayedArrivalTime: getDelayedTime(
+            arrivalTime,
+            arrival?.delay || departure?.delay,
+          ),
+          coordinates: [stop.stopLat, stop.stopLon],
+          stopSequence,
+          stopUpdate: closestStopUpdate,
+          stop,
+        };
+      })
+      .sort((a, b) => a.stopSequence - b.stopSequence)
+  );
+}

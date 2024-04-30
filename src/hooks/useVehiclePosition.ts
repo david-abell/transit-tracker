@@ -36,7 +36,7 @@ export type Arrival = {
 type ShapeSlices = {
   shapeSlice: Feature<LineString, Properties>;
   chunks: FeatureCollection<LineString, Properties>;
-  nextShapeSlice: Position[];
+  slicePositions: Position[];
 };
 
 export type VehiclePositionProps = {
@@ -141,41 +141,45 @@ function useVehiclePosition({
     nextStop.delayedArrivalTime || nextStop.arrivalTime,
   );
 
-  let shapeSlice: Feature<LineString, Properties>;
+  let currentShapeSection: Feature<LineString, Properties>;
   let chunks: FeatureCollection<LineString, Properties>;
-  let nextShapeSlice: Position[];
+  let slicePositions: Position[];
 
   // calling lineSlice is expensive. Storing results reduced call time by 450ms on longer routes...
   const sliceKey = JSON.stringify(nextStop.coordinates, lastStop.coordinates);
 
   if (lineSlices.current.has(sliceKey)) {
     const slice = lineSlices.current.get(sliceKey)!;
-    shapeSlice = slice.shapeSlice;
+    currentShapeSection = slice.shapeSlice;
     chunks = slice.chunks;
-    nextShapeSlice = slice.nextShapeSlice;
+    slicePositions = slice.slicePositions;
   } else {
-    shapeSlice = lineSlice(nextStop.coordinates, lastStop.coordinates, {
-      type: "LineString",
-      coordinates: shape,
-    });
+    currentShapeSection = lineSlice(
+      nextStop.coordinates,
+      lastStop.coordinates,
+      {
+        type: "LineString",
+        coordinates: shape,
+      },
+    );
 
-    chunks = lineChunk(shapeSlice, 20, { units: "meters" });
+    chunks = lineChunk(currentShapeSection, 20, { units: "meters" });
 
-    nextShapeSlice = chunks.features.flatMap(
+    slicePositions = chunks.features.flatMap(
       ({ geometry }) => geometry.coordinates,
     );
 
     lineSlices.current.set(sliceKey, {
-      shapeSlice,
+      shapeSlice: currentShapeSection,
       chunks,
-      nextShapeSlice,
+      slicePositions,
     });
   }
 
   // Check if slice is correct direction of travel
   const nextStopPoint = point(nextStop.coordinates);
-  const sliceStart = nextShapeSlice.at(0);
-  const sliceEnd = nextShapeSlice.at(-1);
+  const sliceStart = slicePositions.at(0);
+  const sliceEnd = slicePositions.at(-1);
 
   const sliceStartDistance =
     sliceStart && rhumbDistance(sliceStart, nextStopPoint);
@@ -185,17 +189,17 @@ function useVehiclePosition({
     sliceEndDistance &&
     sliceStartDistance > sliceEndDistance
   ) {
-    nextShapeSlice.reverse();
+    slicePositions.reverse();
   }
 
   const sliceIndex =
-    nextShapeSlice.length > 0
-      ? Math.floor((nextShapeSlice.length - 1) * slicePercentage)
+    slicePositions.length > 0
+      ? Math.floor((slicePositions.length - 1) * slicePercentage)
       : 0;
 
   // turf.js Position = number[] will always be a tuple...
   // Leaflet.js LatLngTuple = [number, number]
-  const vehiclePosition = nextShapeSlice[sliceIndex] as LatLngTuple;
+  const vehiclePosition = slicePositions[sliceIndex] as LatLngTuple;
 
   const bearing = getBearing(vehiclePosition, nextStop.coordinates);
   return { vehiclePosition, bearing, nextStop, vehicleError: undefined };

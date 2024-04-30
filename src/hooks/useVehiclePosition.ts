@@ -173,16 +173,7 @@ function useVehiclePosition({
   const sliceStart = slicePositions.at(0);
   const sliceEnd = slicePositions.at(-1);
 
-  const sliceStartDistance =
-    sliceStart && rhumbDistance(sliceStart, nextStopPoint);
-  const sliceEndDistance = sliceEnd && rhumbDistance(sliceEnd, nextStopPoint);
-  if (
-    sliceStartDistance &&
-    sliceEndDistance &&
-    sliceStartDistance > sliceEndDistance
-  ) {
-    slicePositions.reverse();
-  }
+  maybeReverseSliceDirection();
 
   const vehiclePosition = getCurrentSlicePosition(
     lastStop,
@@ -192,9 +183,24 @@ function useVehiclePosition({
 
   const bearing = getBearing(vehiclePosition, nextStop.coordinates);
   return { vehiclePosition, bearing, nextStop, vehicleError: undefined };
+
+  function maybeReverseSliceDirection() {
+    const sliceStartDistance =
+      sliceStart && rhumbDistance(sliceStart, nextStopPoint);
+    const sliceEndDistance = sliceEnd && rhumbDistance(sliceEnd, nextStopPoint);
+
+    if (
+      sliceStartDistance &&
+      sliceEndDistance &&
+      sliceStartDistance > sliceEndDistance
+    ) {
+      slicePositions.reverse();
+    }
+  }
 }
 
 export default useVehiclePosition;
+
 function getCurrentSlicePosition(
   lastStop: Arrival,
   nextStop: Arrival,

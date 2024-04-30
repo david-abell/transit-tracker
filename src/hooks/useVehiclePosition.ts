@@ -73,8 +73,7 @@ function useVehiclePosition({
     setCount(count + 1);
   }, 500);
 
-  // calling lineSlice is expensive. storing reduced call time by 450ms on longer routes...
-  // Here we store results from getOrUpdateSlicePositions
+  // calling lineSlice is expensive. Storing from getOrUpdateSlicePositions reduces call time by 450ms on longer routes...
   const seenSlices = useRef(new Map<[number, number][], Position[]>());
 
   const prevStopTimeUpdate = useMemo(
@@ -94,13 +93,12 @@ function useVehiclePosition({
     [prevStopTimeUpdate, stopTimesByStopId, stopIds, stopTimeUpdate, stopsById],
   );
 
-  // bail early if input requirements not met
+  // bail early if vehicle position isn't possible or skip option is true
   if (
     options.skip ||
     !shape ||
     shape.length < 2 ||
     !stopIds ||
-    !arrivals ||
     arrivals.length < 2
   ) {
     return vehicleError;
@@ -114,9 +112,6 @@ function useVehiclePosition({
   }
 
   const prevStop = arrivals[currentArrivalsIndex - 1];
-
-  // some stops in sequence have same arrival time
-  // check upcoming arrival times for stops with same arrival time and take last
   const nextStop = getNextStop(arrivals, currentArrivalsIndex);
 
   const slicePositions = getOrUpdateSlicePositions(
@@ -139,6 +134,8 @@ function useVehiclePosition({
 
 export default useVehiclePosition;
 
+// some stops in sequence have same arrival time
+// check upcoming arrival times for stops with same arrival time and take last
 function getNextStop(arrivals: Arrival[], currentArrivalsIndex: number) {
   return arrivals
     .filter(
@@ -254,49 +251,46 @@ function createArrivalList(
   >,
   stopTimeUpdate: StopTimeUpdate[] | undefined,
   prevStopTimeUpdate: StopTimeUpdate | undefined,
-): Arrival[] | undefined {
-  return (
-    stopIds &&
-    stopIds
-      .flatMap((stopId): Arrival | [] => {
-        const stop = stopsById.get(stopId);
-        if (!stop?.stopLat || !stop?.stopLon) {
-          return [];
-        }
-        const { arrivalTime, stopSequence } =
-          stopTimesByStopId.get(stopId) || {};
-        if (!arrivalTime || !stopSequence) {
-          return [];
-        }
+): Arrival[] {
+  if (!stopIds) return [];
+  return stopIds
+    .flatMap((stopId): Arrival | [] => {
+      const stop = stopsById.get(stopId);
+      if (!stop?.stopLat || !stop?.stopLon) {
+        return [];
+      }
+      const { arrivalTime, stopSequence } = stopTimesByStopId.get(stopId) || {};
+      if (!arrivalTime || !stopSequence) {
+        return [];
+      }
 
-        const closestStopUpdate =
-          (stopTimeUpdate &&
-            stopTimeUpdate.find(
-              ({ stopSequence: realtimeSequence }) =>
-                stopSequence && realtimeSequence >= stopSequence,
-            )) ||
-          prevStopTimeUpdate;
+      const closestStopUpdate =
+        (stopTimeUpdate &&
+          stopTimeUpdate.find(
+            ({ stopSequence: realtimeSequence }) =>
+              stopSequence && realtimeSequence >= stopSequence,
+          )) ||
+        prevStopTimeUpdate;
 
-        // Not sure if the below accurately reflects vehicle behaviour
-        // if (closestStopUpdate?.scheduleRelationship === "SKIPPED") {
-        //   closestStopUpdate = stopTimeUpdate!.find(
-        //     ({ arrival, departure }) => !!arrival?.delay || !!departure?.delay
-        //   );
-        // }
-        const { arrival, departure } = closestStopUpdate || {};
+      // Not sure if the below accurately reflects vehicle behaviour
+      // if (closestStopUpdate?.scheduleRelationship === "SKIPPED") {
+      //   closestStopUpdate = stopTimeUpdate!.find(
+      //     ({ arrival, departure }) => !!arrival?.delay || !!departure?.delay
+      //   );
+      // }
+      const { arrival, departure } = closestStopUpdate || {};
 
-        return {
+      return {
+        arrivalTime,
+        delayedArrivalTime: getDelayedTime(
           arrivalTime,
-          delayedArrivalTime: getDelayedTime(
-            arrivalTime,
-            arrival?.delay || departure?.delay,
-          ),
-          coordinates: [stop.stopLat, stop.stopLon],
-          stopSequence,
-          stopUpdate: closestStopUpdate,
-          stop,
-        };
-      })
-      .sort((a, b) => a.stopSequence - b.stopSequence)
-  );
+          arrival?.delay || departure?.delay,
+        ),
+        coordinates: [stop.stopLat, stop.stopLon],
+        stopSequence,
+        stopUpdate: closestStopUpdate,
+        stop,
+      };
+    })
+    .sort((a, b) => a.stopSequence - b.stopSequence);
 }

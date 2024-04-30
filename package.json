@@ -9,7 +9,7 @@
     "lint": "next lint",
     "prisma-format": "npx prisma-case-format --file prisma/schema.prisma",
     "deploy": "flyctl deploy --local-only",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {
     "@prisma/client": "^5.9.0",

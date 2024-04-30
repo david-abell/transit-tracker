@@ -64,6 +64,13 @@ type VehicleError = {
   vehicleError: true;
 };
 
+const errorResult = {
+  vehiclePosition: undefined,
+  bearing: undefined,
+  nextStop: undefined,
+  vehicleError: true,
+} as const;
+
 function useVehiclePosition({
   stopIds,
   shape,
@@ -105,24 +112,14 @@ function useVehiclePosition({
     !arrivals ||
     arrivals.length < 2
   ) {
-    return {
-      vehiclePosition: undefined,
-      bearing: undefined,
-      nextStop: undefined,
-      vehicleError: true,
-    };
+    return errorResult;
   }
 
   const currentStopSequence = findCurrentArrivalIndex(arrivals);
 
   // bail early if two coordinates not possible
   if (currentStopSequence <= 0 || currentStopSequence > arrivals.length - 1) {
-    return {
-      vehiclePosition: undefined,
-      bearing: undefined,
-      nextStop: undefined,
-      vehicleError: true,
-    };
+    return errorResult;
   }
 
   const lastStop = arrivals[currentStopSequence - 1];
@@ -135,11 +132,6 @@ function useVehiclePosition({
   );
 
   const nextStop = allNextStops.at(-1)!;
-
-  const slicePercentage = getPercentageToArrival(
-    lastStop.delayedArrivalTime || lastStop.arrivalTime,
-    nextStop.delayedArrivalTime || nextStop.arrivalTime,
-  );
 
   let currentShapeSection: Feature<LineString, Properties>;
   let chunks: FeatureCollection<LineString, Properties>;
@@ -192,6 +184,27 @@ function useVehiclePosition({
     slicePositions.reverse();
   }
 
+  const vehiclePosition = getCurrentSlicePosition(
+    lastStop,
+    nextStop,
+    slicePositions,
+  );
+
+  const bearing = getBearing(vehiclePosition, nextStop.coordinates);
+  return { vehiclePosition, bearing, nextStop, vehicleError: undefined };
+}
+
+export default useVehiclePosition;
+function getCurrentSlicePosition(
+  lastStop: Arrival,
+  nextStop: Arrival,
+  slicePositions: Position[],
+) {
+  const slicePercentage = getPercentageToArrival(
+    lastStop.delayedArrivalTime || lastStop.arrivalTime,
+    nextStop.delayedArrivalTime || nextStop.arrivalTime,
+  );
+
   const sliceIndex =
     slicePositions.length > 0
       ? Math.floor((slicePositions.length - 1) * slicePercentage)
@@ -200,12 +213,9 @@ function useVehiclePosition({
   // turf.js Position = number[] will always be a tuple...
   // Leaflet.js LatLngTuple = [number, number]
   const vehiclePosition = slicePositions[sliceIndex] as LatLngTuple;
-
-  const bearing = getBearing(vehiclePosition, nextStop.coordinates);
-  return { vehiclePosition, bearing, nextStop, vehicleError: undefined };
+  return vehiclePosition;
 }
 
-export default useVehiclePosition;
 function findCurrentArrivalIndex(arrivals: Arrival[]) {
   return arrivals.findIndex(
     ({ arrivalTime, delayedArrivalTime }) =>

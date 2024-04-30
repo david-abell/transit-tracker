@@ -75,7 +75,7 @@ function useVehiclePosition({
 
   const seenSlices = useRef(new Map<[number, number][], Position[]>());
 
-  const lastStopTimeUpdate = useMemo(
+  const prevStopTimeUpdate = useMemo(
     () => stopTimeUpdate && stopTimeUpdate.at(-1),
     [stopTimeUpdate],
   );
@@ -87,9 +87,9 @@ function useVehiclePosition({
         stopsById,
         stopTimesByStopId,
         stopTimeUpdate,
-        lastStopTimeUpdate,
+        prevStopTimeUpdate,
       ),
-    [lastStopTimeUpdate, stopTimesByStopId, stopIds, stopTimeUpdate, stopsById],
+    [prevStopTimeUpdate, stopTimesByStopId, stopIds, stopTimeUpdate, stopsById],
   );
 
   // bail early if input requirements not met
@@ -104,20 +104,20 @@ function useVehiclePosition({
     return vehicleError;
   }
 
-  const currentStopSequence = findCurrentArrivalIndex(arrivals);
+  const currentArrivalsIndex = findCurrentArrivalIndex(arrivals);
 
   // bail early if two coordinates not possible
-  if (currentStopSequence <= 0 || currentStopSequence > arrivals.length - 1) {
+  if (currentArrivalsIndex <= 0 || currentArrivalsIndex > arrivals.length - 1) {
     return vehicleError;
   }
 
-  const lastStop = arrivals[currentStopSequence - 1];
+  const prevStop = arrivals[currentArrivalsIndex - 1];
 
   // some stops in sequence have same arrival time
   // check upcoming arrival times for stops with same arrival time and take last
   const allNextStops = arrivals.filter(
     ({ arrivalTime }) =>
-      arrivalTime === arrivals[currentStopSequence].arrivalTime,
+      arrivalTime === arrivals[currentArrivalsIndex].arrivalTime,
   );
 
   const nextStop = allNextStops.at(-1)!;
@@ -125,7 +125,7 @@ function useVehiclePosition({
   // let chunks: FeatureCollection<LineString, Properties>;
   const slicePositions = getOrUpdateSlicePositions(
     nextStop,
-    lastStop,
+    prevStop,
     seenSlices,
     shape,
   );
@@ -133,7 +133,7 @@ function useVehiclePosition({
   maybeReverseSliceDirection();
 
   const vehiclePosition = getCurrentSlicePosition(
-    lastStop,
+    prevStop,
     nextStop,
     slicePositions,
   );
@@ -164,21 +164,21 @@ export default useVehiclePosition;
 
 function getOrUpdateSlicePositions(
   nextStop: Arrival,
-  lastStop: Arrival,
+  prevStop: Arrival,
   seenSlices: MutableRefObject<Map<[number, number][], Position[]>>,
   shape: Position[],
 ) {
   // let slicePositions: Position[];
 
   // calling lineSlice is expensive. Storing results reduced call time by 450ms on longer routes...
-  const currentSliceKey = [nextStop.coordinates, lastStop.coordinates];
+  const currentSliceKey = [nextStop.coordinates, prevStop.coordinates];
 
   if (seenSlices.current.has(currentSliceKey)) {
     return seenSlices.current.get(currentSliceKey)!;
   } else {
     const currentShapeSection = lineSlice(
       nextStop.coordinates,
-      lastStop.coordinates,
+      prevStop.coordinates,
       {
         type: "LineString",
         coordinates: shape,
@@ -197,12 +197,12 @@ function getOrUpdateSlicePositions(
 }
 
 function getCurrentSlicePosition(
-  lastStop: Arrival,
+  prevStop: Arrival,
   nextStop: Arrival,
   slicePositions: Position[],
 ) {
   const slicePercentage = getPercentageToArrival(
-    lastStop.delayedArrivalTime || lastStop.arrivalTime,
+    prevStop.delayedArrivalTime || prevStop.arrivalTime,
     nextStop.delayedArrivalTime || nextStop.arrivalTime,
   );
 
@@ -254,7 +254,7 @@ function createArrivalList(
     }
   >,
   stopTimeUpdate: StopTimeUpdate[] | undefined,
-  lastStopTimeUpdate: StopTimeUpdate | undefined,
+  prevStopTimeUpdate: StopTimeUpdate | undefined,
 ): Arrival[] | undefined {
   return (
     stopIds &&
@@ -276,7 +276,7 @@ function createArrivalList(
               ({ stopSequence: realtimeSequence }) =>
                 stopSequence && realtimeSequence >= stopSequence,
             )) ||
-          lastStopTimeUpdate;
+          prevStopTimeUpdate;
 
         // Not sure if the below accurately reflects vehicle behaviour
         // if (closestStopUpdate?.scheduleRelationship === "SKIPPED") {

@@ -20,7 +20,7 @@ import lineChunk from "@turf/line-chunk";
 import lineSlice from "@turf/line-slice";
 import rhumbDistance from "@turf/rhumb-distance";
 import { LatLngTuple } from "leaflet";
-import { useMemo, useRef, useState } from "react";
+import { MutableRefObject, useMemo, useRef, useState } from "react";
 import { KeyedMutator } from "swr";
 import { useInterval } from "usehooks-ts";
 
@@ -128,36 +128,12 @@ function useVehiclePosition({
   const nextStop = allNextStops.at(-1)!;
 
   // let chunks: FeatureCollection<LineString, Properties>;
-  let slicePositions: Position[];
-
-  // calling lineSlice is expensive. Storing results reduced call time by 450ms on longer routes...
-  const currentSliceKey = [nextStop.coordinates, lastStop.coordinates];
-
-  if (lineSlices.current.has(currentSliceKey)) {
-    slicePositions = lineSlices.current.get(currentSliceKey)!;
-  } else {
-    const currentShapeSection = lineSlice(
-      nextStop.coordinates,
-      lastStop.coordinates,
-      {
-        type: "LineString",
-        coordinates: shape,
-      },
-    );
-
-    const chunks = lineChunk(currentShapeSection, 20, { units: "meters" });
-
-    slicePositions = chunks.features.flatMap(
-      ({ geometry }) => geometry.coordinates,
-    );
-
-    lineSlices.current.set(currentSliceKey, slicePositions);
-  }
-
-  // Check if slice is correct direction of travel
-  const nextStopPoint = point(nextStop.coordinates);
-  const sliceStart = slicePositions.at(0);
-  const sliceEnd = slicePositions.at(-1);
+  const slicePositions = getOrUpdateSlicePositions(
+    nextStop,
+    lastStop,
+    lineSlices,
+    shape,
+  );
 
   maybeReverseSliceDirection();
 
@@ -171,6 +147,10 @@ function useVehiclePosition({
   return { vehiclePosition, bearing, nextStop, vehicleError: undefined };
 
   function maybeReverseSliceDirection() {
+    // Check if slice is correct direction of travel
+    const nextStopPoint = point(nextStop.coordinates);
+    const sliceStart = slicePositions.at(0);
+    const sliceEnd = slicePositions.at(-1);
     const sliceStartDistance =
       sliceStart && rhumbDistance(sliceStart, nextStopPoint);
     const sliceEndDistance = sliceEnd && rhumbDistance(sliceEnd, nextStopPoint);
@@ -186,6 +166,40 @@ function useVehiclePosition({
 }
 
 export default useVehiclePosition;
+
+function getOrUpdateSlicePositions(
+  nextStop: Arrival,
+  lastStop: Arrival,
+  lineSlices: MutableRefObject<Map<[number, number][], Position[]>>,
+  shape: Position[],
+) {
+  // let slicePositions: Position[];
+
+  // calling lineSlice is expensive. Storing results reduced call time by 450ms on longer routes...
+  const currentSliceKey = [nextStop.coordinates, lastStop.coordinates];
+
+  if (lineSlices.current.has(currentSliceKey)) {
+    return lineSlices.current.get(currentSliceKey)!;
+  } else {
+    const currentShapeSection = lineSlice(
+      nextStop.coordinates,
+      lastStop.coordinates,
+      {
+        type: "LineString",
+        coordinates: shape,
+      },
+    );
+
+    const chunks = lineChunk(currentShapeSection, 20, { units: "meters" });
+    const slicePositions = chunks.features.flatMap(
+      ({ geometry }) => geometry.coordinates,
+    );
+
+    lineSlices.current.set(currentSliceKey, slicePositions);
+
+    return slicePositions;
+  }
+}
 
 function getCurrentSlicePosition(
   lastStop: Arrival,

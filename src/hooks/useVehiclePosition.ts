@@ -33,12 +33,6 @@ export type Arrival = {
   stopUpdate: StopTimeUpdate | undefined;
 };
 
-type ShapeSlices = {
-  shapeSlice: Feature<LineString, Properties>;
-  chunks: FeatureCollection<LineString, Properties>;
-  slicePositions: Position[];
-};
-
 export type VehiclePositionProps = {
   stopIds: string[] | undefined;
   shape: Position[] | undefined;
@@ -84,7 +78,7 @@ function useVehiclePosition({
     setCount(count + 1);
   }, 500);
 
-  const lineSlices = useRef(new Map<string, ShapeSlices>());
+  const lineSlices = useRef(new Map<[number, number][], Position[]>());
 
   const lastStopTimeUpdate = useMemo(
     () => stopTimeUpdate && stopTimeUpdate.at(-1),
@@ -137,10 +131,10 @@ function useVehiclePosition({
   let slicePositions: Position[];
 
   // calling lineSlice is expensive. Storing results reduced call time by 450ms on longer routes...
-  const sliceKey = JSON.stringify(nextStop.coordinates, lastStop.coordinates);
+  const currentSliceKey = [nextStop.coordinates, lastStop.coordinates];
 
-  if (lineSlices.current.has(sliceKey)) {
-    slicePositions = lineSlices.current.get(sliceKey)!.slicePositions;
+  if (lineSlices.current.has(currentSliceKey)) {
+    slicePositions = lineSlices.current.get(currentSliceKey)!;
   } else {
     const currentShapeSection = lineSlice(
       nextStop.coordinates,
@@ -157,11 +151,7 @@ function useVehiclePosition({
       ({ geometry }) => geometry.coordinates,
     );
 
-    lineSlices.current.set(sliceKey, {
-      shapeSlice: currentShapeSection,
-      chunks,
-      slicePositions,
-    });
+    lineSlices.current.set(currentSliceKey, slicePositions);
   }
 
   // Check if slice is correct direction of travel

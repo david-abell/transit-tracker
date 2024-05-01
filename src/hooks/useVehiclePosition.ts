@@ -68,21 +68,10 @@ function useVehiclePosition({
   // calling lineSlice is expensive. Store results from getOrUpdateSlicePositions reduces call time by 450ms on longer routes...
   const seenSlices = useRef(new Map<[number, number][], Position[]>());
 
-  const prevStopTimeUpdate = useMemo(
-    () => stopTimeUpdate && stopTimeUpdate.at(-1),
-    [stopTimeUpdate],
-  );
-
   const arrivals = useMemo(
     () =>
-      createArrivalList(
-        stopIds,
-        stopsById,
-        stopTimesByStopId,
-        stopTimeUpdate,
-        prevStopTimeUpdate,
-      ),
-    [prevStopTimeUpdate, stopTimesByStopId, stopIds, stopTimeUpdate, stopsById],
+      createArrivalList(stopIds, stopsById, stopTimesByStopId, stopTimeUpdate),
+    [stopTimesByStopId, stopIds, stopTimeUpdate, stopsById],
   );
 
   // bail early if vehicle position isn't possible or skip option is true
@@ -241,7 +230,6 @@ function createArrivalList(
     }
   >,
   stopTimeUpdate: StopTimeUpdate[] | undefined,
-  prevStopTimeUpdate: StopTimeUpdate | undefined,
 ): Arrival[] {
   if (!stopIds) return [];
   return stopIds
@@ -261,7 +249,7 @@ function createArrivalList(
             ({ stopSequence: realtimeSequence }) =>
               stopSequence && realtimeSequence >= stopSequence,
           )) ||
-        prevStopTimeUpdate;
+        stopTimeUpdate?.at(-1);
 
       // Not sure if the below accurately reflects vehicle behaviour
       // if (closestStopUpdate?.scheduleRelationship === "SKIPPED") {

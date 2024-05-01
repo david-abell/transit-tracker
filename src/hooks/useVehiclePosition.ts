@@ -162,20 +162,19 @@ function getOrUpdateSlicePositions(
       ({ geometry }) => geometry.coordinates,
     );
 
-    // Check if slice is correct direction of travel
-    const nextStopPoint = point(nextStop.coordinates);
-    const sliceStart = slicePositions.at(0);
-    const sliceEnd = slicePositions.at(-1);
-    const sliceStartDistance =
-      sliceStart && rhumbDistance(sliceStart, nextStopPoint);
-    const sliceEndDistance = sliceEnd && rhumbDistance(sliceEnd, nextStopPoint);
-
-    if (
-      sliceStartDistance &&
-      sliceEndDistance &&
-      sliceStartDistance > sliceEndDistance
-    ) {
-      slicePositions.reverse();
+    // Check if slice order is correct for direction of travel
+    if (slicePositions.length > 1) {
+      const distanceFromStart = rhumbDistance(
+        slicePositions[0],
+        point(nextStop.coordinates),
+      );
+      const distanceFromEnd = rhumbDistance(
+        slicePositions[slicePositions.length - 1],
+        point(nextStop.coordinates),
+      );
+      if (distanceFromStart > distanceFromEnd) {
+        slicePositions.reverse();
+      }
     }
 
     seenSlices.current.set(currentSliceKey, slicePositions);

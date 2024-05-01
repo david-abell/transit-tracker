@@ -1,3 +1,4 @@
+"use strict";
 import { prisma } from "@/lib/db";
 import withErrorHandler from "@/lib/withErrorHandler";
 
@@ -40,7 +41,7 @@ const handler: ApiHandler<ShapeAPIResponse> = async (req, res) => {
   }
 
   const shapePoints: Position[] = camelcaseKeys(shapes).map(
-    ({ shapePtLat, shapePtLon }) => [shapePtLat, shapePtLon],
+    ({ shapePtLat, shapePtLon }) => [Number(shapePtLat), Number(shapePtLon)],
   );
 
   return res.json(shapePoints);

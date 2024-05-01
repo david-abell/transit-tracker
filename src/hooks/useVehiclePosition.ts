@@ -65,7 +65,7 @@ function useVehiclePosition({
     setCount(count + 1);
   }, 500);
 
-  // calling lineSlice is expensive. Storing from getOrUpdateSlicePositions reduces call time by 450ms on longer routes...
+  // calling lineSlice is expensive. Store results from getOrUpdateSlicePositions reduces call time by 450ms on longer routes...
   const seenSlices = useRef(new Map<[number, number][], Position[]>());
 
   const prevStopTimeUpdate = useMemo(
@@ -106,6 +106,8 @@ function useVehiclePosition({
   const prevStop = arrivals[currentArrivalsIndex - 1];
   const nextStop = getNextStop(arrivals, currentArrivalsIndex);
 
+  if (!prevStop || !nextStop) return vehicleError;
+
   const slicePositions = getOrUpdateSlicePositions(
     nextStop,
     prevStop,
@@ -129,12 +131,10 @@ export default useVehiclePosition;
 // some stops in sequence have same arrival time
 // check upcoming arrival times for stops with same arrival time and take last
 function getNextStop(arrivals: Arrival[], currentArrivalsIndex: number) {
-  return arrivals
-    .filter(
-      ({ arrivalTime }) =>
-        arrivalTime === arrivals[currentArrivalsIndex].arrivalTime,
-    )
-    .at(-1)!;
+  return arrivals.findLast(
+    ({ arrivalTime }) =>
+      arrivalTime === arrivals[currentArrivalsIndex].arrivalTime,
+  );
 }
 
 function getOrUpdateSlicePositions(

@@ -50,7 +50,7 @@ function UserLocation({ className = "" }: Props) {
       <Button
         onClick={() => {
           if (userLocation) {
-            map.flyTo(userLocation);
+            map.setView(userLocation, 14);
           }
         }}
         size={"icon"}

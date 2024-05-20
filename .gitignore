@@ -43,3 +43,7 @@ last_modified_log.txt
 prisma/*.db-journal
 
 certificates
+
+#pwa
+public/sw.js
+public/sw.js.map

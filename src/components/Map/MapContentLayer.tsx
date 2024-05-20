@@ -135,13 +135,13 @@ function MapContentLayer({
 
     if (prevCenter !== center && !isEqual(stopIds, previousStopIds)) {
       if (group?.getBounds().isValid()) {
-        map.flyToBounds(group.getBounds());
+        map.fitBounds(group.getBounds());
       } else {
         map.setView(center);
       }
     } else if (!isEqual(stopIds, previousStopIds)) {
       if (group?.getBounds().isValid()) {
-        map.flyToBounds(group.getBounds());
+        map.fitBounds(group.getBounds());
       }
     }
   }, [center, map, prevCenter, previousStopIds, stopIds]);

@@ -11,7 +11,7 @@ type Props = {
 };
 
 function DotOrSVG({ children, color, position, textContent, zoom }: Props) {
-  if (zoom > 14) {
+  if (zoom > 13) {
     return (
       <Marker position={position} icon={getIcon(textContent, color)}>
         {children}

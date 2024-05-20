@@ -4,6 +4,7 @@ import {
   Serwist,
   ExpirationPlugin,
   CacheableResponsePlugin,
+  disableDevLogs,
 } from "serwist";
 
 // This declares the value of `injectionPoint` to TypeScript.
@@ -17,6 +18,8 @@ declare global {
 }
 
 declare const self: ServiceWorkerGlobalScope;
+
+disableDevLogs();
 
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,

@@ -43,7 +43,6 @@
     "leaflet": "^1.9.4",
     "leaflet-edgebuffer": "^1.0.6",
     "leaflet.markercluster": "^1.5.3",
-    "leaflet.offline": "^3.0.1",
     "lucide-react": "^0.365.0",
     "luxon": "^3.4.4",
     "next": "^14.1.0",

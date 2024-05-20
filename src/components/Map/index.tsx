@@ -34,8 +34,8 @@ function Map({ center, ...props }: Props) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         className="map-tiles"
         detectRetina
-        edgeBufferTiles={1}
-        keepBuffer={1}
+        edgeBufferTiles={3}
+        keepBuffer={6}
         updateWhenIdle={false}
         maxNativeZoom={20}
         maxZoom={20}

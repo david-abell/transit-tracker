@@ -1,4 +1,11 @@
 /** @type {import('next').NextConfig} */
+import withSerwistInit from "@serwist/next";
+
+const withSerwist = withSerwistInit({
+  swSrc: "src/sw.ts",
+  swDest: "public/sw.js",
+});
+
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["react-leaflet-cluster"],
@@ -19,4 +26,6 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default withSerwist({
+  ...nextConfig,
+});

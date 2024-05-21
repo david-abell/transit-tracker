@@ -142,7 +142,7 @@ function Footer({
 
   return (
     <Drawer open dismissible={false} modal={false} snapPoints={snapPoints}>
-      <DrawerContent>
+      <DrawerContent className="lg:max-w-7xl mx-auto p-2">
         <DrawerHeader>
           <DrawerTitle className="sr-only">Selected route details</DrawerTitle>
           <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] py-0 no-underline">

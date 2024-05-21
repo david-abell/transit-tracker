@@ -216,7 +216,7 @@
     --background: var(--gray-50);
     --foreground: #1e293b;
 
-    --muted: 210 40% 96.1%;
+    --muted: 210 40% 90.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
     --popover: 0 0% 100%;
@@ -249,7 +249,7 @@
     --background: var(--gray-800);
     --foreground: white;
 
-    --muted: 217.2 32.6% 17.5%;
+    --muted: var(--gray-600);
     --muted-foreground: 215 20.2% 65.1%;
 
     --popover: var(--gray-700);

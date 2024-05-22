@@ -28,6 +28,8 @@ type Props = {
   tripUpdatesByTripId: Map<string, TripUpdate>;
 };
 
+const defaultSnapPoints = [0.03, 0.2, 0.4, 0.6, 0.86, 1];
+
 function Footer({
   trip,
   stop,
@@ -41,14 +43,11 @@ function Footer({
   useInterval(() => {
     setCount(count + 1);
   }, 1000);
+  const [snapPoints, setSnapPoints] = useState(defaultSnapPoints);
 
-  const snapPoints = useMemo(() => {
-    let points = [];
-    for (let i = 5; i <= 80; i += 1) {
-      points.push(i / 100);
-    }
-    return points;
-  }, []);
+  const [snap, setSnap] = useState<number | string | null>(
+    defaultSnapPoints[0],
+  );
 
   const lastStopId = useMemo(() => {
     if (!!destination) return "";
@@ -141,7 +140,15 @@ function Footer({
     : "";
 
   return (
-    <Drawer open dismissible={false} modal={false} snapPoints={snapPoints}>
+    <Drawer
+      open
+      modal={false}
+      dismissible={false}
+      snapPoints={snapPoints}
+      activeSnapPoint={snap}
+      setActiveSnapPoint={setSnap}
+      handleOnly
+    >
       <DrawerContent className="lg:max-w-7xl mx-auto p-2">
         <DrawerHeader>
           <DrawerTitle className="sr-only">Selected route details</DrawerTitle>

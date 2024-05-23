@@ -68,7 +68,7 @@ export default function Sidebar({
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent>
+      <SheetContent className="z-[2100]">
         <SheetHeader>
           <SheetTitle>Favorite Stops</SheetTitle>
           <div>

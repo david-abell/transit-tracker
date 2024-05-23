@@ -14,7 +14,7 @@ function GlobalAlert({ children, visible = true, variant = "default" }: Props) {
   return (
     <Alert
       variant={variant}
-      className="pointer-events-none absolute bottom-12 left-1/2 z-[1100] w-max max-w-full -translate-x-1/2 border-gray-400 dark:border-gray-50"
+      className="pointer-events-none absolute bottom-12 left-1/2 z-[3000] w-max max-w-full -translate-x-1/2 border-gray-400 dark:border-gray-50"
     >
       <AlertCircle className="h-4 w-4" />
       {/* <AlertTitle className="bg-transparent">Error</AlertTitle> */}

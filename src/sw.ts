@@ -1,11 +1,6 @@
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import {
-  CacheFirst,
-  Serwist,
-  ExpirationPlugin,
-  CacheableResponsePlugin,
-  disableDevLogs,
-} from "serwist";
+import { Serwist, ExpirationPlugin, disableDevLogs } from "serwist";
+import { CacheFirstNoQuery } from "./lib/service-worker/CacheFirstNoQuery";
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -25,23 +20,19 @@ const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
-  navigationPreload: true,
+  navigationPreload: false,
   runtimeCaching: [
     {
       matcher({ request }) {
         return request.destination === "image";
       },
-      handler: new CacheFirst({
+      handler: new CacheFirstNoQuery({
         cacheName: "images",
         plugins: [
           new ExpirationPlugin({
             maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
           }),
-          new CacheableResponsePlugin({
-            statuses: [0, 200],
-          }),
         ],
-        matchOptions: { ignoreSearch: true },
       }),
     },
   ],

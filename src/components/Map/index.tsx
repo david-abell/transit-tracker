@@ -31,7 +31,7 @@ function Map({ center, ...props }: Props) {
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         className="map-tiles"
         detectRetina
         edgeBufferTiles={3}
@@ -39,6 +39,7 @@ function Map({ center, ...props }: Props) {
         updateWhenIdle={false}
         maxNativeZoom={20}
         maxZoom={20}
+        crossOrigin="anonymous"
       />
       <MapContentLayer center={center} {...props} />
     </MapContainer>

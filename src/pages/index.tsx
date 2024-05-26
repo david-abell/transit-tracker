@@ -11,7 +11,7 @@ import Modal from "@/components/Modal";
 import useRouteId from "@/hooks/useRouteId";
 import MainNav from "@/components/MainNav";
 import {
-  useElementSize,
+  useResizeObserver,
   useLocalStorage,
   useMediaQuery,
   useWindowSize,
@@ -102,8 +102,10 @@ export default function Home() {
   const [showChangelog, setShowChangelog] = useState(false);
 
   const { height: windowHeight } = useWindowSize();
-  const [navContainer, { height: navHeight }] =
-    useElementSize<HTMLDivElement>();
+  const navContainer = useRef<HTMLDivElement>(null);
+  const { height: navHeight = 0 } = useResizeObserver<HTMLDivElement>({
+    ref: navContainer,
+  });
   const isMobile = useMediaQuery("(max-width: 1023px)");
 
   const navRef = useRef<HTMLDivElement>(null);

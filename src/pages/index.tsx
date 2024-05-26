@@ -99,6 +99,7 @@ export default function Home() {
   const [showNewUser, setShowNewUser] = useState(
     !(!!routeId || !!tripId || !!stopId || !!destId),
   );
+  const [showChangelog, setShowChangelog] = useState(false);
 
   const { height: windowHeight } = useWindowSize();
   const [navContainer, { height: navHeight }] =
@@ -432,7 +433,7 @@ export default function Home() {
         />
       )}
 
-      <Changelog />
+      <Changelog show={showChangelog} setShow={setShowChangelog} />
 
       <Footer
         destination={destinationStop}

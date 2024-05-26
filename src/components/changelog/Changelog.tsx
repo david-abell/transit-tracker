@@ -14,13 +14,15 @@ function Changelog() {
   return (
     <Dialog open>
       <DialogTrigger>Open</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-[90dvw] md:max-w-lg rounded-lg">
         <DialogHeader>
           <DialogTitle className="font-bold">Changelog</DialogTitle>
         </DialogHeader>
-        {changelogs.map((record) => (
-          <Version key={"version: " + record.version} {...record} />
-        ))}
+        <div className="overflow-y-scroll max-h-[70dvh]">
+          {changelogs.map((record) => (
+            <Version key={"version: " + record.version} {...record} />
+          ))}
+        </div>
         <DialogFooter>
           <DialogClose>Dismiss</DialogClose>
         </DialogFooter>

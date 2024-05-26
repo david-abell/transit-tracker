@@ -40,6 +40,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { LatLngExpression, LatLngTuple } from "leaflet";
 import useRoute from "@/hooks/useRoute";
+import Changelog from "@/components/changelog/Changelog";
 
 const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,
@@ -430,6 +431,8 @@ export default function Home() {
           showMenu={showMobileMenu}
         />
       )}
+
+      <Changelog />
 
       <Footer
         destination={destinationStop}

@@ -11,7 +11,7 @@ import Modal from "@/components/Modal";
 import useRouteId from "@/hooks/useRouteId";
 import MainNav from "@/components/MainNav";
 import {
-  useElementSize,
+  useResizeObserver,
   useLocalStorage,
   useMediaQuery,
   useWindowSize,
@@ -40,6 +40,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { LatLngExpression, LatLngTuple } from "leaflet";
 import useRoute from "@/hooks/useRoute";
+import Changelog from "@/components/changelog/Changelog";
 
 const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,
@@ -98,10 +99,13 @@ export default function Home() {
   const [showNewUser, setShowNewUser] = useState(
     !(!!routeId || !!tripId || !!stopId || !!destId),
   );
+  const [showChangelog, setShowChangelog] = useState(false);
 
   const { height: windowHeight } = useWindowSize();
-  const [navContainer, { height: navHeight }] =
-    useElementSize<HTMLDivElement>();
+  const navContainer = useRef<HTMLDivElement>(null);
+  const { height: navHeight = 0 } = useResizeObserver<HTMLDivElement>({
+    ref: navContainer,
+  });
   const isMobile = useMediaQuery("(max-width: 1023px)");
 
   const navRef = useRef<HTMLDivElement>(null);
@@ -356,6 +360,12 @@ export default function Home() {
                 Report an issue
               </Link>
             </NavItem>
+
+            <NavItem>
+              <Button onClick={() => setShowChangelog(true)} className="w-full">
+                Changelog
+              </Button>
+            </NavItem>
           </MainNav>
         </div>
         <div className="relative">
@@ -430,6 +440,8 @@ export default function Home() {
           showMenu={showMobileMenu}
         />
       )}
+
+      <Changelog show={showChangelog} setShow={setShowChangelog} />
 
       <Footer
         destination={destinationStop}

@@ -1,6 +1,6 @@
 {
   "name": "irish-buses",
-  "version": "0.11.2",
+  "version": "0.12.0",
   "type": "module",
   "scripts": {
     "dev": "next dev --experimental-https",
@@ -61,7 +61,7 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-retry": "^4.2.5",
     "typescript": "^5.3.3",
-    "usehooks-ts": "^2.10.0",
+    "usehooks-ts": "^2.16.0",
     "vaul": "^0.9.1",
     "zod": "^3.21.4"
   },

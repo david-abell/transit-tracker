@@ -9,7 +9,7 @@ export const changelogs: Changelog[] = [
     title: "Feature: Changelog dialog.",
     changes: [
       "Add Shadcn dialog component.",
-      "Add change log component and recent changes.",
+      "Add changelog component and recent changes.",
     ],
   },
   {

@@ -333,10 +333,10 @@ export default function Home() {
 
             <NavItem>
               <Button
-                className="lg:w-36 w-full flex flex-row justify-between gap-2"
+                className="lg:w-36 w-full flex flex-row"
                 onClick={() => setShowSavedStops(true)}
               >
-                <span>Favourites </span>
+                <span className="pr-2">Favourites </span>
                 <Star fill="#facc15" color="#facc15" />
               </Button>
             </NavItem>
@@ -352,19 +352,22 @@ export default function Home() {
             </NavItem>
 
             <NavItem>
-              <Link
-                href={"https://github.com/david-abell/transit-tracker/issues"}
-                className="w-full text-primary hover:text-primary/90 hover:underline flex items-center gap-2 text-lg"
-              >
-                <Icon icon={"simple-icons:github"} className="inline-block" />{" "}
-                Report an issue
-              </Link>
-            </NavItem>
-
-            <NavItem>
               <Button onClick={() => setShowChangelog(true)} className="w-full">
                 Changelog
               </Button>
+            </NavItem>
+
+            <NavItem>
+              <Link
+                href={"https://github.com/david-abell/transit-tracker/issues"}
+                className="w-full"
+              >
+                Report an issue
+                <Icon
+                  icon={"simple-icons:github"}
+                  className="inline-block ml-2"
+                />
+              </Link>
             </NavItem>
           </MainNav>
         </div>

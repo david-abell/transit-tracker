@@ -360,6 +360,12 @@ export default function Home() {
                 Report an issue
               </Link>
             </NavItem>
+
+            <NavItem>
+              <Button onClick={() => setShowChangelog(true)} className="w-full">
+                Changelog
+              </Button>
+            </NavItem>
           </MainNav>
         </div>
         <div className="relative">

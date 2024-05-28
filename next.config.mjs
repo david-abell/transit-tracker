@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 import withSerwistInit from "@serwist/next";
+import path from "path";
 
 const withSerwist = withSerwistInit({
   swSrc: "src/sw.ts",
@@ -21,6 +22,12 @@ const nextConfig = {
 
       config.snapshot.managedPaths = [];
     }
+
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      react: "/node_modules/react",
+      "react-dom": "/node_modules/react-dom",
+    };
 
     return config;
   },

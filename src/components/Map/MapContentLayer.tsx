@@ -48,12 +48,15 @@ type Props = {
   height: number;
   selectedDateTime: string;
   tripId: string | null;
+  mapCenter: LatLngTuple;
+  handleMapCenter: (latLon: LatLngTuple) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
   handleSelectedStop: (stopId: string) => void;
   handleSelectedTrip: TripHandler;
   handleDestinationStop: (stopId: string) => void;
-  center: LatLngTuple;
   routesById: Map<string, Route>;
+  requestMapCenter: boolean;
+  setRequestMapCenter: Dispatch<SetStateAction<boolean>>;
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
@@ -65,14 +68,17 @@ type Props = {
 };
 
 function MapContentLayer({
+  mapCenter,
+  handleMapCenter,
   handleSelectedStop,
   handleSelectedTrip,
   handleDestinationStop,
   height,
-  center,
   routesById,
   selectedDateTime,
   handleSaveStop,
+  requestMapCenter,
+  setRequestMapCenter,
   stopTimes,
   stopTimesByStopId,
   setShowSavedStops,
@@ -97,10 +103,10 @@ function MapContentLayer({
     return (width + height) / 2;
   }, [map]);
 
-  const [mapCenter, setMapCenter] = useState({
-    lat: center[0],
-    lng: center[1],
-  });
+  // const [mapCenter, handleMapCenter] = useState({
+  //   lat: center[0],
+  //   lng: center[1],
+  // });
 
   const [mapKM, setMapKM] = useState(getWidthHeightInKM());
   const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
@@ -108,7 +114,13 @@ function MapContentLayer({
   const mapEvents = useMapEvents({
     moveend() {
       const { lat, lng } = mapEvents.getCenter();
-      setMapCenter({ lat, lng });
+      if (requestMapCenter) {
+        // prevents movement bouncing from useEffect
+        setRequestMapCenter(false);
+      } else {
+        setRequestMapCenter(true);
+        handleMapCenter([lat, lng]);
+      }
     },
     zoomend() {
       setMapKM(getWidthHeightInKM());
@@ -121,28 +133,33 @@ function MapContentLayer({
   }, [stops]);
 
   const previousStopIds = usePrevious(stopIds);
-  const prevCenter = usePrevious(center);
+  const prevCenter = usePrevious(mapCenter);
 
   const { selectedStop } = useStopId(selectedStopId);
 
   // Set map center location on new route selection
   useEffect(() => {
+    if (requestMapCenter) {
+      map.setView(mapCenter);
+      return;
+    }
+
     if (!stopIds.length) return;
 
     const group = markerGroupRef.current;
 
-    if (prevCenter !== center && !isEqual(stopIds, previousStopIds)) {
+    if (prevCenter !== mapCenter && !isEqual(stopIds, previousStopIds)) {
       if (group?.getBounds().isValid()) {
         map.fitBounds(group.getBounds());
       } else {
-        map.setView(center);
+        map.setView(mapCenter);
       }
     } else if (!isEqual(stopIds, previousStopIds)) {
       if (group?.getBounds().isValid()) {
         map.fitBounds(group.getBounds());
       }
     }
-  }, [center, map, prevCenter, previousStopIds, stopIds]);
+  }, [mapCenter, map, prevCenter, previousStopIds, stopIds, requestMapCenter]);
 
   // Set map dimensions onload/onresize
   useEffect(() => {
@@ -161,7 +178,11 @@ function MapContentLayer({
   const { realtimeScheduledByTripId, addedTripStopTimes } =
     useTripUpdates(tripId);
 
-  const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM, zoomLevel);
+  const { vehicleUpdates } = useVehicleUpdates(
+    { lat: mapCenter[0], lng: mapCenter[1] },
+    mapKM,
+    zoomLevel,
+  );
 
   const realtimeTrip = useMemo(
     () => (!!tripId ? realtimeScheduledByTripId.get(tripId) : undefined),

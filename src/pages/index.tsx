@@ -93,6 +93,7 @@ export default function Home() {
 
   // component visibility state
   const [mapCenter, setMapCenter] = useState<LatLngTuple>(INITIAL_LOCATION);
+  const [requestMapCenter, setRequestMapCenter] = useState(false);
   const [showTripModal, setShowTripModal] = useState(false);
   const [showSavedStops, setShowSavedStops] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -254,6 +255,7 @@ export default function Home() {
       }
       setTripId(tripId);
       setMapCenter(from);
+      setRequestMapCenter(true);
     },
     [removeQueryParams, setRouteId, setStopId, setTripId],
   );
@@ -281,6 +283,11 @@ export default function Home() {
     setStopId(null);
     setDestId(null);
   };
+
+  const handleMapCenter = useCallback((latLon: LatLngTuple) => {
+    setMapCenter(latLon);
+    setRequestMapCenter(true);
+  }, []);
 
   return (
     <main className="flex min-h-[100svh] flex-col items-center justify-between text-slate-950 dark:text-white">
@@ -373,7 +380,10 @@ export default function Home() {
         </div>
         <div className="relative">
           <MapContainer
-            center={mapCenter}
+            mapCenter={mapCenter}
+            handleMapCenter={handleMapCenter}
+            requestMapCenter={requestMapCenter}
+            setRequestMapCenter={setRequestMapCenter}
             routesById={routesById}
             shape={shape}
             selectedDateTime={selectedDateTime}
@@ -448,8 +458,10 @@ export default function Home() {
 
       <Footer
         destination={destinationStop}
+        handleMapCenter={handleMapCenter}
         route={selectedRoute}
         stop={selectedStop}
+        stopsById={stopsById}
         stopTimes={stopTimes}
         trip={selectedTrip}
         tripUpdatesByTripId={tripUpdatesByTripId}

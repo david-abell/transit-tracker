@@ -8,3 +8,7 @@
   height: max(100%, 2.75rem); /* 44px */
   touch-action: inherit;
 }
+
+.handle:active {
+  cursor: grabbing;
+}

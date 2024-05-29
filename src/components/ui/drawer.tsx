@@ -1,13 +1,19 @@
 import * as React from "react";
-import { Drawer as DrawerPrimitive } from "vaul";
+import { Drawer as DrawerPrimitive } from "@vladyoslav/drawer";
 
 import { cn } from "@/lib/utils";
+import styles from "./drawer.module.css";
 
 const Drawer = ({
+  dismissible = false,
+  modal = false,
+  scaleFrom = undefined,
   shouldScaleBackground = false,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
   <DrawerPrimitive.Root
+    modal={modal}
+    dismissible={dismissible}
     shouldScaleBackground={shouldScaleBackground}
     {...props}
   />
@@ -26,11 +32,28 @@ const DrawerOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-[2000]", className)}
+    className={cn("fixed inset-0 z-[2000] bg-black/80", className)}
     {...props}
   />
 ));
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
+
+const DrawerHandle = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "relative bg-muted min-h-[5px] mx-auto w-20 rounded-lg",
+      className,
+    )}
+    {...props}
+  >
+    {/* Expand handle's hit area beyond what's visible to ensure a 44x44 tap target for touch devices */}
+    <div className={styles.handle} aria-hidden="true" />
+  </div>
+);
+DrawerHandle.displayName = "DrawerHandle";
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
@@ -41,12 +64,12 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-0 z-[2100] flex h-auto flex-col rounded-t-[10px] border bg-background border-none p-2",
+        "fixed bottom-0 left-0 right-0 z-[2100] flex h-auto flex-col rounded-t-[10px] border bg-background border-none py-2",
         className,
       )}
       {...props}
     >
-      <DrawerPrimitive.Handle className="bg-muted min-h-[5px]" />
+      <DrawerHandle />
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>
@@ -104,8 +127,8 @@ DrawerDescription.displayName = DrawerPrimitive.Description.displayName;
 
 export {
   Drawer,
-  DrawerPortal,
-  DrawerOverlay,
+  // DrawerPortal,
+  // DrawerOverlay,
   DrawerTrigger,
   DrawerClose,
   DrawerContent,

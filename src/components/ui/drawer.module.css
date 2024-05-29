@@ -1,0 +1,10 @@
+.handle {
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 2.75rem); /* 44px */
+  height: max(100%, 2.75rem); /* 44px */
+  touch-action: inherit;
+}

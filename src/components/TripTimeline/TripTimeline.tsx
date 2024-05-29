@@ -7,13 +7,15 @@ import {
   TimelineLine,
 } from "@/components/ui/timeline";
 import { getDelayedTime, isPastArrivalTime } from "@/lib/timeHelpers";
-import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
+import { TripUpdate } from "@/types/realtime";
 import { Stop, StopTime, Trip } from "@prisma/client";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, MouseEvent } from "react";
 import type { ValidStop } from "../Map/MapContentLayer";
-import { useResizeObserver } from "usehooks-ts";
+import { LatLngTuple } from "leaflet";
+import { Button } from "../ui/button";
 
 type Props = {
+  handleMapCenter: (latLon: LatLngTuple) => void;
   selectedStop?: Stop;
   stopsById?: Map<string, Stop>;
   stopTimes?: StopTime[];
@@ -24,6 +26,7 @@ type Props = {
 type StopWithStopTime = { stop: ValidStop; stopTime: StopTime };
 
 function TripTimeline({
+  handleMapCenter,
   selectedStop,
   stopsById,
   stopTimes,
@@ -31,6 +34,19 @@ function TripTimeline({
   trip,
 }: Props) {
   const timelineRef = useRef(null);
+  const pointer = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e: MouseEvent<HTMLUListElement>) => {
+    pointer.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseUp = (e: MouseEvent<HTMLButtonElement>, stop: ValidStop) => {
+    const { x, y } = pointer.current;
+    if (Math.abs(e.clientX - x) < 10 && Math.abs(e.clientY - y) < 10) {
+      e.stopPropagation();
+      handleMapCenter([stop.stopLat, stop.stopLon]);
+    }
+  };
 
   const stopTimeUpdates = useMemo(
     () => trip && tripUpdatesByTripId.get(trip?.tripId)?.stopTimeUpdate,
@@ -55,7 +71,11 @@ function TripTimeline({
   }, [stopTimes, stopsById]);
 
   return (
-    <Timeline className="max-h-full" ref={timelineRef}>
+    <Timeline
+      className="max-h-full"
+      ref={timelineRef}
+      onMouseDown={handleMouseDown}
+    >
       {stopList.map(({ stop, stopTime }, index) => {
         const { departureTime, stopSequence: currentSequence } = stopTime;
 
@@ -84,11 +104,15 @@ function TripTimeline({
             {index !== stopList.length - 1 && (
               <TimelineLine done={isPastStop} />
             )}
-            <TimelineContent>
+            <TimelineContent className="py-2 gap-1 flex flex-col">
               {!!realtimeDepartureTime && (
-                <p>Realtime: {realtimeDepartureTime}</p>
+                <span>Realtime: {realtimeDepartureTime}</span>
               )}
               <p>Scheduled: {departureTime}</p>
+              <Button type="button" onClick={(e) => handleMouseUp(e, stop)}>
+                Show<span className="sr-only">stop {stop.stopCode}</span>
+                &nbsp;on map
+              </Button>
             </TimelineContent>
           </TimelineItem>
         );

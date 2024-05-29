@@ -18,22 +18,32 @@ import {
 } from "@/components/ui/drawer";
 
 import useStopId from "@/hooks/useStopId";
+import TripTimeline from "./TripTimeline/TripTimeline";
+import { LatLngTuple } from "leaflet";
 
 type Props = {
   destination?: Stop;
+  handleMapCenter: (latLon: LatLngTuple) => void;
   route?: Route;
   stop?: Stop;
+  stopsById: Map<string, Stop>;
   trip?: Trip;
   stopTimes?: StopTime[];
   tripUpdatesByTripId: Map<string, TripUpdate>;
 };
 
-const defaultSnapPoints = [0.03, 0.2, 0.4, 0.6, 0.86, 1];
+const defaultSnapPoints = ["30px"];
+
+for (let i = 5; i <= 100; i += 5) {
+  defaultSnapPoints.push(`${i}%`);
+}
 
 function Footer({
+  handleMapCenter,
   trip,
   stop,
   route,
+  stopsById,
   stopTimes,
   destination,
   tripUpdatesByTripId,
@@ -43,11 +53,10 @@ function Footer({
   useInterval(() => {
     setCount(count + 1);
   }, 1000);
-  const [snapPoints, setSnapPoints] = useState(defaultSnapPoints);
+  const [snapPoints, setSnapPoints] =
+    useState<(string | number)[]>(defaultSnapPoints);
 
-  const [snap, setSnap] = useState<number | string | null>(
-    defaultSnapPoints[0],
-  );
+  const [snap, setSnap] = useState<number | string>(defaultSnapPoints[0]);
 
   const lastStopId = useMemo(() => {
     if (!!destination) return "";
@@ -145,14 +154,17 @@ function Footer({
       modal={false}
       dismissible={false}
       snapPoints={snapPoints}
-      activeSnapPoint={snap}
-      setActiveSnapPoint={setSnap}
-      handleOnly
+      onOpenChange={() => {
+        setSnap(snap);
+      }}
+      snap={snap}
+      setSnap={setSnap}
     >
-      <DrawerContent className="lg:max-w-7xl mx-auto p-2 z-[2000]">
+      <DrawerTitle />
+      <DrawerContent className="lg:max-w-7xl mx-auto z-[2000]">
         <DrawerHeader>
           <DrawerTitle className="sr-only">Selected route details</DrawerTitle>
-          <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] py-0 no-underline">
+          <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] no-underline">
             {
               <div className="flex w-full flex-row content-center justify-between gap-2 md:gap-4 overflow-hidden px-2 text-left font-normal">
                 <p>
@@ -211,93 +223,14 @@ function Footer({
             }
           </div>
         </DrawerHeader>
-        <div className="last:pb-0">
-          <div className="grid-rows-[3rem 1fr] dark:bg-gray-700/90 mt-4 grid w-full grid-cols-1 overflow-hidden  rounded-lg text-left text-sm text-gray-950 dark:text-gray-50 lg:grid-cols-2">
-            <div className="grid grid-cols-3 grid-rows-[minmax(0,_3rem)_1fr] gap-x-2">
-              {/* Pickup Headers */}
-              <div className="dark:bg-gray-700/90 col-span-3 grid grid-cols-3 grid-rows-subgrid items-center  gap-2 bg-gray-200/90 p-2 uppercase text-gray-950 dark:text-gray-50">
-                {/* <span className="col-span-2 p-2">Route</span> */}
-                <span>From</span>
-                <span>Scheduled</span>
-                <span>Realtime</span>
-              </div>
-
-              {/* Pickup Data */}
-              <div className="dark:bg-gray-800/90 col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white/90 p-2  text-gray-900 dark:text-white">
-                <span>
-                  {!!stop?.stopId && (
-                    <p>
-                      <b>{stop.stopCode || stop.stopId || ""}</b>{" "}
-                      {stop.stopName || stop.stopName || ""}
-                    </p>
-                  )}
-                </span>
-                <span>
-                  {!!pickupArrivalTime && (
-                    <time dateTime={pickupArrivalTime}>
-                      {pickupArrivalTime}
-                    </time>
-                  )}
-                </span>
-                <span>
-                  {!!realtimePickupArrivalTime && (
-                    <>
-                      {isPastPickup && "Arrived @ "}
-                      <time dateTime={realtimePickupArrivalTime}>
-                        {realtimePickupArrivalTime}
-                      </time>
-                    </>
-                  )}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 grid-rows-[minmax(0,_3rem)_1fr] gap-x-2">
-              {/* Destination Headers */}
-              <div className="dark:bg-gray-700/90 col-span-3 grid grid-cols-3 grid-rows-subgrid items-center gap-2 bg-gray-200/90 p-2 uppercase text-gray-950 dark:text-gray-50 ">
-                <span>To</span>
-                <span>Scheduled</span>
-                {/* <span className="p-2">Delay</span> */}
-                <span>Realtime</span>
-              </div>
-
-              {/* Destination data */}
-              <div className="dark:bg-gray-800/90 col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white/90 p-2 text-gray-900 dark:text-white">
-                <span>
-                  {!!destinationStop && (
-                    <p>
-                      <b>
-                        {destinationStop.stopCode ?? destinationStop.stopId}
-                      </b>{" "}
-                      {destinationStop.stopName}
-                    </p>
-                  )}
-                </span>
-
-                <span>
-                  {!!dropOffArrivalTime && (
-                    <time dateTime={dropOffArrivalTime}>
-                      {dropOffArrivalTime}
-                    </time>
-                  )}
-                </span>
-
-                <span>
-                  <>
-                    {!!realtimeDropOffArrivalTime && (
-                      <>
-                        {isPastDropOff && "Arrived @ "}
-                        <time dateTime={realtimeDropOffArrivalTime}>
-                          {realtimeDropOffArrivalTime}
-                        </time>
-                      </>
-                    )}
-                  </>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TripTimeline
+          handleMapCenter={handleMapCenter}
+          stopsById={stopsById}
+          selectedStop={stop}
+          stopTimes={stopTimes}
+          trip={trip}
+          tripUpdatesByTripId={tripUpdatesByTripId}
+        />
       </DrawerContent>
     </Drawer>
   );

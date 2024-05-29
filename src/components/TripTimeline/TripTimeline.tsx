@@ -6,13 +6,20 @@ import {
   TimelineItem,
   TimelineLine,
 } from "@/components/ui/timeline";
-import { getDelayedTime, isPastArrivalTime } from "@/lib/timeHelpers";
+import {
+  formatReadableDelay,
+  getDelayedTime,
+  getDelayedTimeFromTripUpdate,
+  getDifferenceInSeconds,
+  isPastArrivalTime,
+} from "@/lib/timeHelpers";
 import { TripUpdate } from "@/types/realtime";
 import { Stop, StopTime, Trip } from "@prisma/client";
-import { useMemo, useRef, MouseEvent } from "react";
+import { useMemo, useRef, MouseEvent, useCallback } from "react";
 import type { ValidStop } from "../Map/MapContentLayer";
 import { LatLngTuple } from "leaflet";
 import { Button } from "../ui/button";
+import LiveText from "../LiveText";
 
 type Props = {
   handleMapCenter: (latLon: LatLngTuple) => void;
@@ -48,8 +55,8 @@ function TripTimeline({
     }
   };
 
-  const stopTimeUpdates = useMemo(
-    () => trip && tripUpdatesByTripId.get(trip?.tripId)?.stopTimeUpdate,
+  const tripUpdate = useMemo(
+    () => trip && tripUpdatesByTripId.get(trip?.tripId),
     [tripUpdatesByTripId, trip],
   );
 
@@ -70,6 +77,27 @@ function TripTimeline({
     return stops;
   }, [stopTimes, stopsById]);
 
+  const handleArrivalCountdown = useCallback(
+    (stopTime: StopTime) => {
+      const delayedArrivalTime = getDelayedTimeFromTripUpdate(
+        stopTime,
+        tripUpdate,
+      );
+
+      if (!delayedArrivalTime || isPastArrivalTime(delayedArrivalTime))
+        return "";
+
+      const arrivalSeconds = getDifferenceInSeconds(
+        delayedArrivalTime ?? stopTime.arrivalTime,
+      );
+
+      const delay = formatReadableDelay(arrivalSeconds);
+
+      return delay ?? "";
+    },
+    [tripUpdate],
+  );
+
   return (
     <Timeline
       className="max-h-full"
@@ -78,8 +106,7 @@ function TripTimeline({
     >
       {stopList.map(({ stop, stopTime }, index) => {
         const { departureTime, stopSequence: currentSequence } = stopTime;
-
-        const stopUpdate = stopTimeUpdates?.find(
+        const stopUpdate = tripUpdate?.stopTimeUpdate?.find(
           ({ stopSequence }) => stopSequence >= currentSequence,
         );
 
@@ -97,17 +124,21 @@ function TripTimeline({
             status={isPastStop ? "done" : "default"}
             key={"timeline" + stopTime.stopId + stopTime.stopSequence}
           >
-            <TimelineHeading>
-              {stop.stopCode}: {stop.stopName}
+            <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
+              {stop.stopCode}: {stop.stopName}{" "}
+              {!isPastStop && (
+                <LiveText
+                  content={() => handleArrivalCountdown(stopTime)}
+                  color="info"
+                  contentBefore=" - "
+                />
+              )}
             </TimelineHeading>
             <TimelineDot status={isPastStop ? "done" : "default"} />
             {index !== stopList.length - 1 && (
               <TimelineLine done={isPastStop} />
             )}
             <TimelineContent className="py-2 gap-1 flex flex-col">
-              {!!realtimeDepartureTime && (
-                <span>Realtime: {realtimeDepartureTime}</span>
-              )}
               <p>Scheduled: {departureTime}</p>
               <Button type="button" onClick={(e) => handleMouseUp(e, stop)}>
                 Show<span className="sr-only">stop {stop.stopCode}</span>

@@ -392,7 +392,8 @@ body.modal-open {
   }
 }
 
-.react-select-container {
+.react-select-container,
+.react-select__menu-portal {
   .react-select__control {
     background-color: hsl(var(--popover));
     border-color: hsl(var(--border));

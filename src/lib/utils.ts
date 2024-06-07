@@ -53,19 +53,26 @@ export function getAdjustedStopTimes(
   }
 
   for (const time of stopTimes) {
-    const arrivalTime = getDelayedTime(
-      time.arrivalTime,
-      stopTimeUpdate?.arrival?.delay,
-    );
-    let { arrivalTimestamp } = time;
-    if (!Number.isNaN(time.arrivalTimestamp)) {
-      arrivalTimestamp = arrivalTimestamp! + stopTimeUpdate.arrival?.delay!;
-    }
-    arrivalTime && !Number.isNaN(time.arrivalTimestamp)
-      ? { ...time, arrivalTimestamp, arrivalTime }
-      : time;
-    adjustedStopTimes.push(time);
+    adjustedStopTimes.push(getAdjustedStopTime(time, stopTimeUpdate));
   }
 
   return adjustedStopTimes;
+}
+function getAdjustedStopTime(
+  time: StopTime,
+  stopTimeUpdate: StopTimeUpdate,
+): StopTime {
+  const arrivalTime = getDelayedTime(
+    time.arrivalTime,
+    stopTimeUpdate?.arrival?.delay,
+  );
+  let { arrivalTimestamp } = time;
+  if (!Number.isNaN(time.arrivalTimestamp)) {
+    arrivalTimestamp = arrivalTimestamp! + stopTimeUpdate.arrival?.delay!;
+  }
+  if (arrivalTime && !Number.isNaN(time.arrivalTimestamp)) {
+    return { ...time, arrivalTimestamp, arrivalTime };
+  } else {
+    return time;
+  }
 }

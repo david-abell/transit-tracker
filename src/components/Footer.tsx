@@ -305,7 +305,7 @@ function Footer({
             handleMapCenter={handleMapCenter}
             stopsById={stopsById}
             pickupStop={stop}
-            stopTimes={stopTimes}
+            stopTimes={adjustedStopTimes}
             trip={trip}
             tripUpdatesByTripId={tripUpdatesByTripId}
           />

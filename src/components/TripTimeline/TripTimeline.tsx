@@ -103,19 +103,9 @@ function TripTimeline({
       onMouseDown={handleMouseDown}
     >
       {stopList.map(({ stop, stopTime }, index) => {
-        const { departureTime, stopSequence: currentSequence } = stopTime;
-        const stopUpdate = tripUpdate?.stopTimeUpdate?.find(
-          ({ stopSequence }) => stopSequence >= currentSequence,
-        );
+        const { departureTime } = stopTime;
 
-        const realtimeDepartureTime = getDelayedTime(
-          departureTime,
-          stopUpdate?.departure?.delay || stopUpdate?.arrival?.delay,
-        );
-
-        const isPastStop =
-          !!departureTime &&
-          isPastArrivalTime(realtimeDepartureTime ?? departureTime);
+        const isPastStop = !!departureTime && isPastArrivalTime(departureTime);
 
         return (
           <TimelineItem

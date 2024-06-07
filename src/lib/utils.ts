@@ -58,7 +58,8 @@ export function getAdjustedStopTimes(
 
   return adjustedStopTimes;
 }
-function getAdjustedStopTime(
+
+export function getAdjustedStopTime(
   time: StopTime,
   stopTimeUpdate: StopTimeUpdate,
 ): StopTime {

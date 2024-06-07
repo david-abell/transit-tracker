@@ -5,9 +5,9 @@ import {
   getDifferenceInSeconds,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
-import { TripUpdate } from "@/types/realtime";
+import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
 import { Route, Stop, StopTime, Trip } from "@prisma/client";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useInterval } from "usehooks-ts";
 
 import {
@@ -16,16 +16,32 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
 
 import useStopId from "@/hooks/useStopId";
 import TripTimeline from "./TripTimeline/TripTimeline";
 import { LatLngTuple } from "leaflet";
+import { StopAndStopTime } from "./DestinationSelect";
+import { parseAsString, useQueryState } from "nuqs";
+import StopModal from "./StopModal";
+import { ValidStop } from "./Map/MapContentLayer";
+import {
+  getAdjustedStopTimes,
+  getOrderedStops,
+  getStopsToDestination,
+  getUpcomingOrderedStops,
+  isValidStop,
+} from "@/lib/utils";
 
 type Props = {
   destination?: Stop;
+  destinationStops: StopAndStopTime[];
+  handleDestinationStop: (stopId: string) => void;
   handleMapCenter: (latLon: LatLngTuple) => void;
+  handleSelectedStop: (stopId: string, showModal?: boolean) => void;
   route?: Route;
   stop?: Stop;
+  stops: Stop[] | undefined;
   stopsById: Map<string, Stop>;
   trip?: Trip;
   stopTimes?: StopTime[];
@@ -39,13 +55,17 @@ for (let i = 5; i <= 100; i += 5) {
 }
 
 function Footer({
+  destination,
+  destinationStops,
+  handleDestinationStop,
+  handleSelectedStop,
   handleMapCenter,
   trip,
   stop,
+  stops,
   route,
   stopsById,
   stopTimes,
-  destination,
   tripUpdatesByTripId,
 }: Props) {
   // Rerender interval to arrival estimates
@@ -56,7 +76,17 @@ function Footer({
   const [snapPoints, setSnapPoints] =
     useState<(string | number)[]>(defaultSnapPoints);
 
+  const [showSelectDialog, setShowSelectDialog] = useState(false);
+  const onCloseSelectDialog = useCallback(() => setShowSelectDialog(false), []);
+
   const [snap, setSnap] = useState<number | string>(defaultSnapPoints[0]);
+
+  const [stopId, setStopId] = useQueryState("stopId", { history: "push" });
+  const [destId, setDestId] = useQueryState(
+    "destId",
+    parseAsString.withDefault("").withOptions({ history: "push" }),
+  );
+  const [tripId, setTripId] = useQueryState("tripId", { history: "push" });
 
   const lastStopId = useMemo(() => {
     if (!!destination) return "";
@@ -110,9 +140,9 @@ function Footer({
 
   const pickupDelayStatus = getDelayStatus(pickupStopUpdate);
 
-  const pickupDelay = formatReadableDelay(
-    pickupStopUpdate?.arrival?.delay || pickupStopUpdate?.departure?.delay,
-  );
+  // const pickupDelay = formatReadableDelay(
+  //   pickupStopUpdate?.arrival?.delay || pickupStopUpdate?.departure?.delay,
+  // );
 
   const dropOffStopUpdate =
     (dropOffStopSequence &&
@@ -123,9 +153,9 @@ function Footer({
 
   const dropOffDelayStatus = getDelayStatus(dropOffStopUpdate);
 
-  const dropOffDelay = formatReadableDelay(
-    dropOffStopUpdate?.arrival?.delay || dropOffStopUpdate?.departure?.delay,
-  );
+  // const dropOffDelay = formatReadableDelay(
+  //   dropOffStopUpdate?.arrival?.delay || dropOffStopUpdate?.departure?.delay,
+  // );
 
   const realtimeDropOffArrivalTime = getDelayedTime(
     dropOffArrivalTime,
@@ -148,6 +178,24 @@ function Footer({
     ? formatReadableDelay(getDifferenceInSeconds(liveTextArrivalTime))
     : "";
 
+  const adjustedStopTimes = useMemo(
+    () => getAdjustedStopTimes(stopTimes, stopTimeUpdates),
+    [stopTimeUpdates, stopTimes],
+  );
+
+  const orderdStops = useMemo(
+    () => getUpcomingOrderedStops(adjustedStopTimes, stopsById),
+    [adjustedStopTimes, stopsById],
+  );
+
+  const validDestinationStops: ValidStop[] = useMemo(
+    () =>
+      destinationStops
+        ?.map(({ stop }) => stop)
+        .filter((stop): stop is ValidStop => isValidStop(stop)),
+    [destinationStops],
+  );
+
   return (
     <Drawer
       open
@@ -161,7 +209,7 @@ function Footer({
       setSnap={setSnap}
     >
       <DrawerTitle />
-      <DrawerContent className="lg:max-w-7xl mx-auto z-[2000]">
+      <DrawerContent className="lg:max-w-7xl mx-auto z-[2000] px-6">
         <DrawerHeader>
           <DrawerTitle className="sr-only">Selected route details</DrawerTitle>
           <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] no-underline">
@@ -182,7 +230,7 @@ function Footer({
                   {!!trip && <> &#9830; heading towards {trip.tripHeadsign}</>}
                 </p>
 
-                {!!trip && !!stop && (
+                {!!trip && !!stop && destId && (
                   <p>
                     {isPastDropOff ? (
                       "Completed"
@@ -223,14 +271,45 @@ function Footer({
             }
           </div>
         </DrawerHeader>
-        <TripTimeline
-          handleMapCenter={handleMapCenter}
-          stopsById={stopsById}
-          selectedStop={stop}
-          stopTimes={stopTimes}
-          trip={trip}
-          tripUpdatesByTripId={tripUpdatesByTripId}
-        />
+        {!stopId ? (
+          <>
+            <Button onClick={() => setShowSelectDialog(true)}>
+              Select pickup stop
+            </Button>
+            <StopModal
+              closeHandler={onCloseSelectDialog}
+              optionHandler={handleSelectedStop}
+              title="Select a pickup stop"
+              open={showSelectDialog}
+              stops={orderdStops}
+            />
+          </>
+        ) : !destId ? (
+          <>
+            <Button onClick={() => setShowSelectDialog(true)}>
+              Select destination
+            </Button>{" "}
+            <StopModal
+              closeHandler={onCloseSelectDialog}
+              optionHandler={handleDestinationStop}
+              title="Select a destination"
+              open={showSelectDialog}
+              stops={validDestinationStops}
+            />
+          </>
+        ) : (
+          <TripTimeline
+            destinationId={destinationStop?.stopId ?? null}
+            destinationStops={destinationStops}
+            handleDestinationStop={handleDestinationStop}
+            handleMapCenter={handleMapCenter}
+            stopsById={stopsById}
+            pickupStop={stop}
+            stopTimes={stopTimes}
+            trip={trip}
+            tripUpdatesByTripId={tripUpdatesByTripId}
+          />
+        )}
       </DrawerContent>
     </Drawer>
   );

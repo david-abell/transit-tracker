@@ -4,13 +4,13 @@ import { StopTimeUpdate } from "@/types/realtime";
 import { Stop, StopTime } from "@prisma/client";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { getDelayedTime } from "./timeHelpers";
+import { getDelayedTime, isPastArrivalTime } from "./timeHelpers";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function isValidStop(stop: Stop | undefined) {
+export function isValidStop(stop: Stop | undefined): stop is ValidStop {
   return stop ? Object.values(stop).every((v) => v !== null) : false;
 }
 
@@ -23,8 +23,37 @@ export function getOrderedStops(
 
   for (const time of stopTimes) {
     const stop = stopsById.get(time.stopId);
-    if (!stop || stop?.stopLat == null || stop?.stopLon == null) continue;
-    orderedStops.push(stop as ValidStop);
+    if (isValidStop(stop)) {
+      orderedStops.push(stop as ValidStop);
+    }
+  }
+
+  return orderedStops;
+}
+
+export function getUpcomingOrderedStops(
+  stopTimes: StopTime[] | undefined,
+  stopsById: Map<string, Stop>,
+): ValidStop[] {
+  if (!stopTimes) return Object.values(stopsById) satisfies Stop[];
+  let orderedStops: ValidStop[] = [];
+
+  for (const time of stopTimes) {
+    const stop = stopsById.get(time.stopId);
+    if (isValidStop(stop)) {
+      orderedStops.push(stop as ValidStop);
+    }
+  }
+
+  const nextStopId = getNextStopTime(stopTimes)?.stopId;
+
+  if (nextStopId) {
+    const nextStopIndex = orderedStops.findIndex(
+      ({ stopId }) => stopId === nextStopId,
+    );
+    if (nextStopIndex !== -1) {
+      orderedStops = orderedStops.slice(nextStopIndex);
+    }
   }
 
   return orderedStops;
@@ -76,4 +105,50 @@ export function getAdjustedStopTime(
   } else {
     return time;
   }
+}
+
+export function getNextStopTime(stopTimes: StopTime[]): StopTime | undefined {
+  return stopTimes.find(
+    (stopTime) =>
+      stopTime?.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
+  );
+}
+
+export function getStopsToDestination(
+  stops: ValidStop[] | undefined,
+  stopTimes: StopTime[] | undefined,
+  destinationStopId: string,
+): ValidStop[] {
+  if (!stopTimes || !stops) return stops ?? [];
+
+  const destinationStopIndex = stops.findIndex(
+    (stop) => stop.stopId === destinationStopId,
+  );
+  if (destinationStopIndex !== -1) {
+    return stops.slice(0, destinationStopIndex + 1);
+  }
+
+  return stops;
+}
+
+export function getStopsWithStopTimes(
+  stopsById: Map<string, Stop>,
+  stopTimes: StopTime[] | undefined,
+  destinationStopId: string | null,
+): StopAndStopTime[] {
+  const stopsWithStopTimes: StopAndStopTime[] = [];
+
+  if (stopTimes?.length && stopsById) {
+    for (const stopTime of stopTimes) {
+      const stop = stopsById.get(stopTime.stopId);
+      if (isValidStop(stop)) {
+        stopsWithStopTimes.push({
+          stop: stop as ValidStop,
+          stopTime,
+        });
+      }
+    }
+  }
+
+  return stopsWithStopTimes;
 }

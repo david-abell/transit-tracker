@@ -20,11 +20,16 @@ import type { ValidStop } from "../Map/MapContentLayer";
 import { LatLngTuple } from "leaflet";
 import { Button } from "../ui/button";
 import LiveText from "../LiveText";
+import { StopAndStopTime } from "../DestinationSelect";
+import { getStopsWithStopTimes } from "@/lib/utils";
 
 type Props = {
+  destinationId: string | null;
+  destinationStops: StopAndStopTime[];
+  handleDestinationStop: (stopId: string) => void;
   handleMapCenter: (latLon: LatLngTuple) => void;
-  selectedStop?: Stop;
-  stopsById?: Map<string, Stop>;
+  pickupStop: Stop | undefined;
+  stopsById: Map<string, Stop>;
   stopTimes?: StopTime[];
   trip?: Trip;
   tripUpdatesByTripId: Map<string, TripUpdate>;
@@ -33,8 +38,11 @@ type Props = {
 type StopWithStopTime = { stop: ValidStop; stopTime: StopTime };
 
 function TripTimeline({
+  destinationId,
+  destinationStops,
+  handleDestinationStop,
   handleMapCenter,
-  selectedStop,
+  pickupStop,
   stopsById,
   stopTimes,
   tripUpdatesByTripId,
@@ -60,22 +68,10 @@ function TripTimeline({
     [tripUpdatesByTripId, trip],
   );
 
-  const stopList: StopWithStopTime[] = useMemo(() => {
-    const stops: StopWithStopTime[] = [];
-
-    if (stopTimes?.length && stopsById) {
-      for (const stopTime of stopTimes) {
-        const stop = stopsById.get(stopTime.stopId);
-        if (!stop || stop?.stopLat === null || stop?.stopLon === null) continue;
-        stops.push({
-          stop: stop as ValidStop,
-          stopTime,
-        });
-      }
-    }
-
-    return stops;
-  }, [stopTimes, stopsById]);
+  const stopList = useMemo(
+    () => getStopsWithStopTimes(stopsById, stopTimes, destinationId),
+    [destinationId, stopTimes, stopsById],
+  );
 
   const handleArrivalCountdown = useCallback(
     (stopTime: StopTime) => {
@@ -97,6 +93,8 @@ function TripTimeline({
     },
     [tripUpdate],
   );
+
+  if (!trip) return null;
 
   return (
     <Timeline

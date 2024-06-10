@@ -212,7 +212,7 @@ export function getDifferenceInSeconds(
 export function secondsSinceVehicleUpdate(timestamp: string) {
   const now = DateTime.now();
   const updateTime = DateTime.fromSeconds(Number(timestamp));
-  const { seconds } = updateTime.diff(now, "seconds").toObject();
+  const { seconds } = now.diff(updateTime, "seconds").toObject();
   return seconds;
 }
 

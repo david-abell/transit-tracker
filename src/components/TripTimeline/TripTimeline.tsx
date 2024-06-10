@@ -51,7 +51,7 @@ function TripTimeline({
   const timelineRef = useRef(null);
   const pointer = useRef({ x: 0, y: 0 });
 
-  const [showBeforePickup, setShowBeforePickup] = useState(true);
+  const [showCollapsible, setShowCollapsible] = useState(false);
 
   const handleMouseDown = (e: MouseEvent<HTMLUListElement>) => {
     pointer.current = { x: e.clientX, y: e.clientY };
@@ -67,7 +67,7 @@ function TripTimeline({
       if (stop) {
         handleMapCenter([stop.stopLat, stop.stopLon]);
       } else {
-        setShowBeforePickup((prev) => !prev);
+        setShowCollapsible((prev) => !prev);
       }
     }
   };
@@ -119,9 +119,20 @@ function TripTimeline({
     [pickupStop?.stopId, stopList],
   );
 
-  const beforePickupCount = pickupIndex > 3 ? pickupIndex - 1 : 0;
-
   if (!trip) return null;
+
+  const currentStopIndex = stopList.findIndex(
+    ({ stopTime }) =>
+      !!stopTime.arrivalTime && isPastArrivalTime(stopTime.arrivalTime),
+  );
+
+  const isPastPickup = currentStopIndex > pickupIndex;
+
+  const collapseCount = isPastPickup
+    ? currentStopIndex - 1
+    : pickupIndex > 3
+      ? pickupIndex - 1
+      : 0;
 
   return (
     <Timeline
@@ -130,13 +141,21 @@ function TripTimeline({
       onMouseDown={handleMouseDown}
     >
       {stopList.flatMap(({ stop, stopTime }, index) => {
-        const { departureTime, stopSequence } = stopTime;
+        if (isPastPickup && index < pickupIndex) return [];
+        const { arrivalTime, stopSequence } = stopTime;
+        const isPastStop = index <= currentStopIndex;
         const isCollapsible =
-          beforePickupCount > 0 && index > 1 && index < pickupIndex;
+          index !== currentStopIndex &&
+          collapseCount > 0 &&
+          index > 1 &&
+          index < pickupIndex;
 
-        if (showBeforePickup) {
+        if (!showCollapsible) {
           if (isCollapsible) return [];
-          if (index === 1) {
+          if (
+            (isPastPickup && index === currentStopIndex) ||
+            (!isPastPickup && index === 1)
+          ) {
             return (
               <TimelineItem
                 status="done"
@@ -145,7 +164,7 @@ function TripTimeline({
                 <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
                   <button type="button" onClick={(e) => handleMouseUp(e)}>
                     <span className="sr-only">Show </span>
-                    {beforePickupCount} stops hidden...
+                    {collapseCount} stops hidden...
                   </button>
                 </TimelineHeading>
                 <TimelineDot status="done" />
@@ -154,8 +173,6 @@ function TripTimeline({
             );
           }
         }
-
-        const isPastStop = !!departureTime && isPastArrivalTime(departureTime);
 
         return (
           <TimelineItem
@@ -171,13 +188,13 @@ function TripTimeline({
                   contentBefore=" - "
                 />
               )}
-              {isCollapsible && !showBeforePickup && (
+              {showCollapsible && isCollapsible && (
                 <button
                   type="button"
                   onClick={(e) => handleMouseUp(e)}
                   className="underline"
                 >
-                  ... hide {beforePickupCount} completed stops
+                  ... hide {collapseCount} completed stops
                 </button>
               )}
             </TimelineHeading>
@@ -186,7 +203,7 @@ function TripTimeline({
               <TimelineLine done={isPastStop} />
             )}
             <TimelineContent className="py-2 gap-1 flex flex-col">
-              <p>Scheduled: {departureTime}</p>
+              <p>Scheduled: {arrivalTime}</p>
               <Button type="button" onClick={(e) => handleMouseUp(e, stop)}>
                 Show<span className="sr-only">stop {stop.stopCode}</span>
                 &nbsp;on map

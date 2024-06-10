@@ -3,12 +3,14 @@ import { useCallback, useMemo, useState } from "react";
 import { NTAVehicleUpdate } from "@/pages/api/gtfs/vehicle-updates";
 import { Route } from "@prisma/client";
 import LiveText from "../LiveText";
-import { timeSinceLastVehicleUpdate } from "@/lib/timeHelpers";
+import {
+  secondsSinceVehicleUpdate,
+  timeSinceLastVehicleUpdate,
+} from "@/lib/timeHelpers";
 import { Button } from "../ui/button";
 import { TripHandler } from "@/pages";
 import DotOrSVG from "./DotOrSVG";
 import { useInterval } from "usehooks-ts";
-import { DateTime } from "luxon";
 
 type Props = {
   handleTrip: TripHandler;
@@ -110,9 +112,7 @@ const COLORS = [
 ];
 
 function getScaledColor(vehicleTimestamp: string) {
-  const now = DateTime.now();
-  const updateTime = DateTime.fromSeconds(Number(vehicleTimestamp));
-  const { seconds } = now.diff(updateTime, "seconds").toObject();
+  const seconds = secondsSinceVehicleUpdate(vehicleTimestamp);
   const colorIndex = Math.floor(
     COLORS.length *
       (Math.min(seconds || 0, MAX_SCALE_SECONDS - 1) / MAX_SCALE_SECONDS),

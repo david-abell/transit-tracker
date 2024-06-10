@@ -209,12 +209,17 @@ export function getDifferenceInSeconds(
   return seconds ? Math.abs(seconds) : 0;
 }
 
-export function timeSinceLastVehicleUpdate(timestamp: string) {
-  if (!timestamp) return "";
-
+export function secondsSinceVehicleUpdate(timestamp: string) {
   const now = DateTime.now();
   const updateTime = DateTime.fromSeconds(Number(timestamp));
   const { seconds } = updateTime.diff(now, "seconds").toObject();
+  return seconds;
+}
+
+export function timeSinceLastVehicleUpdate(timestamp: string) {
+  if (!timestamp) return "";
+
+  const seconds = secondsSinceVehicleUpdate(timestamp);
 
   return formatReadableDelay(seconds) ?? "";
 }

@@ -21,11 +21,10 @@ import {
 } from "react";
 
 import type { Route, Stop, StopTime } from "@prisma/client";
-import { parseDatetimeLocale } from "@/lib/timeHelpers";
+import { hasSameDay } from "@/lib/timeHelpers";
 import Bus from "./Bus";
 import usePrevious from "@/hooks/usePrevious";
 import isEqual from "react-fast-compare";
-import { DateTime } from "luxon";
 import useTripUpdates from "@/hooks/useTripUpdates";
 import useStopId from "@/hooks/useStopId";
 import { Position } from "@turf/helpers";
@@ -209,7 +208,7 @@ function MapContentLayer({
   // }, 2000);
 
   const isToday = useMemo(
-    () => DateTime.now().hasSame(parseDatetimeLocale(selectedDateTime), "day"),
+    () => hasSameDay(selectedDateTime),
     [selectedDateTime],
   );
 

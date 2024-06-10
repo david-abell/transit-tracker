@@ -76,6 +76,10 @@ export function initDateTimeValue() {
   return DateTime.now().toFormat(LUXON_DATE_INPUT_TOKENS);
 }
 
+export function hasSameDay(timestring: string) {
+  return DateTime.now().hasSame(parseDatetimeLocale(timestring), "day");
+}
+
 // add trip start time instead of new Date()
 export function isPastArrivalTime(
   arrivalTime: string,
@@ -86,7 +90,6 @@ export function isPastArrivalTime(
     ? stopTimeStringToDate(arrivalTime, referenceDate)
     : stopTimeStringToDate(arrivalTime);
   if (!now.hasSame(arrivalDate, "day")) return false;
-
   return now > arrivalDate;
 }
 

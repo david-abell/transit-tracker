@@ -15,7 +15,7 @@ import {
 } from "@/lib/timeHelpers";
 import { TripUpdate } from "@/types/realtime";
 import { Stop, StopTime, Trip } from "@prisma/client";
-import { useMemo, useRef, MouseEvent, useCallback } from "react";
+import { useMemo, useRef, MouseEvent, useCallback, useState } from "react";
 import type { ValidStop } from "../Map/MapContentLayer";
 import { LatLngTuple } from "leaflet";
 import { Button } from "../ui/button";
@@ -51,15 +51,24 @@ function TripTimeline({
   const timelineRef = useRef(null);
   const pointer = useRef({ x: 0, y: 0 });
 
+  const [showBeforePickup, setShowBeforePickup] = useState(true);
+
   const handleMouseDown = (e: MouseEvent<HTMLUListElement>) => {
     pointer.current = { x: e.clientX, y: e.clientY };
   };
 
-  const handleMouseUp = (e: MouseEvent<HTMLButtonElement>, stop: ValidStop) => {
+  const handleMouseUp = (
+    e: MouseEvent<HTMLButtonElement>,
+    stop?: ValidStop,
+  ) => {
     const { x, y } = pointer.current;
     if (Math.abs(e.clientX - x) < 10 && Math.abs(e.clientY - y) < 10) {
       e.stopPropagation();
-      handleMapCenter([stop.stopLat, stop.stopLon]);
+      if (stop) {
+        handleMapCenter([stop.stopLat, stop.stopLon]);
+      } else {
+        setShowBeforePickup((prev) => !prev);
+      }
     }
   };
 
@@ -94,6 +103,24 @@ function TripTimeline({
     [tripUpdate],
   );
 
+  const pickupSequence = useMemo(
+    () =>
+      stopList.find(({ stopTime }) => stopTime.stopId === pickupStop?.stopId)
+        ?.stopTime.stopSequence,
+    [pickupStop?.stopId, stopList],
+  );
+  const pickupIndex = useMemo(
+    () =>
+      pickupStop?.stopId
+        ? stopList.findIndex(
+            ({ stopTime }) => stopTime.stopId === pickupStop.stopId,
+          )
+        : -1,
+    [pickupStop?.stopId, stopList],
+  );
+
+  const beforePickupCount = pickupIndex > 3 ? pickupIndex - 1 : 0;
+
   if (!trip) return null;
 
   return (
@@ -102,8 +129,31 @@ function TripTimeline({
       ref={timelineRef}
       onMouseDown={handleMouseDown}
     >
-      {stopList.map(({ stop, stopTime }, index) => {
-        const { departureTime } = stopTime;
+      {stopList.flatMap(({ stop, stopTime }, index) => {
+        const { departureTime, stopSequence } = stopTime;
+        const isCollapsible =
+          beforePickupCount > 0 && index > 1 && index < pickupIndex;
+
+        if (showBeforePickup) {
+          if (isCollapsible) return [];
+          if (index === 1) {
+            return (
+              <TimelineItem
+                status="done"
+                key={"timeline" + stopTime.stopId + stopTime.stopSequence}
+              >
+                <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
+                  <button type="button" onClick={(e) => handleMouseUp(e)}>
+                    <span className="sr-only">Show </span>
+                    {beforePickupCount} stops hidden...
+                  </button>
+                </TimelineHeading>
+                <TimelineDot status="done" />
+                {index !== stopList.length - 1 && <TimelineLine done={true} />}
+              </TimelineItem>
+            );
+          }
+        }
 
         const isPastStop = !!departureTime && isPastArrivalTime(departureTime);
 
@@ -120,6 +170,15 @@ function TripTimeline({
                   color="info"
                   contentBefore=" - "
                 />
+              )}
+              {isCollapsible && !showBeforePickup && (
+                <button
+                  type="button"
+                  onClick={(e) => handleMouseUp(e)}
+                  className="underline"
+                >
+                  ... hide {beforePickupCount} completed stops
+                </button>
               )}
             </TimelineHeading>
             <TimelineDot status={isPastStop ? "done" : "default"} />

@@ -39,6 +39,9 @@ function LiveText({
   useInterval(() => {
     setTextContent(typeof content === "string" ? content : content());
   }, delayInSeconds * 1000);
+
+  if (!textContent) return null;
+
   return (
     <span
       className={cn(className, "whitespace-nowrap text-lg flex flex-row gap-1")}

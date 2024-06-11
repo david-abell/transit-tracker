@@ -88,26 +88,14 @@ function TripTimeline({
     [destinationId, stopTimes, stopsById],
   );
 
-  const handleArrivalCountdown = useCallback(
-    (stopTime: StopTime) => {
-      const delayedArrivalTime = getDelayedTimeFromTripUpdate(
-        stopTime,
-        tripUpdate,
-      );
+  const handleArrivalCountdown = useCallback((stopTime: StopTime) => {
+    if (!stopTime.arrivalTime || isPastArrivalTime(stopTime.arrivalTime))
+      return "";
 
-      if (!delayedArrivalTime || isPastArrivalTime(delayedArrivalTime))
-        return "";
-
-      const arrivalSeconds = getDifferenceInSeconds(
-        delayedArrivalTime ?? stopTime.arrivalTime,
-      );
-
-      const delay = formatReadableDelay(arrivalSeconds);
-
-      return delay ?? "";
-    },
-    [tripUpdate],
-  );
+    return (
+      formatReadableDelay(getDifferenceInSeconds(stopTime.arrivalTime)) ?? ""
+    );
+  }, []);
 
   const pickupIndex = useMemo(
     () =>

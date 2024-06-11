@@ -123,16 +123,12 @@ function TripTimeline({
 
   const currentStopIndex = stopList.findIndex(
     ({ stopTime }) =>
-      !!stopTime.arrivalTime && isPastArrivalTime(stopTime.arrivalTime),
+      !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
   );
 
   const isPastPickup = currentStopIndex > pickupIndex;
 
-  const collapseCount = isPastPickup
-    ? currentStopIndex - 1
-    : pickupIndex > 3
-      ? pickupIndex - 1
-      : 0;
+  const collapseCount = isPastPickup ? currentStopIndex - 1 : pickupIndex - 1;
 
   return (
     <Timeline
@@ -142,13 +138,13 @@ function TripTimeline({
     >
       {stopList.flatMap(({ stop, stopTime }, index) => {
         if (isPastPickup && index < pickupIndex) return [];
-        const { arrivalTime, stopSequence } = stopTime;
+        const { arrivalTime } = stopTime;
         const isPastStop = index <= currentStopIndex;
         const isCollapsible =
           index !== currentStopIndex &&
           collapseCount > 0 &&
-          index > 1 &&
-          index < pickupIndex;
+          index > 0 &&
+          index < currentStopIndex;
 
         if (!showCollapsible) {
           if (isCollapsible) return [];

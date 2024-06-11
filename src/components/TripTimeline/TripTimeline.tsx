@@ -78,11 +78,6 @@ function TripTimeline({
     }
   };
 
-  const tripUpdate = useMemo(
-    () => trip && tripUpdatesByTripId.get(trip?.tripId),
-    [tripUpdatesByTripId, trip],
-  );
-
   const stopList = useMemo(
     () => getStopsWithStopTimes(stopsById, stopTimes, destinationId),
     [destinationId, stopTimes, stopsById],
@@ -109,14 +104,22 @@ function TripTimeline({
 
   if (!trip) return null;
 
-  const currentStopIndex = stopList.findIndex(
+  let currentStopIndex = stopList.findIndex(
     ({ stopTime }) =>
       !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
   );
 
+  if (currentStopIndex === -1) {
+    currentStopIndex = stopList.length - 1;
+  }
+
+  const isPastPickup = currentStopIndex > pickupIndex;
+
   const destinationIndex = stopList.findIndex(
     ({ stopTime }) => !!destinationId && stopTime.stopId === destinationId,
   );
+
+  const isCompleted = currentStopIndex >= destinationIndex;
 
   const beforeCollapseCount = pickupIndex;
   const betweenCollapseCount =
@@ -141,7 +144,7 @@ function TripTimeline({
           if (index === 0 && index !== pickupIndex) {
             return (
               <TimelineItem
-                status="done"
+                status={isPastPickup ? "done" : "default"}
                 key={"timeline" + stopTime.stopId + stopTime.stopSequence}
               >
                 <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
@@ -164,7 +167,7 @@ function TripTimeline({
           if (index === pickupIndex + 1) {
             return (
               <TimelineItem
-                status="done"
+                status={isCompleted ? "done" : "default"}
                 key={"timeline" + stopTime.stopId + stopTime.stopSequence}
               >
                 <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
@@ -176,7 +179,7 @@ function TripTimeline({
                     {betweenCollapseCount} more stops...
                   </button>
                 </TimelineHeading>
-                <TimelineDot status="done" />
+                <TimelineDot status={isCompleted ? "done" : "default"} />
                 {index !== stopList.length - 1 && <TimelineLine done={true} />}
               </TimelineItem>
             );

@@ -96,15 +96,29 @@ export function getAdjustedStopTime(
     time.arrivalTime,
     stopTimeUpdate?.arrival?.delay,
   );
-  let { arrivalTimestamp } = time;
-  if (!Number.isNaN(time.arrivalTimestamp)) {
-    arrivalTimestamp = arrivalTimestamp! + stopTimeUpdate.arrival?.delay!;
+  const arrivalDelay = stopTimeUpdate.arrival?.delay ?? 0;
+  const departureDelay = stopTimeUpdate.departure?.delay ?? 0;
+
+  const departureTime = getDelayedTime(
+    time.departureTime,
+    stopTimeUpdate?.departure?.delay,
+  );
+
+  let { arrivalTimestamp, departureTimestamp } = time;
+  if (arrivalTimestamp !== null) {
+    arrivalTimestamp = arrivalTimestamp + arrivalDelay;
   }
-  if (arrivalTime && !Number.isNaN(time.arrivalTimestamp)) {
-    return { ...time, arrivalTimestamp, arrivalTime };
-  } else {
-    return time;
+  if (departureTimestamp !== null) {
+    departureTimestamp = departureTimestamp + departureDelay;
   }
+
+  return {
+    ...time,
+    arrivalTimestamp,
+    arrivalTime,
+    departureTimestamp,
+    departureTime,
+  };
 }
 
 export function getNextStopTime(stopTimes: StopTime[]): StopTime | undefined {
@@ -147,6 +161,15 @@ export function getStopsWithStopTimes(
           stopTime,
         });
       }
+    }
+  }
+
+  if (destinationStopId) {
+    const destinationStopIndex = stopsWithStopTimes.findIndex(
+      ({ stop }) => stop.stopId === destinationStopId,
+    );
+    if (destinationStopIndex !== -1) {
+      return stopsWithStopTimes.slice(0, destinationStopIndex + 1);
     }
   }
 

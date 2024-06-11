@@ -32,6 +32,7 @@ import {
   getUpcomingOrderedStops,
   isValidStop,
 } from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
 
 type Props = {
   destination?: Stop;
@@ -214,11 +215,10 @@ function Footer({
           <DrawerTitle className="sr-only">Selected route details</DrawerTitle>
           <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] no-underline">
             {
-              <div className="flex w-full flex-row content-center justify-between gap-2 md:gap-4 overflow-hidden px-2 text-left font-normal">
-                <p>
+              <div className="flex w-full flex-col content-center justify-between gap-2 md:gap-4 overflow-hidden px-2 text-left font-normal">
+                <h3 className="flex flex-wrap content-center gap-2 ">
                   {
                     <>
-                      <span>Route </span>
                       <b>{route?.routeShortName ?? ""}</b>
                       <span className="max-lg:hidden">
                         {" "}
@@ -227,8 +227,14 @@ function Footer({
                     </>
                   }
 
-                  {!!trip && <> &#9830; heading towards {trip.tripHeadsign}</>}
-                </p>
+                  {!!trip && (
+                    <>
+                      {" "}
+                      <ArrowRight className="inline-block" />{" "}
+                      {destinationStop?.stopName || trip.tripHeadsign}
+                    </>
+                  )}
+                </h3>
 
                 {!!trip && !!stop && destId && (
                   <p>

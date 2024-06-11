@@ -37,6 +37,8 @@ type Props = {
 
 type StopWithStopTime = { stop: ValidStop; stopTime: StopTime };
 
+const MIN_TO_COLLAPSE = 3;
+
 function TripTimeline({
   destinationId,
   destinationStops,
@@ -52,6 +54,7 @@ function TripTimeline({
   const pointer = useRef({ x: 0, y: 0 });
 
   const [showCollapsible, setShowCollapsible] = useState(false);
+  const [showBetweenStops, setShowBetweenStops] = useState(false);
 
   const handleMouseDown = (e: MouseEvent<HTMLUListElement>) => {
     pointer.current = { x: e.clientX, y: e.clientY };
@@ -126,9 +129,16 @@ function TripTimeline({
       !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
   );
 
+  const destinationIndex = stopList.findIndex(
+    ({ stopTime }) => !!destinationId && stopTime.stopId === destinationId,
+  );
+
   const isPastPickup = currentStopIndex > pickupIndex;
 
-  const collapseCount = isPastPickup ? currentStopIndex - 1 : pickupIndex - 1;
+  const collapseCount = isPastPickup ? currentStopIndex : pickupIndex;
+  const beforePickupCollapseCount = pickupIndex;
+  const betweenCollapseCount =
+    destinationIndex > pickupIndex ? destinationIndex - pickupIndex : 0;
 
   return (
     <Timeline
@@ -137,21 +147,16 @@ function TripTimeline({
       onMouseDown={handleMouseDown}
     >
       {stopList.flatMap(({ stop, stopTime }, index) => {
-        if (isPastPickup && index < pickupIndex) return [];
         const { arrivalTime } = stopTime;
         const isPastStop = index <= currentStopIndex;
         const isCollapsible =
-          index !== currentStopIndex &&
-          collapseCount > 0 &&
-          index > 0 &&
-          index < currentStopIndex;
+          collapseCount >= MIN_TO_COLLAPSE &&
+          index < pickupIndex &&
+          stop.stopId !== pickupStop?.stopId &&
+          stop.stopId !== destinationId;
 
         if (!showCollapsible) {
-          if (isCollapsible) return [];
-          if (
-            (isPastPickup && index === currentStopIndex) ||
-            (!isPastPickup && index === 1)
-          ) {
+          if (!isPastPickup && index === 0) {
             return (
               <TimelineItem
                 status="done"
@@ -168,6 +173,24 @@ function TripTimeline({
               </TimelineItem>
             );
           }
+          if (isPastPickup && index === currentStopIndex) {
+            return (
+              <TimelineItem
+                status="done"
+                key={"timeline" + stopTime.stopId + stopTime.stopSequence}
+              >
+                <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
+                  <button type="button" onClick={(e) => handleMouseUp(e)}>
+                    <span className="sr-only">Show </span>
+                    {collapseCount - 1} stops hidden...
+                  </button>
+                </TimelineHeading>
+                <TimelineDot status="done" />
+                {index !== stopList.length - 1 && <TimelineLine done={true} />}
+              </TimelineItem>
+            );
+          }
+          if (isCollapsible) return [];
         }
 
         return (

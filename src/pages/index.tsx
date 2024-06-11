@@ -41,6 +41,7 @@ import dynamic from "next/dynamic";
 import { LatLngExpression, LatLngTuple } from "leaflet";
 import useRoute from "@/hooks/useRoute";
 import Changelog from "@/components/changelog/Changelog";
+import { isValidStop } from "@/lib/utils";
 
 const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,
@@ -130,6 +131,13 @@ export default function Home() {
 
   const { selectedStop, error: stopError, isLoadingStop } = useStopId(stopId);
 
+  useEffect(() => {
+    if (!selectedStop) return;
+    const { stopLat, stopLon } = selectedStop;
+    if (!stopLat || !stopLon) return;
+    setMapCenter([stopLat, stopLon]);
+  }, [selectedStop]);
+
   const {
     selectedStop: destinationStop,
     error: destinationError,
@@ -193,7 +201,7 @@ export default function Home() {
 
     times?.forEach((stopTime) => {
       const stop = stopsById.get(stopTime.stopId);
-      if (!stop) return;
+      if (!stop || !isValidStop(stop)) return;
       orderedStops.push({ stop, stopTime });
     });
 
@@ -458,9 +466,13 @@ export default function Home() {
 
       <Footer
         destination={destinationStop}
+        destinationStops={destinationStops}
+        handleDestinationStop={handleDestinationStop}
         handleMapCenter={handleMapCenter}
+        handleSelectedStop={handleSelectedStop}
         route={selectedRoute}
         stop={selectedStop}
+        stops={stops}
         stopsById={stopsById}
         stopTimes={stopTimes}
         trip={selectedTrip}

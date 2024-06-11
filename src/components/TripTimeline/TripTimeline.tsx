@@ -62,15 +62,18 @@ function TripTimeline({
 
   const handleMouseUp = (
     e: MouseEvent<HTMLButtonElement>,
-    stop?: ValidStop,
+    stop: ValidStop,
+    toggle?: "toggleBefore" | "toggleBetween",
   ) => {
     const { x, y } = pointer.current;
     if (Math.abs(e.clientX - x) < 10 && Math.abs(e.clientY - y) < 10) {
       e.stopPropagation();
-      if (stop) {
-        handleMapCenter([stop.stopLat, stop.stopLon]);
-      } else {
+      if (toggle === "toggleBefore") {
         setShowBeforeStops((prev) => !prev);
+      } else if (toggle === "toggleBetween") {
+        setShowBetweenStops((prev) => !prev);
+      } else {
+        handleMapCenter([stop.stopLat, stop.stopLon]);
       }
     }
   };
@@ -163,7 +166,10 @@ function TripTimeline({
                 key={"timeline" + stopTime.stopId + stopTime.stopSequence}
               >
                 <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
-                  <button type="button" onClick={(e) => handleMouseUp(e)}>
+                  <button
+                    type="button"
+                    onClick={(e) => handleMouseUp(e, stop, "toggleBefore")}
+                  >
                     <span className="sr-only">Show </span>
                     {beforeCollapseCount} stops on route hidden...
                   </button>
@@ -182,7 +188,10 @@ function TripTimeline({
                 key={"timeline" + stopTime.stopId + stopTime.stopSequence}
               >
                 <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
-                  <button type="button" onClick={(e) => handleMouseUp(e)}>
+                  <button
+                    type="button"
+                    onClick={(e) => handleMouseUp(e, stop, "toggleBetween")}
+                  >
                     <span className="sr-only">Show </span>
                     {betweenCollapseCount} more stops...
                   </button>
@@ -210,13 +219,20 @@ function TripTimeline({
                   contentBefore=" - "
                 />
               )}
-              {showBeforeStops && isCollapsible && (
+              {isCollapsible && (
                 <button
                   type="button"
-                  onClick={(e) => handleMouseUp(e)}
+                  onClick={(e) =>
+                    handleMouseUp(
+                      e,
+                      stop,
+                      isBefore ? "toggleBefore" : "toggleBetween",
+                    )
+                  }
                   className="underline"
                 >
-                  ... hide {collapseCount} completed stops
+                  ... hide{" "}
+                  {isBefore ? beforeCollapseCount : betweenCollapseCount} stops
                 </button>
               )}
             </TimelineHeading>

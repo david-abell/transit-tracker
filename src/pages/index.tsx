@@ -279,6 +279,16 @@ export default function Home() {
     [setStopId],
   );
 
+  const handleSelectStopAndClear = useCallback(
+    (stopId: string) => {
+      removeQueryParams();
+      handleSelectedStop(stopId);
+      setShowSavedStops(false);
+      setShowTripModal(true);
+    },
+    [handleSelectedStop, removeQueryParams],
+  );
+
   const handleDestinationStop = useCallback(
     (stopId: string) => {
       setDestId(stopId);
@@ -432,7 +442,7 @@ export default function Home() {
       <SavedStops
         isOpen={showSavedStops}
         setIsOpen={setShowSavedStops}
-        setShowTripModal={setShowTripModal}
+        handleSelectStopAndClear={handleSelectStopAndClear}
       />
 
       {/* Errors and loading messages */}

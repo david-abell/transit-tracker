@@ -13,7 +13,7 @@ import { useLocalStorage } from "usehooks-ts";
 type Props = {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  setShowTripModal: Dispatch<SetStateAction<boolean>>;
+  handleSelectStopAndClear: (stopId: string) => void;
 };
 
 type StopName = string;
@@ -24,18 +24,14 @@ export type SavedStop = {
 };
 
 export default function Sidebar({
+  handleSelectStopAndClear,
   isOpen,
   setIsOpen,
-  setShowTripModal,
 }: Props) {
-  const router = useRouter();
-
   const [savedStops, setSavedStops] = useLocalStorage<SavedStop>(
     "savedSTops",
     {},
   );
-
-  const [selectedStopId] = useQueryState("stopId", { history: "push" });
 
   const removeStop = (stopId: string) => {
     setSavedStops((prev) => {
@@ -45,26 +41,6 @@ export default function Sidebar({
       return stops;
     });
   };
-
-  const setSelectedStop = useCallback(
-    (stopId: string) => {
-      const { pathname } = router;
-      return router
-        .push({
-          pathname: pathname,
-          query: { stopId },
-        })
-        .then(() => {
-          setIsOpen(false);
-          setShowTripModal(true);
-          // if (stopId && stopId === selectedStopId) {
-          // } else {
-          //   setTimeout(() => setShowTripModal(true), 200);
-          // }
-        });
-    },
-    [router, setIsOpen, setShowTripModal],
-  );
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -79,7 +55,7 @@ export default function Sidebar({
                     <div className="flex flex-row">
                       <button
                         type="button"
-                        onClick={() => setSelectedStop(stopId)}
+                        onClick={() => handleSelectStopAndClear(stopId)}
                         className="flex w-full cursor-pointer items-center justify-start border-b border-gray-200 
                       py-2 pl-2 pr-4 text-start font-medium ring-inset hover:bg-gray-100 hover:text-blue-700 focus-visible:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 
                       dark:hover:text-white dark:focus-visible:text-white dark:focus-visible:ring-gray-500 md:gap-2 md:px-4"

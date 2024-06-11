@@ -5,9 +5,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Star, X } from "lucide-react";
-import { useRouter } from "next/router";
-import { useQueryState } from "nuqs";
-import { Dispatch, SetStateAction, useCallback } from "react";
+
+import { Dispatch, SetStateAction } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
 type Props = {

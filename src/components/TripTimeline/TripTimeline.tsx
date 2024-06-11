@@ -109,12 +109,6 @@ function TripTimeline({
     [tripUpdate],
   );
 
-  const pickupSequence = useMemo(
-    () =>
-      stopList.find(({ stopTime }) => stopTime.stopId === pickupStop?.stopId)
-        ?.stopTime.stopSequence,
-    [pickupStop?.stopId, stopList],
-  );
   const pickupIndex = useMemo(
     () =>
       pickupStop?.stopId
@@ -136,12 +130,9 @@ function TripTimeline({
     ({ stopTime }) => !!destinationId && stopTime.stopId === destinationId,
   );
 
-  const isPastPickup = currentStopIndex > pickupIndex;
-
-  const collapseCount = isPastPickup ? currentStopIndex : pickupIndex;
   const beforeCollapseCount = pickupIndex;
   const betweenCollapseCount =
-    destinationIndex > pickupIndex ? destinationIndex - pickupIndex : 0;
+    destinationIndex > pickupIndex ? destinationIndex - pickupIndex - 1 : 0;
 
   return (
     <Timeline
@@ -179,6 +170,7 @@ function TripTimeline({
               </TimelineItem>
             );
           }
+          if (isBefore) return [];
         }
         if (!showBetweenStops) {
           if (index === pickupIndex + 1) {
@@ -201,9 +193,8 @@ function TripTimeline({
               </TimelineItem>
             );
           }
+          if (isBetween) return [];
         }
-
-        if ((!showBetweenStops || !showBeforeStops) && isCollapsible) return [];
 
         return (
           <TimelineItem

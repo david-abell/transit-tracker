@@ -62,7 +62,7 @@ function TripTimeline({
 
   const handleMouseUp = (
     e: MouseEvent<HTMLButtonElement>,
-    stop: ValidStop,
+    stop: Stop,
     toggle?: "toggleBefore" | "toggleBetween",
   ) => {
     const { x, y } = pointer.current;
@@ -73,7 +73,8 @@ function TripTimeline({
       } else if (toggle === "toggleBetween") {
         setShowBetweenStops((prev) => !prev);
       } else {
-        handleMapCenter([stop.stopLat, stop.stopLon]);
+        if (stop.stopLat && stop.stopLon)
+          handleMapCenter([stop.stopLat, stop.stopLon]);
       }
     }
   };

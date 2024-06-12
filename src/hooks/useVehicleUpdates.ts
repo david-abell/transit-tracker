@@ -19,12 +19,14 @@ const revalidateOptions = {
 
 type Point = { lat: number; lng: number };
 
+export const MIN_ZOOM_FOR_REQUEST = 12;
+
 function useVehicleUpdates({ lat, lng }: Point, radius: number, zoom: number) {
   const [storeTimestamp, setStoreTimestamp] = useState<string | null>(null);
   const prevZoom = useRef(0);
 
   const url =
-    zoom > prevZoom.current
+    zoom > prevZoom.current && MIN_ZOOM_FOR_REQUEST
       ? null
       : `${API_URL}?${new URLSearchParams({
           lat: String(lat),

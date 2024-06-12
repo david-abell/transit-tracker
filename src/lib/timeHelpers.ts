@@ -224,6 +224,15 @@ export function timeSinceLastVehicleUpdate(timestamp: string) {
   return formatReadableDelay(seconds) ?? "";
 }
 
+export function getArrivalCountdownText(stopTime: StopTime) {
+  if (!stopTime.arrivalTime || isPastArrivalTime(stopTime.arrivalTime))
+    return "";
+
+  return (
+    formatReadableDelay(getDifferenceInSeconds(stopTime.arrivalTime)) ?? ""
+  );
+}
+
 export function getDelayedTimeFromTripUpdate(
   stopTime?: StopTime,
   tripUpdate?: TripUpdate,

@@ -54,7 +54,7 @@ function UserLocation({ className = "" }: Props) {
           }
         }}
         size={"icon"}
-        className={cn(className, "mb-4 mr-2 lg:mb-10 lg:mr-10")}
+        className={cn(className, "mb-10 mr-2 lg:mb-10 lg:mr-10")}
       >
         <Locate />
       </Button>

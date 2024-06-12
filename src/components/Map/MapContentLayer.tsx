@@ -306,7 +306,12 @@ function MapContentLayer({
       {/* Route stop markers */}
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>
-          <MarkerClusterGroup maxClusterRadius={60}>
+          <MarkerClusterGroup
+            maxClusterRadius={60}
+            disableClusteringAtZoom={MAX_MAP_ZOOM - 2}
+            spiderfyOnMaxZoom={false}
+            zoomToBoundsOnClick
+          >
             {(stopList.length ? stopList : singleStop).map((stopWithTimes) => {
               return (
                 <StopMarker

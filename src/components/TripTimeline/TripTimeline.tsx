@@ -125,6 +125,10 @@ function TripTimeline({
   const beforeCollapseCount = pickupIndex;
   const betweenCollapseCount =
     destinationIndex > pickupIndex ? destinationIndex - pickupIndex - 1 : 0;
+  const beforeCurrentCount =
+    currentStopIndex < pickupIndex
+      ? pickupIndex - currentStopIndex
+      : pickupIndex;
 
   return (
     <Timeline
@@ -148,15 +152,15 @@ function TripTimeline({
                 status={isPastPickup ? "done" : "default"}
                 key={"timeline" + stopTime.stopId + stopTime.stopSequence}
               >
-                <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
+                <TimelineContent>
                   <button
                     type="button"
                     onClick={(e) => handleMouseUp(e, stop, "toggleBefore")}
                   >
                     <span className="sr-only">Show </span>
-                    {beforeCollapseCount} stops on route hidden...
+                    {beforeCurrentCount} more stops...
                   </button>
-                </TimelineHeading>
+                </TimelineContent>
                 <TimelineDot status="done" />
                 {index !== stopList.length - 1 && <TimelineLine done={true} />}
               </TimelineItem>
@@ -171,7 +175,7 @@ function TripTimeline({
                 status={isCompleted ? "done" : "default"}
                 key={"timeline" + stopTime.stopId + stopTime.stopSequence}
               >
-                <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
+                <TimelineContent>
                   <button
                     type="button"
                     onClick={(e) => handleMouseUp(e, stop, "toggleBetween")}
@@ -179,7 +183,7 @@ function TripTimeline({
                     <span className="sr-only">Show </span>
                     {betweenCollapseCount} more stops...
                   </button>
-                </TimelineHeading>
+                </TimelineContent>
                 <TimelineDot status={isCompleted ? "done" : "default"} />
                 {index !== stopList.length - 1 && <TimelineLine done={true} />}
               </TimelineItem>
@@ -202,6 +206,12 @@ function TripTimeline({
                   contentBefore=" - "
                 />
               )}
+            </TimelineHeading>
+            <TimelineDot status={isPastStop ? "done" : "default"} />
+            {index !== stopList.length - 1 && (
+              <TimelineLine done={isPastStop} />
+            )}
+            <TimelineContent className="py-2 gap-1 flex flex-col">
               {isCollapsible && (
                 <button
                   type="button"
@@ -218,12 +228,6 @@ function TripTimeline({
                   {isBefore ? beforeCollapseCount : betweenCollapseCount} stops
                 </button>
               )}
-            </TimelineHeading>
-            <TimelineDot status={isPastStop ? "done" : "default"} />
-            {index !== stopList.length - 1 && (
-              <TimelineLine done={isPastStop} />
-            )}
-            <TimelineContent className="py-2 gap-1 flex flex-col">
               <p>Scheduled: {arrivalTime}</p>
               <Button type="button" onClick={(e) => handleMouseUp(e, stop)}>
                 Show<span className="sr-only">stop {stop.stopCode}</span>

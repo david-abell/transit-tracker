@@ -19,6 +19,7 @@ declare module "react-leaflet" {
 }
 
 export const MAP_DEFAULT_ZOOM = 15;
+export const MAX_MAP_ZOOM = 18;
 
 function Map({ mapCenter, ...props }: Props) {
   return (
@@ -26,6 +27,7 @@ function Map({ mapCenter, ...props }: Props) {
       center={mapCenter}
       zoom={MAP_DEFAULT_ZOOM}
       minZoom={8}
+      maxZoom={MAX_MAP_ZOOM}
       className={`relative h-full w-[100max]`}
       zoomSnap={0.5}
     >
@@ -37,8 +39,8 @@ function Map({ mapCenter, ...props }: Props) {
         edgeBufferTiles={3}
         keepBuffer={6}
         updateWhenIdle={false}
-        maxNativeZoom={20}
-        maxZoom={20}
+        maxNativeZoom={MAX_MAP_ZOOM}
+        maxZoom={MAX_MAP_ZOOM}
         crossOrigin="anonymous"
       />
       <MapContentLayer mapCenter={mapCenter} {...props} />

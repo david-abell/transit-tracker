@@ -54,6 +54,8 @@ type Props = {
   handleSelectedTrip: TripHandler;
   handleDestinationStop: (stopId: string) => void;
   routesById: Map<string, Route>;
+  requestMapCenter: boolean;
+  setRequestMapCenter: Dispatch<SetStateAction<boolean>>;
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
@@ -74,6 +76,8 @@ function MapContentLayer({
   routesById,
   selectedDateTime,
   handleSaveStop,
+  requestMapCenter,
+  setRequestMapCenter,
   stopTimes,
   stopTimesByStopId,
   setShowSavedStops,
@@ -119,19 +123,22 @@ function MapContentLayer({
 
   // Set map center location on new route selection
   useEffect(() => {
-    if (!prevCenter) return;
     const isNewCenter =
-      mapCenter[0] !== prevCenter[0] || mapCenter[1] !== prevCenter[1];
+      mapCenter[0] !== prevCenter?.[0] || mapCenter[1] !== prevCenter?.[1];
     const isNewBounds = !isEqual(stopIds, previousStopIds);
 
     if (!isNewCenter && !isNewBounds) return;
 
     const group = markerGroupRef.current;
     const bounds = group?.getBounds();
-    const isSameNorth = bounds?.getNorthEast().equals(bounds?.getNorthWest());
-    const isSameSouth = bounds?.getSouthEast().equals(bounds?.getSouthWest());
+    const isSameNorth =
+      bounds?.isValid() &&
+      bounds?.getNorthEast()?.equals(bounds?.getNorthWest());
+    const isSameSouth =
+      bounds?.isValid() &&
+      bounds?.getSouthEast()?.equals(bounds?.getSouthWest());
 
-    if (bounds?.isValid() && isNewBounds) {
+    if (bounds?.isValid() && isNewBounds && stopIds.length) {
       const boundsCenter = bounds.getCenter();
       if (isSameNorth && isSameSouth) {
         map.setView(boundsCenter, zoomLevel);
@@ -139,9 +146,10 @@ function MapContentLayer({
         map.fitBounds(bounds, { maxZoom: MAX_MAP_ZOOM });
       }
       console.log("bounds");
-    } else {
+    } else if (requestMapCenter) {
       console.log("center");
       map.setView(mapCenter, zoomLevel);
+      setRequestMapCenter(false);
     }
   }, [
     handleMapCenter,
@@ -149,6 +157,8 @@ function MapContentLayer({
     mapCenter,
     prevCenter,
     previousStopIds,
+    requestMapCenter,
+    setRequestMapCenter,
     stopIds,
     zoomLevel,
   ]);

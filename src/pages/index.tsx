@@ -94,6 +94,7 @@ export default function Home() {
 
   // component visibility state
   const [mapCenter, setMapCenter] = useState<LatLngTuple>(INITIAL_LOCATION);
+  const [requestMapCenter, setRequestMapCenter] = useState(false);
   const [showTripModal, setShowTripModal] = useState(false);
   const [showSavedStops, setShowSavedStops] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -292,6 +293,7 @@ export default function Home() {
       handleSelectedStop(stopId);
       setShowSavedStops(false);
       setShowTripModal(true);
+      setRequestMapCenter(true);
     },
     [handleSelectedStop, removeQueryParams],
   );
@@ -311,6 +313,7 @@ export default function Home() {
 
   const handleMapCenter = useCallback((latLon: LatLngTuple) => {
     setMapCenter(latLon);
+    setRequestMapCenter(true);
   }, []);
 
   return (
@@ -406,6 +409,8 @@ export default function Home() {
           <MapContainer
             mapCenter={mapCenter}
             handleMapCenter={handleMapCenter}
+            requestMapCenter={requestMapCenter}
+            setRequestMapCenter={setRequestMapCenter}
             routesById={routesById}
             shape={shape}
             selectedDateTime={selectedDateTime}

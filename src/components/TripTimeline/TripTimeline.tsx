@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/timeline";
 import {
   formatReadableDelay,
+  getArrivalCountdownText,
   getDifferenceInSeconds,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
@@ -64,14 +65,10 @@ function TripTimeline({
     }
   };
 
-  const handleArrivalCountdown = useCallback((stopTime: StopTime) => {
-    if (!stopTime.arrivalTime || isPastArrivalTime(stopTime.arrivalTime))
-      return "";
-
-    return (
-      formatReadableDelay(getDifferenceInSeconds(stopTime.arrivalTime)) ?? ""
-    );
-  }, []);
+  const handleArrivalCountdown = useCallback(
+    (stopTime: StopTime) => getArrivalCountdownText(stopTime),
+    [],
+  );
 
   const pickupIndex = useMemo(
     () =>

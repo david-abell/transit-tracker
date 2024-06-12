@@ -145,9 +145,7 @@ function MapContentLayer({
       } else if (!isEqual(stopIds, previousStopIds)) {
         map.fitBounds(bounds, { maxZoom: MAX_MAP_ZOOM });
       }
-      console.log("bounds");
     } else if (requestMapCenter) {
-      console.log("center");
       map.setView(mapCenter, zoomLevel);
       setRequestMapCenter(false);
     }

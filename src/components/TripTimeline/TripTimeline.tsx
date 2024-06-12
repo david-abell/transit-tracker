@@ -8,46 +8,31 @@ import {
 } from "@/components/ui/timeline";
 import {
   formatReadableDelay,
-  getDelayedTime,
-  getDelayedTimeFromTripUpdate,
   getDifferenceInSeconds,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
-import { TripUpdate } from "@/types/realtime";
 import { Stop, StopTime, Trip } from "@prisma/client";
 import { useMemo, useRef, MouseEvent, useCallback, useState } from "react";
-import type { ValidStop } from "../Map/MapContentLayer";
 import { LatLngTuple } from "leaflet";
 import { Button } from "../ui/button";
 import LiveText from "../LiveText";
 import { StopAndStopTime } from "../DestinationSelect";
-import { getStopsWithStopTimes } from "@/lib/utils";
 
 type Props = {
   destinationId: string | null;
-  destinationStops: StopAndStopTime[];
-  handleDestinationStop: (stopId: string) => void;
   handleMapCenter: (latLon: LatLngTuple) => void;
   pickupStop: Stop | undefined;
-  stopsById: Map<string, Stop>;
-  stopTimes?: StopTime[];
+  stopList: StopAndStopTime[];
   trip?: Trip;
-  tripUpdatesByTripId: Map<string, TripUpdate>;
 };
-
-type StopWithStopTime = { stop: ValidStop; stopTime: StopTime };
 
 const MIN_TO_COLLAPSE = 3;
 
 function TripTimeline({
   destinationId,
-  destinationStops,
-  handleDestinationStop,
   handleMapCenter,
   pickupStop,
-  stopsById,
-  stopTimes,
-  tripUpdatesByTripId,
+  stopList,
   trip,
 }: Props) {
   const timelineRef = useRef(null);
@@ -78,11 +63,6 @@ function TripTimeline({
       }
     }
   };
-
-  const stopList = useMemo(
-    () => getStopsWithStopTimes(stopsById, stopTimes, destinationId),
-    [destinationId, stopTimes, stopsById],
-  );
 
   const handleArrivalCountdown = useCallback((stopTime: StopTime) => {
     if (!stopTime.arrivalTime || isPastArrivalTime(stopTime.arrivalTime))

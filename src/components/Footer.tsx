@@ -29,6 +29,7 @@ import {
   getAdjustedStopTimes,
   getOrderedStops,
   getStopsToDestination,
+  getStopsWithStopTimes,
   getUpcomingOrderedStops,
   isValidStop,
 } from "@/lib/utils";
@@ -189,6 +190,11 @@ function Footer({
     [adjustedStopTimes, stopsById],
   );
 
+  const stopList = useMemo(
+    () => getStopsWithStopTimes(stopsById, stopTimes, destId),
+    [destId, stopTimes, stopsById],
+  );
+
   const validDestinationStops: ValidStop[] = useMemo(
     () =>
       destinationStops
@@ -196,6 +202,11 @@ function Footer({
         .filter((stop): stop is ValidStop => isValidStop(stop)),
     [destinationStops],
   );
+
+  // const currentStop = stopList.findIndex(
+  //   ({ stopTime }) =>
+  //     !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
+  // );
 
   return (
     <Drawer
@@ -306,14 +317,10 @@ function Footer({
         ) : (
           <TripTimeline
             destinationId={destinationStop?.stopId ?? null}
-            destinationStops={destinationStops}
-            handleDestinationStop={handleDestinationStop}
             handleMapCenter={handleMapCenter}
-            stopsById={stopsById}
             pickupStop={stop}
-            stopTimes={adjustedStopTimes}
+            stopList={stopList}
             trip={trip}
-            tripUpdatesByTripId={tripUpdatesByTripId}
           />
         )}
       </DrawerContent>

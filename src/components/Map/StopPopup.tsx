@@ -104,7 +104,7 @@ function StopPopup({
 
   return (
     <Popup>
-      <p>Stop {stopCode}</p>
+      <p>Stop {stopCode ?? stopId}</p>
       <h3 className="text-lg font-bold">{stopName}</h3>
       {!!arrivalTime && (
         <p className="!mb-0">

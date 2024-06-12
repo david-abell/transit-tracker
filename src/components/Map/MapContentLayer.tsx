@@ -34,7 +34,7 @@ import useVehicleUpdates from "@/hooks/useVehicleUpdates";
 import { TripHandler } from "@/pages";
 import L from "leaflet";
 import GPSGhost from "./GPSGhost";
-import { MAP_DEFAULT_ZOOM } from ".";
+import { MAP_DEFAULT_ZOOM, MAX_MAP_ZOOM } from ".";
 import UserLocation from "./UserLocation";
 
 export type ValidStop = Stop & {
@@ -102,28 +102,13 @@ function MapContentLayer({
     return (width + height) / 2;
   }, [map]);
 
-  // const [mapCenter, handleMapCenter] = useState({
-  //   lat: center[0],
-  //   lng: center[1],
-  // });
-
   const [mapKM, setMapKM] = useState(getWidthHeightInKM());
   const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
 
   const mapEvents = useMapEvents({
-    moveend() {
-      const { lat, lng } = mapEvents.getCenter();
-      if (requestMapCenter) {
-        // prevents movement bouncing from useEffect
-        setRequestMapCenter(false);
-      } else {
-        setRequestMapCenter(true);
-        handleMapCenter([lat, lng]);
-      }
-    },
     zoomend() {
       setMapKM(getWidthHeightInKM());
-      setZoomLevel(map.getZoom());
+      setZoomLevel(Math.min(MAX_MAP_ZOOM, map.getZoom()));
     },
   });
 
@@ -138,27 +123,38 @@ function MapContentLayer({
 
   // Set map center location on new route selection
   useEffect(() => {
-    if (requestMapCenter) {
-      map.setView(mapCenter);
-      return;
-    }
+    if (!prevCenter) return;
+    const isNewCenter =
+      mapCenter[0] !== prevCenter[0] || mapCenter[1] !== prevCenter[1];
+    const isNewBounds = !isEqual(stopIds, previousStopIds);
 
-    if (!stopIds.length) return;
+    if (!isNewCenter && !isNewBounds) return;
 
     const group = markerGroupRef.current;
+    const bounds = group?.getBounds();
+    const isSameNorth = bounds?.getNorthEast().equals(bounds?.getNorthWest());
+    const isSameSouth = bounds?.getSouthEast().equals(bounds?.getSouthWest());
 
-    if (prevCenter !== mapCenter && !isEqual(stopIds, previousStopIds)) {
-      if (group?.getBounds().isValid()) {
-        map.fitBounds(group.getBounds());
-      } else {
-        map.setView(mapCenter);
+    if (bounds?.isValid() && isNewBounds) {
+      const boundsCenter = bounds.getCenter();
+      handleMapCenter([boundsCenter.lat, boundsCenter.lng]);
+      if (isSameNorth && isSameSouth) {
+        map.setView(boundsCenter, zoomLevel);
+      } else if (!isEqual(stopIds, previousStopIds)) {
+        map.fitBounds(bounds, { maxZoom: MAX_MAP_ZOOM });
       }
-    } else if (!isEqual(stopIds, previousStopIds)) {
-      if (group?.getBounds().isValid()) {
-        map.fitBounds(group.getBounds());
-      }
+    } else {
+      map.setView(mapCenter, zoomLevel);
     }
-  }, [mapCenter, map, prevCenter, previousStopIds, stopIds, requestMapCenter]);
+  }, [
+    handleMapCenter,
+    map,
+    mapCenter,
+    prevCenter,
+    previousStopIds,
+    stopIds,
+    zoomLevel,
+  ]);
 
   // Set map dimensions onload/onresize
   useEffect(() => {

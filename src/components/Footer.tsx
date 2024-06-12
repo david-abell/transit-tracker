@@ -1,5 +1,6 @@
 import {
   formatReadableDelay,
+  getArrivalCountdownText,
   getDelayStatus,
   getDelayedTime,
   getDifferenceInSeconds,
@@ -34,6 +35,7 @@ import {
   isValidStop,
 } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
+import LiveText from "./LiveText";
 
 type Props = {
   destination?: Stop;
@@ -203,10 +205,15 @@ function Footer({
     [destinationStops],
   );
 
-  // const currentStop = stopList.findIndex(
-  //   ({ stopTime }) =>
-  //     !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
-  // );
+  const nextStop = stopList.find(
+    ({ stopTime }) =>
+      !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
+  );
+
+  const handleArrivalCountdown = useCallback(
+    (stopTime: StopTime) => getArrivalCountdownText(stopTime),
+    [],
+  );
 
   return (
     <Drawer
@@ -287,6 +294,24 @@ function Footer({
               </div>
             }
           </div>
+          {/* Next Stop */}
+          {!!nextStop && !isPastDropOff && (
+            <div>
+              <p className="font-bold">Next Stop:</p>
+              <div className="flex flex-row justify-between">
+                <p>
+                  <b>{nextStop.stop.stopCode ?? nextStop.stop.stopId}</b> -{" "}
+                  {nextStop.stop.stopName}{" "}
+                </p>
+                <p>
+                  <LiveText
+                    content={() => handleArrivalCountdown(nextStop.stopTime)}
+                    color="info"
+                  />
+                </p>
+              </div>
+            </div>
+          )}
         </DrawerHeader>
         {!stopId ? (
           <>

@@ -44,7 +44,10 @@ function LiveText({
 
   return (
     <span
-      className={cn(className, "whitespace-nowrap text-lg flex flex-row gap-1")}
+      className={cn(
+        className,
+        "whitespace-nowrap [&>span]:whitespace-nowrap text-lg inline-flex flex-row gap-1",
+      )}
     >
       {!!contentBefore && <span>{contentBefore} </span>}
       <span className={cn("font-bold", colors[color])}>{textContent}</span>

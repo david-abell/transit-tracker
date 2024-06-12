@@ -6,12 +6,7 @@ import {
   TimelineItem,
   TimelineLine,
 } from "@/components/ui/timeline";
-import {
-  formatReadableDelay,
-  getArrivalCountdownText,
-  getDifferenceInSeconds,
-  isPastArrivalTime,
-} from "@/lib/timeHelpers";
+import { getArrivalCountdownText, isPastArrivalTime } from "@/lib/timeHelpers";
 import { Stop, StopTime, Trip } from "@prisma/client";
 import { useMemo, useRef, MouseEvent, useCallback, useState } from "react";
 import { LatLngTuple } from "leaflet";

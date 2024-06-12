@@ -54,8 +54,6 @@ type Props = {
   handleSelectedTrip: TripHandler;
   handleDestinationStop: (stopId: string) => void;
   routesById: Map<string, Route>;
-  requestMapCenter: boolean;
-  setRequestMapCenter: Dispatch<SetStateAction<boolean>>;
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
   stopTimes: StopTime[] | undefined;
@@ -76,8 +74,6 @@ function MapContentLayer({
   routesById,
   selectedDateTime,
   handleSaveStop,
-  requestMapCenter,
-  setRequestMapCenter,
   stopTimes,
   stopTimesByStopId,
   setShowSavedStops,
@@ -137,13 +133,14 @@ function MapContentLayer({
 
     if (bounds?.isValid() && isNewBounds) {
       const boundsCenter = bounds.getCenter();
-      handleMapCenter([boundsCenter.lat, boundsCenter.lng]);
       if (isSameNorth && isSameSouth) {
         map.setView(boundsCenter, zoomLevel);
       } else if (!isEqual(stopIds, previousStopIds)) {
         map.fitBounds(bounds, { maxZoom: MAX_MAP_ZOOM });
       }
+      console.log("bounds");
     } else {
+      console.log("center");
       map.setView(mapCenter, zoomLevel);
     }
   }, [

@@ -94,7 +94,6 @@ export default function Home() {
 
   // component visibility state
   const [mapCenter, setMapCenter] = useState<LatLngTuple>(INITIAL_LOCATION);
-  const [requestMapCenter, setRequestMapCenter] = useState(false);
   const [showTripModal, setShowTripModal] = useState(false);
   const [showSavedStops, setShowSavedStops] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -251,19 +250,27 @@ export default function Home() {
     },
     [setSavedStops, setShowSavedStops],
   );
+
+  const handleSelectedRoute = useCallback(
+    (routeId: string) => {
+      removeQueryParams();
+      setRouteId(routeId);
+    },
+    [removeQueryParams, setRouteId],
+  );
+
   const handleSelectedTrip: TripHandler = useCallback(
     ({ stopId, tripId, newRouteId, from }) => {
       setShowTripModal(false);
       if (newRouteId) {
         removeQueryParams();
         setRouteId((prev) => (prev !== newRouteId ? newRouteId : prev));
+        // setMapCenter(from);
       }
       if (stopId) {
         setStopId(stopId);
       }
       setTripId(tripId);
-      setMapCenter(from);
-      setRequestMapCenter(true);
     },
     [removeQueryParams, setRouteId, setStopId, setTripId],
   );
@@ -304,7 +311,6 @@ export default function Home() {
 
   const handleMapCenter = useCallback((latLon: LatLngTuple) => {
     setMapCenter(latLon);
-    setRequestMapCenter(true);
   }, []);
 
   return (
@@ -326,8 +332,8 @@ export default function Home() {
               }
             >
               <SearchInput
+                handleSelectedRoute={handleSelectedRoute}
                 selectedRoute={selectedRoute}
-                removeQueryParams={removeQueryParams}
                 setStopId={handleSelectedStop}
               />
             </NavItem>
@@ -400,8 +406,6 @@ export default function Home() {
           <MapContainer
             mapCenter={mapCenter}
             handleMapCenter={handleMapCenter}
-            requestMapCenter={requestMapCenter}
-            setRequestMapCenter={setRequestMapCenter}
             routesById={routesById}
             shape={shape}
             selectedDateTime={selectedDateTime}

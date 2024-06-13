@@ -35,7 +35,7 @@ import {
   isValidStop,
 } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
-import LiveText from "./LiveText";
+import LiveText, { LiveTextColor } from "./LiveText";
 
 type Props = {
   destination?: Stop;
@@ -90,97 +90,11 @@ function Footer({
     "destId",
     parseAsString.withDefault("").withOptions({ history: "push" }),
   );
-  const [tripId, setTripId] = useQueryState("tripId", { history: "push" });
 
-  const lastStopId = useMemo(() => {
-    if (!!destination) return "";
-
-    return stopTimes?.at(-1)?.stopId ?? "";
-  }, [destination, stopTimes]);
-
-  const {
-    selectedStop: lastStop,
-    error: lastStopError,
-    isLoadingStop: isLoadingLastStop,
-  } = useStopId(lastStopId, true);
-
-  const destinationStop = destination ?? lastStop;
-
-  const pickupStopTime = stopTimes?.find(
-    ({ stopId }) => stopId === stop?.stopId,
-  );
-  const dropOffStopTime =
-    stopTimes?.find(({ stopId }) => stopId === destination?.stopId) ||
-    stopTimes?.find(({ stopId }) => stopId === lastStop?.stopId);
-
-  const {
-    arrivalTime: pickupArrivalTime,
-    departureTime: pickupDepartureTime,
-    stopSequence: pickupStopSequence,
-  } = pickupStopTime || {};
-
-  const { arrivalTime: dropOffArrivalTime, stopSequence: dropOffStopSequence } =
-    dropOffStopTime || {};
-
-  // Realtime derived state
   const stopTimeUpdates = useMemo(
     () => trip && tripUpdatesByTripId.get(trip?.tripId)?.stopTimeUpdate,
     [tripUpdatesByTripId, trip],
   );
-
-  const lastStopTimeUpdate = stopTimeUpdates?.at(-1);
-
-  const pickupStopUpdate =
-    (pickupStopSequence &&
-      stopTimeUpdates?.find(
-        ({ stopSequence }) => stopSequence >= pickupStopSequence,
-      )) ||
-    lastStopTimeUpdate;
-
-  const realtimePickupArrivalTime = getDelayedTime(
-    pickupDepartureTime,
-    pickupStopUpdate?.arrival?.delay || pickupStopUpdate?.departure?.delay,
-  );
-
-  const pickupDelayStatus = getDelayStatus(pickupStopUpdate);
-
-  // const pickupDelay = formatReadableDelay(
-  //   pickupStopUpdate?.arrival?.delay || pickupStopUpdate?.departure?.delay,
-  // );
-
-  const dropOffStopUpdate =
-    (dropOffStopSequence &&
-      stopTimeUpdates?.find(
-        ({ stopSequence }) => stopSequence >= dropOffStopSequence,
-      )) ||
-    lastStopTimeUpdate;
-
-  const dropOffDelayStatus = getDelayStatus(dropOffStopUpdate);
-
-  // const dropOffDelay = formatReadableDelay(
-  //   dropOffStopUpdate?.arrival?.delay || dropOffStopUpdate?.departure?.delay,
-  // );
-
-  const realtimeDropOffArrivalTime = getDelayedTime(
-    dropOffArrivalTime,
-    dropOffStopUpdate?.arrival?.delay || dropOffStopUpdate?.departure?.delay,
-  );
-
-  const isPastPickup =
-    !!pickupArrivalTime &&
-    isPastArrivalTime(realtimePickupArrivalTime ?? pickupArrivalTime);
-
-  const isPastDropOff =
-    !!dropOffArrivalTime &&
-    isPastArrivalTime(realtimeDropOffArrivalTime ?? dropOffArrivalTime);
-
-  const liveTextArrivalTime = isPastPickup
-    ? realtimeDropOffArrivalTime || dropOffArrivalTime
-    : realtimePickupArrivalTime || pickupArrivalTime;
-
-  const liveTextContent = liveTextArrivalTime
-    ? formatReadableDelay(getDifferenceInSeconds(liveTextArrivalTime))
-    : "";
 
   const adjustedStopTimes = useMemo(
     () => getAdjustedStopTimes(stopTimes, stopTimeUpdates),
@@ -205,9 +119,86 @@ function Footer({
     [destinationStops],
   );
 
+  const pickupStop = useMemo(
+    () => stopList.find(({ stop }) => stop.stopId === stopId),
+    [stopId, stopList],
+  );
+  const dropOffStop = useMemo(
+    () =>
+      stopList.find(({ stop }) => stop.stopId === destId) ?? stopList.at(-1),
+    [destId, stopList],
+  );
   const nextStop = stopList.find(
     ({ stopTime }) =>
       !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
+  );
+
+  const isPastDropOff = dropOffStop && !nextStop;
+
+  const handleDelayStatus = useCallback(
+    (
+      pickup: StopAndStopTime | undefined,
+      dropOff: StopAndStopTime | undefined,
+      next: StopAndStopTime | undefined,
+    ) => {
+      if (!pickup || !dropOff || !next) return "";
+
+      const lastUpdate = stopTimeUpdates?.at(-1);
+      if (!stopTimeUpdates || !lastUpdate) return "";
+      if (lastUpdate.scheduleRelationship === "CANCELED") return "Canceled";
+
+      const currentSequence = next.stopTime.stopSequence;
+
+      if (currentSequence < pickup.stopTime.stopSequence) {
+        const stopUpdate =
+          stopTimeUpdates?.find(
+            ({ stopSequence }) => stopSequence >= pickup.stopTime.stopSequence,
+          ) || lastUpdate;
+
+        return `Pickup up ${getDelayStatus(stopUpdate)}`;
+      } else if (currentSequence < dropOff.stopTime.stopSequence) {
+        const stopUpdate =
+          stopTimeUpdates?.find(
+            ({ stopSequence }) => stopSequence >= dropOff.stopTime.stopSequence,
+          ) || lastUpdate;
+
+        return `Dropping off ${getDelayStatus(stopUpdate)}`;
+      } else {
+        return "completed";
+      }
+    },
+    [stopTimeUpdates],
+  );
+
+  const handleStatusColor = useCallback(
+    (textContent: string): LiveTextColor => {
+      if (textContent.toLowerCase().includes("canceled")) return "alert";
+      if (textContent.toLowerCase().includes("late")) return "caution";
+      if (textContent.toLowerCase().includes("early")) return "info";
+      return "default";
+    },
+    [],
+  );
+
+  const handleTripCountdown = useCallback(
+    (
+      pickup: StopAndStopTime | undefined,
+      dropOff: StopAndStopTime | undefined,
+      next: StopAndStopTime | undefined,
+    ) => {
+      if (!pickup || !dropOff || !next || !stopTimeUpdates) return "";
+
+      const currentSequence = next.stopTime.stopSequence;
+
+      if (currentSequence < pickup.stopTime.stopSequence) {
+        return getArrivalCountdownText(pickup.stopTime);
+      } else if (currentSequence < dropOff.stopTime.stopSequence) {
+        return getArrivalCountdownText(dropOff.stopTime);
+      } else {
+        return "";
+      }
+    },
+    [stopTimeUpdates],
   );
 
   const handleArrivalCountdown = useCallback(
@@ -233,7 +224,7 @@ function Footer({
           <DrawerTitle className="sr-only">Selected route details</DrawerTitle>
           <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] no-underline">
             {
-              <div className="flex w-full flex-col content-center justify-between gap-2 md:gap-4 overflow-hidden px-2 text-left font-normal">
+              <div className="flex w-full content-center justify-between gap-2 md:gap-4 overflow-hidden px-2 text-left font-normal">
                 <h3 className="flex flex-wrap content-center gap-2 ">
                   {
                     <>
@@ -249,51 +240,29 @@ function Footer({
                     <>
                       {" "}
                       <ArrowRight className="inline-block" />{" "}
-                      {destinationStop?.stopName || trip.tripHeadsign}
+                      {dropOffStop?.stop.stopName || trip.tripHeadsign}
                     </>
                   )}
                 </h3>
 
-                {!!trip && !!stop && destId && (
-                  <p>
-                    {isPastDropOff ? (
-                      "Completed"
-                    ) : isPastPickup ? (
-                      <span>
-                        Dropping off {dropOffDelayStatus} in{" "}
-                        <span
-                          className={`whitespace-nowrap ${
-                            dropOffDelayStatus === "early"
-                              ? "text-green-700 dark:text-green-500"
-                              : dropOffDelayStatus === "late"
-                                ? "text-red-700 dark:text-red-500"
-                                : ""
-                          }`}
-                        >
-                          {liveTextContent ?? ""}
-                        </span>
-                      </span>
-                    ) : (
-                      <span>
-                        Picking up {pickupDelayStatus} in{" "}
-                        <span
-                          className={`whitespace-nowrap ${
-                            dropOffDelayStatus === "early"
-                              ? "text-green-700 dark:text-green-500"
-                              : dropOffDelayStatus === "late"
-                                ? "text-red-700 dark:text-red-500"
-                                : ""
-                          }`}
-                        >
-                          {liveTextContent ?? ""}
-                        </span>
-                      </span>
-                    )}
-                  </p>
-                )}
+                {/* Live trip status */}
+                <div className="flex gap-2">
+                  <LiveText
+                    content={() =>
+                      handleDelayStatus(pickupStop, dropOffStop, nextStop)
+                    }
+                    colorFn={handleStatusColor}
+                  />
+                  <LiveText
+                    content={() =>
+                      handleTripCountdown(pickupStop, dropOffStop, nextStop)
+                    }
+                  />
+                </div>
               </div>
             }
           </div>
+
           {/* Next Stop */}
           {!!nextStop && !isPastDropOff && (
             <div>
@@ -341,7 +310,7 @@ function Footer({
           </>
         ) : (
           <TripTimeline
-            destinationId={destinationStop?.stopId ?? null}
+            destinationId={dropOffStop?.stop.stopId ?? null}
             handleMapCenter={handleMapCenter}
             pickupStop={stop}
             stopList={stopList}

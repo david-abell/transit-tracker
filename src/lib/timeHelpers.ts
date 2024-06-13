@@ -224,8 +224,8 @@ export function timeSinceLastVehicleUpdate(timestamp: string) {
   return formatReadableDelay(seconds) ?? "";
 }
 
-export function getArrivalCountdownText(stopTime: StopTime) {
-  if (!stopTime.arrivalTime || isPastArrivalTime(stopTime.arrivalTime))
+export function getArrivalCountdownText(stopTime: StopTime | undefined) {
+  if (!stopTime?.arrivalTime || isPastArrivalTime(stopTime.arrivalTime))
     return "";
 
   return (

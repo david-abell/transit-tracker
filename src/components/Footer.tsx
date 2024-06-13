@@ -220,11 +220,11 @@ function Footer({
     >
       <DrawerTitle />
       <DrawerContent className="lg:max-w-7xl mx-auto z-[2000] px-6">
-        <DrawerHeader>
+        <DrawerHeader className="text-left">
           <DrawerTitle className="sr-only">Selected route details</DrawerTitle>
           <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] no-underline">
             {
-              <div className="flex w-full content-center justify-between gap-2 md:gap-4 overflow-hidden px-2 text-left font-normal">
+              <div className="flex flex-col md:flex-row w-full content-center justify-between gap-2 md:gap-4 overflow-hidden font-normal">
                 <h3 className="flex flex-wrap content-center gap-2 ">
                   {
                     <>
@@ -246,7 +246,7 @@ function Footer({
                 </h3>
 
                 {/* Live trip status */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 max-md:w-full max-md:justify-between">
                   <LiveText
                     content={() =>
                       handleDelayStatus(pickupStop, dropOffStop, nextStop)
@@ -266,7 +266,7 @@ function Footer({
           {/* Next Stop */}
           {!!nextStop && !isPastDropOff && (
             <div>
-              <p className="font-bold">Next Stop:</p>
+              <p className="font-bold pt-2">Next Stop:</p>
               <div className="flex flex-row justify-between">
                 <p>
                   <b>{nextStop.stop.stopCode ?? nextStop.stop.stopId}</b> -{" "}

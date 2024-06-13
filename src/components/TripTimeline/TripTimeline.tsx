@@ -94,7 +94,7 @@ function TripTimeline({
 
   const isCompleted = currentStopIndex >= destinationIndex;
 
-  const beforeCollapseCount = pickupIndex;
+  const beforeCollapseCount = isPastPickup ? pickupIndex + 1 : pickupIndex;
   const betweenCollapseCount =
     destinationIndex > pickupIndex ? destinationIndex - pickupIndex - 1 : 0;
   const beforeCurrentCount =
@@ -110,15 +110,16 @@ function TripTimeline({
     >
       {stopList.flatMap(({ stop, stopTime }, index) => {
         const { arrivalTime } = stopTime;
-        const isPastStop = index <= currentStopIndex;
-        const isBefore = index < pickupIndex;
+        const isPastStop = index < currentStopIndex;
+        const isBefore =
+          index < pickupIndex || (index === pickupIndex && isPastPickup);
         const isBetween = index > pickupIndex && index < destinationIndex;
         const isCollapsible =
           (beforeCollapseCount >= MIN_TO_COLLAPSE && isBefore) ||
           (betweenCollapseCount >= MIN_TO_COLLAPSE && isBetween);
 
         if (!showBeforeStops) {
-          if (index === 0 && index !== pickupIndex) {
+          if (index === 0) {
             return (
               <TimelineItem
                 status={isPastPickup ? "done" : "default"}
@@ -138,7 +139,7 @@ function TripTimeline({
               </TimelineItem>
             );
           }
-          if (isBefore) return [];
+          if (isBefore || (index === pickupIndex && isPastPickup)) return [];
         }
         if (!showBetweenStops) {
           if (index === pickupIndex + 1) {
@@ -200,7 +201,7 @@ function TripTimeline({
                   {isBefore ? beforeCollapseCount : betweenCollapseCount} stops
                 </button>
               )}
-              <p>Scheduled: {arrivalTime}</p>
+              <p>Arriving: {arrivalTime}</p>
               <Button type="button" onClick={(e) => handleMouseUp(e, stop)}>
                 Show<span className="sr-only">stop {stop.stopCode}</span>
                 &nbsp;on map

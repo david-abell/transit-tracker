@@ -10,8 +10,11 @@ type Props = {
   className?: string;
   content: string | (() => string);
   contentBefore?: string;
+  colorBefore?: boolean;
   contentAfter?: string;
+  colorAfter?: boolean;
   color?: LiveTextColor;
+  colorFn?: (textContent: string) => LiveTextColor;
   delayInSeconds?: number;
   tooltip?: "marker" | "vehicle";
 };
@@ -27,7 +30,10 @@ function LiveText({
   className = "",
   content,
   contentBefore,
+  colorBefore = false,
   contentAfter = "",
+  colorAfter = false,
+  colorFn,
   color = "default",
   delayInSeconds = 1,
   tooltip,
@@ -35,6 +41,8 @@ function LiveText({
   const [textContent, setTextContent] = useState(
     typeof content === "string" ? content : content(),
   );
+
+  const computedColor = colorFn ? colorFn(textContent) : color;
 
   useInterval(() => {
     setTextContent(typeof content === "string" ? content : content());
@@ -49,9 +57,17 @@ function LiveText({
         "whitespace-nowrap [&>span]:whitespace-nowrap text-lg inline-flex flex-row gap-1",
       )}
     >
-      {!!contentBefore && <span>{contentBefore} </span>}
-      <span className={cn("font-bold", colors[color])}>{textContent}</span>
-      <span>{contentAfter} </span>
+      {!!contentBefore && (
+        <span className={colorBefore ? colors[computedColor] : ""}>
+          {contentBefore}{" "}
+        </span>
+      )}
+      <span className={cn("font-bold", colors[computedColor])}>
+        {textContent}
+      </span>
+      <span className={colorAfter ? colors[computedColor] : ""}>
+        {contentAfter}{" "}
+      </span>
       {textContent && tooltip === "marker" && (
         <span className="self-center [&>button]:flex">
           <LiveMarkerTooltip />

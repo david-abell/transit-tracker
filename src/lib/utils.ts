@@ -10,8 +10,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function isValidStop(stop: Stop | undefined): stop is ValidStop {
-  return stop ? Object.values(stop).every((v) => v !== null) : false;
+export function isValidStop(stop: Stop | undefined) {
+  return stop
+    ? Object.values(stop).every((v): v is string | number => v !== null)
+    : false;
 }
 
 export function getOrderedStops(
@@ -35,7 +37,7 @@ export function getUpcomingOrderedStops(
   stopTimes: StopTime[] | undefined,
   stopsById: Map<string, Stop>,
 ): ValidStop[] {
-  if (!stopTimes) return Object.values(stopsById) satisfies Stop[];
+  if (!stopTimes) return [];
   let orderedStops: ValidStop[] = [];
 
   for (const time of stopTimes) {

@@ -172,13 +172,12 @@ function TripTimeline({
             status={isPastStop ? "done" : "default"}
             key={"timeline" + stopTime.stopId + stopTime.stopSequence}
           >
-            <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center">
+            <TimelineHeading className="whitespace-nowrap w-full flex flex-row gap-2 items-center justify-between">
               {stop.stopCode}: {stop.stopName}{" "}
               {!isPastStop && (
                 <LiveText
                   content={() => handleArrivalCountdown(stopTime)}
                   color="info"
-                  contentBefore=" - "
                 />
               )}
             </TimelineHeading>

@@ -13,6 +13,7 @@ import { LatLngTuple } from "leaflet";
 import { Button } from "../ui/button";
 import LiveText from "../LiveText";
 import { StopAndStopTime } from "../DestinationSelect";
+import { cn } from "@/lib/utils";
 
 type Props = {
   destinationId: string | null;
@@ -131,7 +132,8 @@ function TripTimeline({
                     onClick={(e) => handleMouseUp(e, stop, "toggleBefore")}
                   >
                     <span className="sr-only">Show </span>
-                    {beforeCurrentCount} more stops...
+                    {beforeCurrentCount} more stops
+                    {!isPastPickup ? " before pickup" : ""}...
                   </button>
                 </TimelineContent>
                 <TimelineDot status="done" />
@@ -184,28 +186,36 @@ function TripTimeline({
             {index !== stopList.length - 1 && (
               <TimelineLine done={isPastStop} />
             )}
-            <TimelineContent className="py-2 gap-1 flex flex-col">
-              {isCollapsible && (
-                <button
-                  type="button"
-                  onClick={(e) =>
-                    handleMouseUp(
-                      e,
-                      stop,
-                      isBefore ? "toggleBefore" : "toggleBetween",
-                    )
-                  }
-                  className="underline"
+            <TimelineContent className={cn("py-2 gap-1 flex flex-col")}>
+              <p>
+                {isPastStop ? "Arrived" : "Arriving"}: {arrivalTime}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  onClick={(e) => handleMouseUp(e, stop)}
+                  variant={isCollapsible ? "secondary" : "default"}
                 >
-                  ... hide{" "}
-                  {isBefore ? beforeCollapseCount : betweenCollapseCount} stops
-                </button>
-              )}
-              <p>Arriving: {arrivalTime}</p>
-              <Button type="button" onClick={(e) => handleMouseUp(e, stop)}>
-                Show<span className="sr-only">stop {stop.stopCode}</span>
-                &nbsp;on map
-              </Button>
+                  Show<span className="sr-only">stop {stop.stopCode}</span>
+                  &nbsp;on map
+                </Button>
+                {isCollapsible && (
+                  <Button
+                    onClick={(e) =>
+                      handleMouseUp(
+                        e,
+                        stop,
+                        isBefore ? "toggleBefore" : "toggleBetween",
+                      )
+                    }
+                    variant={isCollapsible ? "outline" : "default"}
+                    className="underline"
+                  >
+                    ... hide{" "}
+                    {isBefore ? beforeCollapseCount : betweenCollapseCount}{" "}
+                    stops
+                  </Button>
+                )}
+              </div>
             </TimelineContent>
           </TimelineItem>
         );

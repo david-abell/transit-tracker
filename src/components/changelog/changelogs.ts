@@ -5,6 +5,23 @@ export type Changelog = {
 };
 export const changelogs: Changelog[] = [
   {
+    version: "0.13.0",
+    title: "Feature: Drawer timeline and status rework.",
+    changes: [
+      "Cleaned up bottom drawer header and live status text.",
+      "Add prominent 'next stop' to bottom drawer header.",
+      "Rework bottom drawer content with new Trip Timeline.",
+      "Replaced vaul drawer with vladyoslav/drawer.",
+      "Add more time and data helper utilities in preparation for state management rework.",
+      "Updated map centering logic should cause less unintended map movement.",
+      "Fix: require minimum zoom level to load nearby vehicles. Prevents cluttering map with too many objects.",
+      "fix: disable spyderified stop clusters that misbehave at high zoom levels.",
+      "fix: handle rare cases where stops do no have NTA defined stop code such as 200 Cobh cork city service.",
+      "fix: search input styles not showing current focus.",
+      "fix: LiveText sometimes not inline with text.",
+    ],
+  },
+  {
     version: "0.12.1",
     changes: ["Style: visual consistency of nav-item buttons and links."],
   },

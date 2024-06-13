@@ -231,8 +231,9 @@ function Footer({
                       <b>{route?.routeShortName ?? ""}</b>
                       <span className="max-lg:hidden">
                         {" "}
-                        &#9830; {route?.routeLongName ?? "No route selected"}
+                        &#9830; {route?.routeLongName ?? ""}
                       </span>
+                      {!route && <span>No route selected</span>}
                     </>
                   }
 
@@ -282,40 +283,45 @@ function Footer({
             </div>
           )}
         </DrawerHeader>
-        {!stopId ? (
+
+        {!!orderdStops.length && (
           <>
-            <Button onClick={() => setShowSelectDialog(true)}>
-              Select pickup stop
-            </Button>
-            <StopModal
-              closeHandler={onCloseSelectDialog}
-              optionHandler={handleSelectedStop}
-              title="Select a pickup stop"
-              open={showSelectDialog}
-              stops={orderdStops}
-            />
+            {!stopId ? (
+              <>
+                <Button onClick={() => setShowSelectDialog(true)}>
+                  Select pickup stop
+                </Button>
+                <StopModal
+                  closeHandler={onCloseSelectDialog}
+                  optionHandler={handleSelectedStop}
+                  title="Select a pickup stop"
+                  open={showSelectDialog}
+                  stops={orderdStops}
+                />
+              </>
+            ) : !destId ? (
+              <>
+                <Button onClick={() => setShowSelectDialog(true)}>
+                  Select destination
+                </Button>{" "}
+                <StopModal
+                  closeHandler={onCloseSelectDialog}
+                  optionHandler={handleDestinationStop}
+                  title="Select a destination"
+                  open={showSelectDialog}
+                  stops={validDestinationStops}
+                />
+              </>
+            ) : (
+              <TripTimeline
+                destinationId={dropOffStop?.stop.stopId ?? null}
+                handleMapCenter={handleMapCenter}
+                pickupStop={stop}
+                stopList={stopList}
+                trip={trip}
+              />
+            )}
           </>
-        ) : !destId ? (
-          <>
-            <Button onClick={() => setShowSelectDialog(true)}>
-              Select destination
-            </Button>{" "}
-            <StopModal
-              closeHandler={onCloseSelectDialog}
-              optionHandler={handleDestinationStop}
-              title="Select a destination"
-              open={showSelectDialog}
-              stops={validDestinationStops}
-            />
-          </>
-        ) : (
-          <TripTimeline
-            destinationId={dropOffStop?.stop.stopId ?? null}
-            handleMapCenter={handleMapCenter}
-            pickupStop={stop}
-            stopList={stopList}
-            trip={trip}
-          />
         )}
       </DrawerContent>
     </Drawer>

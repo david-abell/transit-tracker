@@ -294,7 +294,10 @@ function Footer({
 
           {(!stopId || !destId) && (
             <div className="flex flex-col gap-2">
-              <Button onClick={() => setShowPickupDialog(true)}>
+              <Button
+                onClick={() => setShowPickupDialog(true)}
+                variant={stopId ? "secondary" : "default"}
+              >
                 Select a pickup stop
               </Button>
               <StopModal

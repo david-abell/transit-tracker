@@ -87,7 +87,6 @@ function Footer({
   );
   const onClosePickupDialog = useCallback(() => {
     setShowPickupDialog(false);
-    setShowDestinationDialog(true);
   }, []);
 
   const [snap, setSnap] = useState<number | string>(defaultSnapPoints[0]);
@@ -211,6 +210,14 @@ function Footer({
     [],
   );
 
+  const handleSelectedPickup = useCallback(
+    (stopId: string) => {
+      handleSelectedStop(stopId, !tripId);
+      // setShowDestinationDialog(true);
+    },
+    [handleSelectedStop, tripId],
+  );
+
   return (
     <Drawer
       open
@@ -302,11 +309,10 @@ function Footer({
               </Button>
               <StopModal
                 closeHandler={onClosePickupDialog}
-                optionHandler={handleSelectedStop}
+                optionHandler={handleSelectedPickup}
                 title="Select a pickup stop"
                 open={showPickupDialog}
                 stops={orderdStops}
-                showTripModal={!tripId}
               />
               <Button onClick={() => setShowDestinationDialog(true)}>
                 Select a destination

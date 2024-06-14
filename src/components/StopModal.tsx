@@ -25,22 +25,14 @@ type Props = {
   open: boolean;
   stops: Stop[];
   title: string;
-  showTripModal?: boolean;
 };
 
-function StopModal({
-  open,
-  stops,
-  title,
-  closeHandler,
-  optionHandler,
-  showTripModal = false,
-}: Props) {
+function StopModal({ open, stops, title, closeHandler, optionHandler }: Props) {
   const onSubmit = (data: Stop) => {
     if (data.stopId) {
-      optionHandler(data.stopId, showTripModal);
-      closeHandler();
+      optionHandler(data.stopId);
     }
+    closeHandler();
   };
 
   const form = useForm<Stop>();

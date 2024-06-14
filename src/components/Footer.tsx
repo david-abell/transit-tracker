@@ -115,8 +115,8 @@ function Footer({
   );
 
   const stopList = useMemo(
-    () => getStopsWithStopTimes(stopsById, stopTimes, destId),
-    [destId, stopTimes, stopsById],
+    () => getStopsWithStopTimes(stopsById, adjustedStopTimes, destId),
+    [adjustedStopTimes, destId, stopsById],
   );
 
   const validDestinationStops: ValidStop[] = useMemo(

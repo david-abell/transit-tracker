@@ -143,9 +143,14 @@ function Footer({
     (
       pickup: StopAndStopTime | undefined,
       dropOff: StopAndStopTime | undefined,
-      next: StopAndStopTime | undefined,
     ) => {
-      if (!pickup || !dropOff || !next) return "";
+      if (!pickup || !dropOff) return "";
+      const next = stopList.find(
+        ({ stopTime }) =>
+          !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
+      );
+
+      if (!next) return "";
 
       const lastUpdate = stopTimeUpdates?.at(-1);
       if (!stopTimeUpdates || !lastUpdate) return "";
@@ -153,14 +158,14 @@ function Footer({
 
       const currentSequence = next.stopTime.stopSequence;
 
-      if (currentSequence < pickup.stopTime.stopSequence) {
+      if (currentSequence <= pickup.stopTime.stopSequence) {
         const stopUpdate =
           stopTimeUpdates?.find(
             ({ stopSequence }) => stopSequence >= pickup.stopTime.stopSequence,
           ) || lastUpdate;
 
         return `Pickup up ${getDelayStatus(stopUpdate)}`;
-      } else if (currentSequence < dropOff.stopTime.stopSequence) {
+      } else if (currentSequence <= dropOff.stopTime.stopSequence) {
         const stopUpdate =
           stopTimeUpdates?.find(
             ({ stopSequence }) => stopSequence >= dropOff.stopTime.stopSequence,
@@ -171,7 +176,7 @@ function Footer({
         return "completed";
       }
     },
-    [stopTimeUpdates],
+    [stopList, stopTimeUpdates],
   );
 
   const handleStatusColor = useCallback(
@@ -188,9 +193,14 @@ function Footer({
     (
       pickup: StopAndStopTime | undefined,
       dropOff: StopAndStopTime | undefined,
-      next: StopAndStopTime | undefined,
     ) => {
-      if (!pickup || !dropOff || !next || !stopTimeUpdates) return "";
+      if (!pickup || !dropOff) return "";
+
+      const next = stopList.find(
+        ({ stopTime }) =>
+          !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
+      );
+      if (!next) return "";
 
       const currentSequence = next.stopTime.stopSequence;
 
@@ -202,7 +212,7 @@ function Footer({
         return "";
       }
     },
-    [stopTimeUpdates],
+    [stopList],
   );
 
   const handleArrivalCountdown = useCallback(
@@ -264,14 +274,12 @@ function Footer({
                   {/* Live trip status */}
                   <div className="flex gap-2 max-md:w-full max-md:justify-between">
                     <LiveText
-                      content={() =>
-                        handleDelayStatus(pickupStop, dropOffStop, nextStop)
-                      }
+                      content={() => handleDelayStatus(pickupStop, dropOffStop)}
                       colorFn={handleStatusColor}
                     />
                     <LiveText
                       content={() =>
-                        handleTripCountdown(pickupStop, dropOffStop, nextStop)
+                        handleTripCountdown(pickupStop, dropOffStop)
                       }
                     />
                   </div>

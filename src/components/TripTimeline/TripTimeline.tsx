@@ -187,7 +187,8 @@ function TripTimeline({
             )}
             <TimelineContent className={cn("py-2 gap-1 flex flex-col")}>
               <p>
-                {isPastStop ? "Arrived" : "Arriving"}: {arrivalTime}
+                {isPastStop || isCompleted ? "Arrived" : "Arriving"}:{" "}
+                {arrivalTime}
               </p>
               <div className="flex gap-2">
                 <Button

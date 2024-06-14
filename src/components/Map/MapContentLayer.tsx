@@ -106,6 +106,10 @@ function MapContentLayer({
   const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
 
   const mapEvents = useMapEvents({
+    moveend() {
+      const { lat, lng } = mapEvents.getCenter();
+      handleMapCenter([lat, lng]);
+    },
     zoomend() {
       setMapKM(getWidthHeightInKM());
       setZoomLevel(Math.min(MAX_MAP_ZOOM, map.getZoom()));

@@ -26,7 +26,7 @@ function useVehicleUpdates({ lat, lng }: Point, radius: number, zoom: number) {
   const prevZoom = useRef(0);
 
   const url =
-    zoom > prevZoom.current && MIN_ZOOM_FOR_REQUEST
+    zoom > prevZoom.current || zoom < MIN_ZOOM_FOR_REQUEST
       ? null
       : `${API_URL}?${new URLSearchParams({
           lat: String(lat),

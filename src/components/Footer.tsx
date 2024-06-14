@@ -232,7 +232,7 @@ function Footer({
     >
       <DrawerTitle />
       <DrawerContent className="lg:max-w-7xl mx-auto z-[2000] px-4 pb-0 bg-background/80">
-        <div className="bg-background mt-2 pb-2 rounded-t-[10px] px-3">
+        <div className="bg-background mt-2 pb-4 rounded-t-[10px] px-3">
           <DrawerHeader className="text-left">
             <DrawerTitle className="sr-only">
               Selected route details

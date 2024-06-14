@@ -224,105 +224,109 @@ function Footer({
       setSnap={setSnap}
     >
       <DrawerTitle />
-      <DrawerContent className="lg:max-w-7xl mx-auto z-[2000] px-6">
-        <DrawerHeader className="text-left">
-          <DrawerTitle className="sr-only">Selected route details</DrawerTitle>
-          <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] no-underline">
-            {
-              <div className="flex flex-col md:flex-row w-full content-center justify-between gap-2 md:gap-4 overflow-hidden font-normal">
-                <h3 className="flex flex-wrap content-center gap-2 ">
-                  {
-                    <>
-                      <b>{route?.routeShortName ?? ""}</b>
-                      <span className="max-lg:hidden">
+      <DrawerContent className="lg:max-w-7xl mx-auto z-[2000] px-4 pb-0 bg-background/80">
+        <div className="bg-background mt-2 pb-2 rounded-t-[10px] px-3">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="sr-only">
+              Selected route details
+            </DrawerTitle>
+            <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] no-underline">
+              {
+                <div className="flex flex-col md:flex-row w-full content-center justify-between gap-2 md:gap-4 overflow-hidden font-normal">
+                  <h3 className="flex flex-wrap content-center gap-2 ">
+                    {
+                      <>
+                        <b>{route?.routeShortName ?? ""}</b>
+                        <span className="max-lg:hidden">
+                          {" "}
+                          &#9830; {route?.routeLongName ?? ""}
+                        </span>
+                        {!route && <span>No route selected</span>}
+                      </>
+                    }
+
+                    {!!trip && (
+                      <>
                         {" "}
-                        &#9830; {route?.routeLongName ?? ""}
-                      </span>
-                      {!route && <span>No route selected</span>}
-                    </>
-                  }
+                        <ArrowRight className="inline-block" />{" "}
+                        {dropOffStop?.stop.stopName || trip.tripHeadsign}
+                      </>
+                    )}
+                  </h3>
 
-                  {!!trip && (
-                    <>
-                      {" "}
-                      <ArrowRight className="inline-block" />{" "}
-                      {dropOffStop?.stop.stopName || trip.tripHeadsign}
-                    </>
-                  )}
-                </h3>
+                  {/* Live trip status */}
+                  <div className="flex gap-2 max-md:w-full max-md:justify-between">
+                    <LiveText
+                      content={() =>
+                        handleDelayStatus(pickupStop, dropOffStop, nextStop)
+                      }
+                      colorFn={handleStatusColor}
+                    />
+                    <LiveText
+                      content={() =>
+                        handleTripCountdown(pickupStop, dropOffStop, nextStop)
+                      }
+                    />
+                  </div>
+                </div>
+              }
+            </div>
 
-                {/* Live trip status */}
-                <div className="flex gap-2 max-md:w-full max-md:justify-between">
-                  <LiveText
-                    content={() =>
-                      handleDelayStatus(pickupStop, dropOffStop, nextStop)
-                    }
-                    colorFn={handleStatusColor}
-                  />
-                  <LiveText
-                    content={() =>
-                      handleTripCountdown(pickupStop, dropOffStop, nextStop)
-                    }
-                  />
+            {/* Next Stop */}
+            {!!nextStop && !isPastDropOff && (
+              <div>
+                <p className="font-bold pt-2">Next Stop:</p>
+                <div className="flex flex-row justify-between">
+                  <p>
+                    <b>{nextStop.stop.stopCode ?? nextStop.stop.stopId}</b> -{" "}
+                    {nextStop.stop.stopName}{" "}
+                  </p>
+                  <p>
+                    <LiveText
+                      content={() => handleArrivalCountdown(nextStop.stopTime)}
+                      color="info"
+                    />
+                  </p>
                 </div>
               </div>
-            }
-          </div>
+            )}
+          </DrawerHeader>
 
-          {/* Next Stop */}
-          {!!nextStop && !isPastDropOff && (
-            <div>
-              <p className="font-bold pt-2">Next Stop:</p>
-              <div className="flex flex-row justify-between">
-                <p>
-                  <b>{nextStop.stop.stopCode ?? nextStop.stop.stopId}</b> -{" "}
-                  {nextStop.stop.stopName}{" "}
-                </p>
-                <p>
-                  <LiveText
-                    content={() => handleArrivalCountdown(nextStop.stopTime)}
-                    color="info"
-                  />
-                </p>
-              </div>
+          {(!stopId || !destId) && (
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => setShowPickupDialog(true)}>
+                Select a pickup stop
+              </Button>
+              <StopModal
+                closeHandler={onClosePickupDialog}
+                optionHandler={handleSelectedStop}
+                title="Select a pickup stop"
+                open={showPickupDialog}
+                stops={orderdStops}
+                showTripModal={!tripId}
+              />
+              <Button onClick={() => setShowDestinationDialog(true)}>
+                Select a destination
+              </Button>
+              <StopModal
+                closeHandler={onCloseDestinationDialog}
+                optionHandler={handleDestinationStop}
+                title={"Select a destination"}
+                open={showDestinationDialog}
+                stops={validDestinationStops}
+              />
             </div>
           )}
-        </DrawerHeader>
-
-        {(!stopId || !destId) && (
-          <div className="flex flex-col gap-2">
-            <Button onClick={() => setShowPickupDialog(true)}>
-              Select a pickup stop
-            </Button>
-            <StopModal
-              closeHandler={onClosePickupDialog}
-              optionHandler={handleSelectedStop}
-              title="Select a pickup stop"
-              open={showPickupDialog}
-              stops={orderdStops}
-              showTripModal={!tripId}
+          {!!tripId && !!stopId && !!destId && (
+            <TripTimeline
+              destinationId={dropOffStop?.stop.stopId ?? null}
+              handleMapCenter={handleMapCenter}
+              pickupStop={stop}
+              stopList={stopList}
+              trip={trip}
             />
-            <Button onClick={() => setShowDestinationDialog(true)}>
-              Select a destination
-            </Button>
-            <StopModal
-              closeHandler={onCloseDestinationDialog}
-              optionHandler={handleDestinationStop}
-              title={"Select a destination"}
-              open={showDestinationDialog}
-              stops={validDestinationStops}
-            />
-          </div>
-        )}
-        {!!tripId && !!stopId && !!destId && (
-          <TripTimeline
-            destinationId={dropOffStop?.stop.stopId ?? null}
-            handleMapCenter={handleMapCenter}
-            pickupStop={stop}
-            stopList={stopList}
-            trip={trip}
-          />
-        )}
+          )}
+        </div>
       </DrawerContent>
     </Drawer>
   );

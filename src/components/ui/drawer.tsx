@@ -44,7 +44,7 @@ const DrawerHandle = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "relative bg-muted min-h-[5px] mx-auto w-20 rounded-lg",
+      "relative bg-primary min-h-[5px] mx-auto w-20 rounded-lg",
       className,
     )}
     {...props}

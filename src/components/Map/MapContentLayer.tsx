@@ -123,6 +123,12 @@ function MapContentLayer({
 
   // Set map center location on new route selection
   useEffect(() => {
+    if (requestMapCenter) {
+      map.setView(mapCenter, zoomLevel);
+      setRequestMapCenter(false);
+      return;
+    }
+
     const isNewCenter =
       mapCenter[0] !== prevCenter?.[0] || mapCenter[1] !== prevCenter?.[1];
     const isNewBounds = !isEqual(stopIds, previousStopIds);
@@ -145,9 +151,6 @@ function MapContentLayer({
       } else if (!isEqual(stopIds, previousStopIds)) {
         map.fitBounds(bounds, { maxZoom: MAX_MAP_ZOOM });
       }
-    } else if (requestMapCenter) {
-      map.setView(mapCenter, zoomLevel);
-      setRequestMapCenter(false);
     }
   }, [
     handleMapCenter,

@@ -66,10 +66,7 @@ export default function Home() {
   const [routeId, setRouteId] = useQueryState("routeId", { history: "push" });
   const [tripId, setTripId] = useQueryState("tripId", { history: "push" });
   const [stopId, setStopId] = useQueryState("stopId", { history: "push" });
-  const [destId, setDestId] = useQueryState(
-    "destId",
-    parseAsString.withDefault("").withOptions({ history: "push" }),
-  );
+  const [destId, setDestId] = useQueryState("destId", { history: "push" });
 
   // Query string helpers
   const removeQueryParams = useCallback(() => {
@@ -78,11 +75,6 @@ export default function Home() {
     setStopId(null);
     setDestId(null);
   }, [setDestId, setRouteId, setStopId, setTripId]);
-
-  // clear Destination stop on state change
-  useEffect(() => {
-    setDestId(null);
-  }, [routeId, tripId, stopId, setDestId]);
 
   // user state
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
@@ -184,7 +176,6 @@ export default function Home() {
   );
 
   // derived state
-
   const destinationStops: StopAndStopTime[] = useMemo(() => {
     if (!stopTimes?.length || !stopId) return [];
 

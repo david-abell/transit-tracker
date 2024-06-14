@@ -93,10 +93,7 @@ function Footer({
   const [snap, setSnap] = useState<number | string>(defaultSnapPoints[0]);
 
   const [stopId, setStopId] = useQueryState("stopId", { history: "push" });
-  const [destId, setDestId] = useQueryState(
-    "destId",
-    parseAsString.withDefault("").withOptions({ history: "push" }),
-  );
+  const [destId, setDestId] = useQueryState("destId", { history: "push" });
   const [tripId, setTripId] = useQueryState("tripId", { history: "push" });
 
   const stopTimeUpdates = useMemo(

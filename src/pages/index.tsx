@@ -42,6 +42,7 @@ import { LatLngExpression, LatLngTuple } from "leaflet";
 import useRoute from "@/hooks/useRoute";
 import Changelog from "@/components/changelog/Changelog";
 import { isValidStop } from "@/lib/utils";
+import usePrevious from "@/hooks/usePrevious";
 
 const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,
@@ -67,6 +68,19 @@ export default function Home() {
   const [tripId, setTripId] = useQueryState("tripId", { history: "push" });
   const [stopId, setStopId] = useQueryState("stopId", { history: "push" });
   const [destId, setDestId] = useQueryState("destId", { history: "push" });
+
+  const prevTrip = usePrevious(tripId);
+  const prevRoute = usePrevious(routeId);
+
+  // clear Destination stop on route and trip change
+  useEffect(() => {
+    if (
+      (prevTrip && prevTrip !== tripId) ||
+      (prevRoute && prevRoute !== routeId)
+    ) {
+      setDestId(null);
+    }
+  }, [prevRoute, prevTrip, routeId, setDestId, tripId]);
 
   // Query string helpers
   const removeQueryParams = useCallback(() => {

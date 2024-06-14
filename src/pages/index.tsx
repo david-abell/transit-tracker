@@ -260,7 +260,13 @@ export default function Home() {
   const handleSelectedRoute = useCallback(
     (routeId: string) => {
       removeQueryParams();
-      setRouteId(routeId);
+      setRouteId((prev) => {
+        if (prev !== routeId) {
+          removeQueryParams();
+          return routeId;
+        }
+        return prev;
+      });
     },
     [removeQueryParams, setRouteId],
   );
@@ -269,16 +275,30 @@ export default function Home() {
     ({ stopId, tripId, newRouteId, from }) => {
       setShowTripModal(false);
       if (newRouteId) {
-        removeQueryParams();
-        setRouteId((prev) => (prev !== newRouteId ? newRouteId : prev));
-        // setMapCenter(from);
+        setRouteId((prev) => {
+          if (prev !== newRouteId) {
+            removeQueryParams();
+            return newRouteId;
+          }
+          return prev;
+        });
       }
+      let isNewTrip = false;
+      setTripId((prev) => {
+        if (prev !== tripId) {
+          setDestId(null);
+          return tripId;
+        }
+        return prev;
+      });
+      // setMapCenter(from);
       if (stopId) {
         setStopId(stopId);
+      } else if (isNewTrip) {
+        setStopId(null);
       }
-      setTripId(tripId);
     },
-    [removeQueryParams, setRouteId, setStopId, setTripId],
+    [removeQueryParams, setDestId, setRouteId, setStopId, setTripId],
   );
 
   const handleSelectedStop = useCallback(

@@ -25,24 +25,7 @@ export function getOrderedStops(
   stopTimes: StopTime[] | undefined,
   stopsById: Map<string, Stop>,
 ): ValidStop[] {
-  if (!stopTimes) return Object.values(stopsById) satisfies Stop[];
-  const orderedStops: ValidStop[] = [];
-
-  for (const time of stopTimes) {
-    const stop = stopsById.get(time.stopId);
-    if (isValidStop(stop)) {
-      orderedStops.push(stop as ValidStop);
-    }
-  }
-
-  return orderedStops;
-}
-
-export function getUpcomingOrderedStops(
-  stopTimes: StopTime[] | undefined,
-  stopsById: Map<string, Stop>,
-): ValidStop[] {
-  if (!stopTimes) return [];
+  if (!stopTimes?.length) return filterValidStops([...stopsById.values()]);
   let orderedStops: ValidStop[] = [];
 
   for (const time of stopTimes) {

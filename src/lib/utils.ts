@@ -16,6 +16,11 @@ export function isValidStop(stop: Stop | undefined) {
     : false;
 }
 
+export function filterValidStops(stops: Stop[] | undefined): ValidStop[] {
+  if (!stops) return [];
+  return stops.filter((s): s is ValidStop => isValidStop(s));
+}
+
 export function getOrderedStops(
   stopTimes: StopTime[] | undefined,
   stopsById: Map<string, Stop>,

@@ -25,7 +25,17 @@ export function getOrderedStops(
   stopTimes: StopTime[] | undefined,
   stopsById: Map<string, Stop>,
 ): ValidStop[] {
-  if (!stopTimes?.length) return filterValidStops([...stopsById.values()]);
+  if (!stopTimes?.length) {
+    const stops = filterValidStops([...stopsById.values()]);
+    stops.sort((a, b) => {
+      if (a.stopName && b.stopName) {
+        return a.stopName < b.stopName ? -1 : 1;
+      } else {
+        return a.stopId < b.stopId ? -1 : 1;
+      }
+    });
+    return stops;
+  }
   let orderedStops: ValidStop[] = [];
 
   for (const time of stopTimes) {

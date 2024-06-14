@@ -144,7 +144,7 @@ function TripTimeline({
           if (isBefore || (index === pickupIndex && isPastPickup)) return [];
         }
         if (!showBetweenStops) {
-          if (index === pickupIndex + 1) {
+          if (index === pickupIndex + 1 && index !== destinationIndex) {
             return (
               <TimelineItem
                 status={isCompleted ? "done" : "default"}

@@ -31,7 +31,6 @@ import {
   getOrderedStops,
   getStopsToDestination,
   getStopsWithStopTimes,
-  getUpcomingOrderedStops,
   isValidStop,
 } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
@@ -80,8 +79,16 @@ function Footer({
   const [snapPoints, setSnapPoints] =
     useState<(string | number)[]>(defaultSnapPoints);
 
-  const [showSelectDialog, setShowSelectDialog] = useState(false);
-  const onCloseSelectDialog = useCallback(() => setShowSelectDialog(false), []);
+  const [showPickupDialog, setShowPickupDialog] = useState(false);
+  const [showDestinationDialog, setShowDestinationDialog] = useState(false);
+  const onCloseDestinationDialog = useCallback(
+    () => setShowDestinationDialog(false),
+    [],
+  );
+  const onClosePickupDialog = useCallback(() => {
+    setShowPickupDialog(false);
+    setShowDestinationDialog(true);
+  }, []);
 
   const [snap, setSnap] = useState<number | string>(defaultSnapPoints[0]);
 
@@ -90,6 +97,7 @@ function Footer({
     "destId",
     parseAsString.withDefault("").withOptions({ history: "push" }),
   );
+  const [tripId, setTripId] = useQueryState("tripId", { history: "push" });
 
   const stopTimeUpdates = useMemo(
     () => trip && tripUpdatesByTripId.get(trip?.tripId)?.stopTimeUpdate,
@@ -102,7 +110,7 @@ function Footer({
   );
 
   const orderdStops = useMemo(
-    () => getUpcomingOrderedStops(adjustedStopTimes, stopsById),
+    () => getOrderedStops(adjustedStopTimes, stopsById),
     [adjustedStopTimes, stopsById],
   );
 
@@ -284,44 +292,39 @@ function Footer({
           )}
         </DrawerHeader>
 
-        {!!orderdStops.length && (
-          <>
-            {!stopId ? (
-              <>
-                <Button onClick={() => setShowSelectDialog(true)}>
-                  Select pickup stop
-                </Button>
-                <StopModal
-                  closeHandler={onCloseSelectDialog}
-                  optionHandler={handleSelectedStop}
-                  title="Select a pickup stop"
-                  open={showSelectDialog}
-                  stops={orderdStops}
-                />
-              </>
-            ) : !destId ? (
-              <>
-                <Button onClick={() => setShowSelectDialog(true)}>
-                  Select destination
-                </Button>{" "}
-                <StopModal
-                  closeHandler={onCloseSelectDialog}
-                  optionHandler={handleDestinationStop}
-                  title="Select a destination"
-                  open={showSelectDialog}
-                  stops={validDestinationStops}
-                />
-              </>
-            ) : (
-              <TripTimeline
-                destinationId={dropOffStop?.stop.stopId ?? null}
-                handleMapCenter={handleMapCenter}
-                pickupStop={stop}
-                stopList={stopList}
-                trip={trip}
-              />
-            )}
-          </>
+        {(!stopId || !destId) && (
+          <div className="flex flex-col gap-2">
+            <Button onClick={() => setShowPickupDialog(true)}>
+              Select a pickup stop
+            </Button>
+            <StopModal
+              closeHandler={onClosePickupDialog}
+              optionHandler={handleSelectedStop}
+              title="Select a pickup stop"
+              open={showPickupDialog}
+              stops={orderdStops}
+              showTripModal={!tripId}
+            />
+            <Button onClick={() => setShowDestinationDialog(true)}>
+              Select a destination
+            </Button>
+            <StopModal
+              closeHandler={onCloseDestinationDialog}
+              optionHandler={handleDestinationStop}
+              title={"Select a destination"}
+              open={showDestinationDialog}
+              stops={validDestinationStops}
+            />
+          </div>
+        )}
+        {!!tripId && !!stopId && !!destId && (
+          <TripTimeline
+            destinationId={dropOffStop?.stop.stopId ?? null}
+            handleMapCenter={handleMapCenter}
+            pickupStop={stop}
+            stopList={stopList}
+            trip={trip}
+          />
         )}
       </DrawerContent>
     </Drawer>

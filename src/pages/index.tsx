@@ -43,6 +43,7 @@ import useRoute from "@/hooks/useRoute";
 import Changelog from "@/components/changelog/Changelog";
 import { isValidStop } from "@/lib/utils";
 import usePrevious from "@/hooks/usePrevious";
+import { StopWithTimes, ValidStop } from "@/components/Map/MapContentLayer";
 
 const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,
@@ -190,6 +191,50 @@ export default function Home() {
   );
 
   // derived state
+  const stopsWithTimes: StopWithTimes[] = useMemo(() => {
+    const orderedStops: Map<string, StopWithTimes> = new Map();
+
+    if (stopTimes?.length) {
+      for (const stopTime of stopTimes) {
+        const stop = stopsById.get(stopTime.stopId);
+        if (!stop || stop?.stopLat === null || stop?.stopLon === null) continue;
+
+        if (orderedStops.has(stopTime.stopId)) {
+          const { stop, times } = orderedStops.get(stopTime.stopId)!;
+          orderedStops.set(stopTime.stopId, {
+            stop: stop as ValidStop,
+            times: times?.concat(stopTime),
+          });
+        } else {
+          orderedStops.set(stopTime.stopId, {
+            stop: stop as ValidStop,
+            times: [stopTime],
+          });
+        }
+      }
+
+      return [...orderedStops.values()];
+    }
+
+    if (stops?.length) {
+      const orderedStops: Map<string, StopWithTimes> = new Map();
+
+      for (const stop of stops) {
+        if (
+          !orderedStops.has(stop.stopId) &&
+          stop.stopLat !== null &&
+          stop.stopLon !== null
+        ) {
+          orderedStops.set(stop.stopId, { stop: stop as ValidStop });
+        }
+      }
+
+      return [...orderedStops.values()];
+    }
+
+    return [];
+  }, [stopTimes, stops, stopsById]);
+
   const destinationStops: StopAndStopTime[] = useMemo(() => {
     if (!stopTimes?.length || !stopId) return [];
 
@@ -445,6 +490,7 @@ export default function Home() {
             stopTimesByStopId={stopTimesByStopId}
             setShowSavedStops={setShowSavedStops}
             stops={stops}
+            stopsWithTimes={stopsWithTimes}
             stopsById={stopsById}
             handleSaveStop={handleSaveStop}
             handleSelectedStop={handleSelectedStop}

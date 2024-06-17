@@ -58,6 +58,7 @@ type Props = {
   setRequestMapCenter: Dispatch<SetStateAction<boolean>>;
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
+  stopsWithTimes: StopWithTimes[];
   stopTimes: StopTime[] | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
   selectedStopId: string | null;
@@ -83,6 +84,7 @@ function MapContentLayer({
   setShowSavedStops,
   shape,
   stops,
+  stopsWithTimes,
   stopsById,
   selectedStopId,
   selectedDestinationStopId,
@@ -222,49 +224,49 @@ function MapContentLayer({
 
   // Some stops are visited twice
   // don't render them twice if no trip Selected
-  const stopList: StopWithTimes[] = useMemo(() => {
-    const orderedStops: Map<string, StopWithTimes> = new Map();
+  // const stopList: StopWithTimes[] = useMemo(() => {
+  //   const orderedStops: Map<string, StopWithTimes> = new Map();
 
-    if (stopTimes?.length) {
-      for (const stopTime of stopTimes) {
-        const stop = stopsById.get(stopTime.stopId);
-        if (!stop || stop?.stopLat === null || stop?.stopLon === null) continue;
+  //   if (stopTimes?.length) {
+  //     for (const stopTime of stopTimes) {
+  //       const stop = stopsById.get(stopTime.stopId);
+  //       if (!stop || stop?.stopLat === null || stop?.stopLon === null) continue;
 
-        if (orderedStops.has(stopTime.stopId)) {
-          const { stop, times } = orderedStops.get(stopTime.stopId)!;
-          orderedStops.set(stopTime.stopId, {
-            stop: stop as ValidStop,
-            times: times?.concat(stopTime),
-          });
-        } else {
-          orderedStops.set(stopTime.stopId, {
-            stop: stop as ValidStop,
-            times: [stopTime],
-          });
-        }
-      }
+  //       if (orderedStops.has(stopTime.stopId)) {
+  //         const { stop, times } = orderedStops.get(stopTime.stopId)!;
+  //         orderedStops.set(stopTime.stopId, {
+  //           stop: stop as ValidStop,
+  //           times: times?.concat(stopTime),
+  //         });
+  //       } else {
+  //         orderedStops.set(stopTime.stopId, {
+  //           stop: stop as ValidStop,
+  //           times: [stopTime],
+  //         });
+  //       }
+  //     }
 
-      return [...orderedStops.values()];
-    }
+  //     return [...orderedStops.values()];
+  //   }
 
-    if (stops?.length) {
-      const orderedStops: Map<string, StopWithTimes> = new Map();
+  //   if (stops?.length) {
+  //     const orderedStops: Map<string, StopWithTimes> = new Map();
 
-      for (const stop of stops) {
-        if (
-          !orderedStops.has(stop.stopId) &&
-          stop.stopLat !== null &&
-          stop.stopLon !== null
-        ) {
-          orderedStops.set(stop.stopId, { stop: stop as ValidStop });
-        }
-      }
+  //     for (const stop of stops) {
+  //       if (
+  //         !orderedStops.has(stop.stopId) &&
+  //         stop.stopLat !== null &&
+  //         stop.stopLon !== null
+  //       ) {
+  //         orderedStops.set(stop.stopId, { stop: stop as ValidStop });
+  //       }
+  //     }
 
-      return [...orderedStops.values()];
-    }
+  //     return [...orderedStops.values()];
+  //   }
 
-    return [];
-  }, [stopTimes, stops, stopsById]);
+  //   return [];
+  // }, [stopTimes, stops, stopsById]);
 
   const singleStop: StopWithTimes[] = useMemo(() => {
     if (
@@ -327,19 +329,21 @@ function MapContentLayer({
             spiderfyOnMaxZoom={false}
             zoomToBoundsOnClick
           >
-            {(stopList.length ? stopList : singleStop).map((stopWithTimes) => {
-              return (
-                <StopMarker
-                  key={"mm" + stopWithTimes.stop.stopId}
-                  stopWithTimes={stopWithTimes}
-                  handleDestinationStop={handleDestinationStop}
-                  handleSaveStop={handleSaveStop}
-                  handleSelectedStop={handleSelectedStop}
-                  realtimeTrip={realtimeTrip}
-                  stopTimesByStopId={stopTimesByStopId}
-                ></StopMarker>
-              );
-            })}
+            {(stopsWithTimes.length ? stopsWithTimes : singleStop).map(
+              (stopWithTimes) => {
+                return (
+                  <StopMarker
+                    key={"mm" + stopWithTimes.stop.stopId}
+                    stopWithTimes={stopWithTimes}
+                    handleDestinationStop={handleDestinationStop}
+                    handleSaveStop={handleSaveStop}
+                    handleSelectedStop={handleSelectedStop}
+                    realtimeTrip={realtimeTrip}
+                    stopTimesByStopId={stopTimesByStopId}
+                  ></StopMarker>
+                );
+              },
+            )}
           </MarkerClusterGroup>
         </FeatureGroup>
       </LayersControl.Overlay>

@@ -66,7 +66,7 @@ function StopModal({ open, stops, title, closeHandler, optionHandler }: Props) {
                                 <RadioGroupItem value={stop.stopId} />
                               </FormControl>
                               <FormLabel className="font-normal">
-                                {stop.stopCode} {stop.stopName}
+                                {stop.stopCode ?? ""} {stop.stopName}
                               </FormLabel>
                             </FormItem>
                           );

@@ -38,13 +38,13 @@ function StopModal({ open, stops, title, closeHandler, optionHandler }: Props) {
   const form = useForm<Stop>();
   return (
     <Dialog open={open} onOpenChange={closeHandler}>
-      <DialogContent>
+      <DialogContent className="max-h-dvh">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 ">
-            <div className="min-h-[26rem] max-h-[80dvh] overflow-y-auto">
+            <div className="min-h-[26rem] max-h-[65dvh] overflow-y-auto">
               <FormField
                 control={form.control}
                 name="stopId"

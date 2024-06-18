@@ -19,6 +19,7 @@ export const changelogs: Changelog[] = [
       "fix: handle rare cases where stops do no have NTA defined stop code such as 200 Cobh cork city service.",
       "fix: search input styles not showing current focus.",
       "fix: LiveText sometimes not inline with text.",
+      "fix: saved stops missing gap after star icons on small screen sizes.",
     ],
   },
   {

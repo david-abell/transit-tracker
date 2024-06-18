@@ -487,12 +487,8 @@ export default function Home() {
             routesById={routesById}
             shape={shape}
             selectedDateTime={selectedDateTime}
-            selectedStopId={stopId}
             selectedStop={selectedStop}
-            selectedDestinationStopId={destId}
-            stopTimes={stopTimes}
             stopTimesByStopId={stopTimesByStopId}
-            setShowSavedStops={setShowSavedStops}
             stops={stops}
             stopsWithTimes={stopsWithTimes}
             stopsById={stopsById}

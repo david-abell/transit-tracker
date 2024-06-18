@@ -59,12 +59,8 @@ type Props = {
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
   stopsWithTimes: StopWithTimes[];
-  stopTimes: StopTime[] | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
-  selectedStopId: string | null;
   selectedStop: Stop | undefined;
-  selectedDestinationStopId: string | null;
-  setShowSavedStops: Dispatch<SetStateAction<boolean>>;
   stops: Stop[] | undefined;
 };
 
@@ -80,16 +76,12 @@ function MapContentLayer({
   handleSaveStop,
   requestMapCenter,
   setRequestMapCenter,
-  stopTimes,
   stopTimesByStopId,
-  setShowSavedStops,
   shape,
   stops,
   stopsWithTimes,
   stopsById,
   selectedStop,
-  selectedStopId,
-  selectedDestinationStopId,
   tripId,
 }: Props) {
   const map = useMap();

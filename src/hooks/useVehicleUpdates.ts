@@ -54,10 +54,14 @@ function useVehicleUpdates({ lat, lng }: Point, radius: number, zoom: number) {
     vehicleStore.add(data.vehicleUpdates);
   }
 
+  const updatesWithValidTrips = [...vehicles.values()].filter(({ trip }) =>
+    Boolean(trip.tripId),
+  );
+
   return {
     error,
     isLoadingVehicleUpdates: isValidating,
-    vehicleUpdates: [...vehicles.values()],
+    vehicleUpdates: updatesWithValidTrips,
   };
 }
 

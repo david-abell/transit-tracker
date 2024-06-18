@@ -374,22 +374,20 @@ function MapContentLayer({
       <LayersControl.Overlay name="Nearby buses" checked>
         <FeatureGroup>
           {!!vehicleUpdates.length &&
-            vehicleUpdates
-              .filter((v) => Boolean(v.trip.tripId))
-              .map((vehicle) => (
-                <GPSGhost
-                  key={
-                    "gps" +
-                    vehicle.vehicle.id +
-                    vehicle.position.latitude +
-                    vehicle.position.longitude
-                  }
-                  vehicle={vehicle}
-                  routesById={routesById}
-                  zoom={zoomLevel}
-                  handleTrip={handleSelectedTrip}
-                />
-              ))}
+            vehicleUpdates.map((vehicle) => (
+              <GPSGhost
+                key={
+                  "gps" +
+                  vehicle.vehicle.id +
+                  vehicle.position.latitude +
+                  vehicle.position.longitude
+                }
+                vehicle={vehicle}
+                routesById={routesById}
+                zoom={zoomLevel}
+                handleTrip={handleSelectedTrip}
+              />
+            ))}
         </FeatureGroup>
       </LayersControl.Overlay>
 

@@ -12,20 +12,18 @@ export interface GroupedOption {
 }
 
 type Props = {
+  handleSelectedRoute: (routeId: string) => void;
   selectedRoute: Route | undefined;
   className?: string;
-  removeQueryParams: () => void;
   setStopId: (stopId: string) => void;
 };
 
 function SearchInput({
+  handleSelectedRoute,
   selectedRoute,
   className = "",
-  removeQueryParams,
   setStopId,
 }: Props) {
-  const [, setRouteId] = useQueryState("routeId");
-
   const [inputText, setInputText] = useState<string>("");
   const [selectedOption, setSelectedOption] = useState<Stop | Route | null>(
     null,
@@ -72,13 +70,12 @@ function SearchInput({
 
   const handleSelectionValue = (option: Stop | Route | null) => {
     if (!option) return;
-    removeQueryParams();
     setSelectedOption(option);
 
     if ("stopId" in option) {
       setStopId(option.stopId);
     } else {
-      setRouteId(option.routeId);
+      handleSelectedRoute(option.routeId);
     }
   };
 

@@ -76,6 +76,10 @@ export function initDateTimeValue() {
   return DateTime.now().toFormat(LUXON_DATE_INPUT_TOKENS);
 }
 
+export function hasSameDay(timestring: string) {
+  return DateTime.now().hasSame(parseDatetimeLocale(timestring), "day");
+}
+
 // add trip start time instead of new Date()
 export function isPastArrivalTime(
   arrivalTime: string,
@@ -86,7 +90,6 @@ export function isPastArrivalTime(
     ? stopTimeStringToDate(arrivalTime, referenceDate)
     : stopTimeStringToDate(arrivalTime);
   if (!now.hasSame(arrivalDate, "day")) return false;
-
   return now > arrivalDate;
 }
 
@@ -206,14 +209,28 @@ export function getDifferenceInSeconds(
   return seconds ? Math.abs(seconds) : 0;
 }
 
+export function secondsSinceVehicleUpdate(timestamp: string) {
+  const now = DateTime.now();
+  const updateTime = DateTime.fromSeconds(Number(timestamp));
+  const { seconds } = now.diff(updateTime, "seconds").toObject();
+  return seconds;
+}
+
 export function timeSinceLastVehicleUpdate(timestamp: string) {
   if (!timestamp) return "";
 
-  const now = DateTime.now();
-  const updateTime = DateTime.fromSeconds(Number(timestamp));
-  const { seconds } = updateTime.diff(now, "seconds").toObject();
+  const seconds = secondsSinceVehicleUpdate(timestamp);
 
   return formatReadableDelay(seconds) ?? "";
+}
+
+export function getArrivalCountdownText(stopTime: StopTime | undefined) {
+  if (!stopTime?.arrivalTime || isPastArrivalTime(stopTime.arrivalTime))
+    return "";
+
+  return (
+    formatReadableDelay(getDifferenceInSeconds(stopTime.arrivalTime)) ?? ""
+  );
 }
 
 export function getDelayedTimeFromTripUpdate(

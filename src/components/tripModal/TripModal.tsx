@@ -1,15 +1,14 @@
 import {
   formatDelayAsDuration,
   getDelayedTime,
+  hasSameDay,
   isPastArrivalTime,
-  parseDatetimeLocale,
 } from "@/lib/timeHelpers";
 import { Route, Stop } from "@prisma/client";
 import { useContext, useEffect, useState } from "react";
 import { DialogRefContext } from "../Modal";
 import useUpcoming from "@/hooks/useUpcoming";
 import useTripUpdates from "@/hooks/useTripUpdates";
-import { DateTime } from "luxon";
 
 import Time from "./Time";
 
@@ -67,10 +66,7 @@ function TripModal({
   if (!selectedStop || !selectedStop.stopLat || !selectedStop.stopLon)
     return null;
 
-  const isToday = DateTime.now().hasSame(
-    parseDatetimeLocale(selectedDateTime),
-    "day",
-  );
+  const isToday = hasSameDay(selectedDateTime);
 
   const hasRealtime =
     isToday && !!selectedRoute && realtimeRouteIds.has(selectedRoute.routeId);

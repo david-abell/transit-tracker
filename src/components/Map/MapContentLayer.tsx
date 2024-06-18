@@ -21,11 +21,10 @@ import {
 } from "react";
 
 import type { Route, Stop, StopTime } from "@prisma/client";
-import { parseDatetimeLocale } from "@/lib/timeHelpers";
+import { hasSameDay } from "@/lib/timeHelpers";
 import Bus from "./Bus";
 import usePrevious from "@/hooks/usePrevious";
 import isEqual from "react-fast-compare";
-import { DateTime } from "luxon";
 import useTripUpdates from "@/hooks/useTripUpdates";
 import useStopId from "@/hooks/useStopId";
 import { Position } from "@turf/helpers";
@@ -35,7 +34,7 @@ import useVehicleUpdates from "@/hooks/useVehicleUpdates";
 import { TripHandler } from "@/pages";
 import L from "leaflet";
 import GPSGhost from "./GPSGhost";
-import { MAP_DEFAULT_ZOOM } from ".";
+import { MAP_DEFAULT_ZOOM, MAX_MAP_ZOOM } from ".";
 import UserLocation from "./UserLocation";
 
 export type ValidStop = Stop & {
@@ -48,39 +47,41 @@ type Props = {
   height: number;
   selectedDateTime: string;
   tripId: string | null;
+  mapCenter: LatLngTuple;
+  handleMapCenter: (latLon: LatLngTuple, requestCenter?: boolean) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
   handleSelectedStop: (stopId: string) => void;
   handleSelectedTrip: TripHandler;
   handleDestinationStop: (stopId: string) => void;
-  center: LatLngTuple;
   routesById: Map<string, Route>;
+  requestMapCenter: boolean;
+  setRequestMapCenter: Dispatch<SetStateAction<boolean>>;
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
-  stopTimes: StopTime[] | undefined;
+  stopsWithTimes: StopWithTimes[];
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
-  selectedStopId: string | null;
-  selectedDestinationStopId: string | null;
-  setShowSavedStops: Dispatch<SetStateAction<boolean>>;
+  selectedStop: Stop | undefined;
   stops: Stop[] | undefined;
 };
 
 function MapContentLayer({
+  mapCenter,
+  handleMapCenter,
   handleSelectedStop,
   handleSelectedTrip,
   handleDestinationStop,
   height,
-  center,
   routesById,
   selectedDateTime,
   handleSaveStop,
-  stopTimes,
+  requestMapCenter,
+  setRequestMapCenter,
   stopTimesByStopId,
-  setShowSavedStops,
   shape,
   stops,
+  stopsWithTimes,
   stopsById,
-  selectedStopId,
-  selectedDestinationStopId,
+  selectedStop,
   tripId,
 }: Props) {
   const map = useMap();
@@ -97,22 +98,40 @@ function MapContentLayer({
     return (width + height) / 2;
   }, [map]);
 
-  const [mapCenter, setMapCenter] = useState({
-    lat: center[0],
-    lng: center[1],
-  });
-
   const [mapKM, setMapKM] = useState(getWidthHeightInKM());
   const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
+  const prevCenter = usePrevious(mapCenter);
+  const boundsRef = useRef<L.LatLngBounds | undefined>();
+  const moveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const effectMoveTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const mapEvents = useMapEvents({
     moveend() {
       const { lat, lng } = mapEvents.getCenter();
-      setMapCenter({ lat, lng });
+      function moveToCenter() {
+        const { lat, lng } = mapEvents.getCenter();
+        handleMapCenter([lat, lng], false);
+      }
+
+      if (!prevCenter) {
+        if (moveTimer.current) {
+          clearTimeout(moveTimer.current);
+        }
+        moveTimer.current = setTimeout(moveToCenter, 200);
+        // handleMapCenter([lat, lng], false);
+      } else {
+        if (prevCenter[0] !== lat || prevCenter[1] !== lng) {
+          if (moveTimer.current) {
+            clearTimeout(moveTimer.current);
+          }
+          moveTimer.current = setTimeout(moveToCenter, 200);
+          // handleMapCenter([lat, lng], false);
+        }
+      }
     },
     zoomend() {
       setMapKM(getWidthHeightInKM());
-      setZoomLevel(map.getZoom());
+      setZoomLevel(Math.min(MAX_MAP_ZOOM, map.getZoom()));
     },
   });
 
@@ -121,28 +140,100 @@ function MapContentLayer({
   }, [stops]);
 
   const previousStopIds = usePrevious(stopIds);
-  const prevCenter = usePrevious(center);
 
-  const { selectedStop } = useStopId(selectedStopId);
-
-  // Set map center location on new route selection
+  // Center map on state updates
   useEffect(() => {
-    if (!stopIds.length) return;
-
+    const { stopLat, stopLon } = selectedStop || {};
+    const isSelectStopCentered =
+      !!stopLat &&
+      !!stopLon &&
+      (stopLat !== mapCenter[0] || stopLon !== mapCenter[1]);
     const group = markerGroupRef.current;
+    const prevBounds = boundsRef.current;
+    const bounds = group?.getBounds();
+    let isNewBounds = false;
 
-    if (prevCenter !== center && !isEqual(stopIds, previousStopIds)) {
-      if (group?.getBounds().isValid()) {
-        map.fitBounds(group.getBounds());
-      } else {
-        map.setView(center);
-      }
-    } else if (!isEqual(stopIds, previousStopIds)) {
-      if (group?.getBounds().isValid()) {
-        map.fitBounds(group.getBounds());
+    if (bounds?.isValid()) {
+      boundsRef.current = bounds;
+      if (!prevBounds) {
+        isNewBounds = true;
+      } else if (prevBounds.isValid() && !bounds.equals(prevBounds)) {
+        isNewBounds = true;
       }
     }
-  }, [center, map, prevCenter, previousStopIds, stopIds]);
+
+    const isNewCenter =
+      mapCenter[0] !== prevCenter?.[0] || mapCenter[1] !== prevCenter?.[1];
+    const isNewIds = !isEqual(stopIds, previousStopIds);
+    const shouldNotMove =
+      !isNewCenter &&
+      !isNewBounds &&
+      !requestMapCenter &&
+      isSelectStopCentered &&
+      !isNewIds;
+
+    if (shouldNotMove) return;
+
+    const isSameNorth =
+      bounds?.isValid() &&
+      bounds?.getNorthEast()?.equals(bounds?.getNorthWest());
+    const isSameSouth =
+      bounds?.isValid() &&
+      bounds?.getSouthEast()?.equals(bounds?.getSouthWest());
+
+    if (bounds?.isValid() && (isNewBounds || isNewIds)) {
+      const boundsCenter = bounds.getCenter();
+      if (isSameNorth && isSameSouth && !stopIds.length) {
+        if (effectMoveTimer.current) {
+          clearTimeout(effectMoveTimer.current);
+        }
+        effectMoveTimer.current = setTimeout(
+          () => map.setView(boundsCenter, zoomLevel),
+          300,
+        );
+      } else if (!isEqual(stopIds, previousStopIds)) {
+        if (effectMoveTimer.current) {
+          clearTimeout(effectMoveTimer.current);
+        }
+        effectMoveTimer.current = setTimeout(
+          () => map.fitBounds(bounds, { maxZoom: MAX_MAP_ZOOM }),
+          300,
+        );
+      }
+    } else if (requestMapCenter) {
+      setRequestMapCenter(false);
+      if (effectMoveTimer.current) {
+        clearTimeout(effectMoveTimer.current);
+      }
+      // Is selected stop centered
+      if (
+        !!stopLat &&
+        !!stopLon &&
+        (stopLat !== mapCenter[0] || stopLon !== mapCenter[1])
+      ) {
+        effectMoveTimer.current = setTimeout(
+          () => map.setView([stopLat, stopLon], zoomLevel),
+          300,
+        );
+      } else {
+        effectMoveTimer.current = setTimeout(
+          () => map.setView(mapCenter, zoomLevel),
+          300,
+        );
+      }
+    }
+  }, [
+    map,
+    mapCenter,
+    prevCenter,
+    previousStopIds,
+    requestMapCenter,
+    selectedStop,
+    setRequestMapCenter,
+    stopIds,
+    stopsWithTimes,
+    zoomLevel,
+  ]);
 
   // Set map dimensions onload/onresize
   useEffect(() => {
@@ -161,7 +252,11 @@ function MapContentLayer({
   const { realtimeScheduledByTripId, addedTripStopTimes } =
     useTripUpdates(tripId);
 
-  const { vehicleUpdates } = useVehicleUpdates(mapCenter, mapKM, zoomLevel);
+  const { vehicleUpdates } = useVehicleUpdates(
+    { lat: mapCenter[0], lng: mapCenter[1] },
+    mapKM,
+    zoomLevel,
+  );
 
   const realtimeTrip = useMemo(
     () => (!!tripId ? realtimeScheduledByTripId.get(tripId) : undefined),
@@ -188,55 +283,9 @@ function MapContentLayer({
   // }, 2000);
 
   const isToday = useMemo(
-    () => DateTime.now().hasSame(parseDatetimeLocale(selectedDateTime), "day"),
+    () => hasSameDay(selectedDateTime),
     [selectedDateTime],
   );
-
-  // Some stops are visited twice
-  // don't render them twice if no trip Selected
-  const stopList: StopWithTimes[] = useMemo(() => {
-    const orderedStops: Map<string, StopWithTimes> = new Map();
-
-    if (stopTimes?.length) {
-      for (const stopTime of stopTimes) {
-        const stop = stopsById.get(stopTime.stopId);
-        if (!stop || stop?.stopLat === null || stop?.stopLon === null) continue;
-
-        if (orderedStops.has(stopTime.stopId)) {
-          const { stop, times } = orderedStops.get(stopTime.stopId)!;
-          orderedStops.set(stopTime.stopId, {
-            stop: stop as ValidStop,
-            times: times?.concat(stopTime),
-          });
-        } else {
-          orderedStops.set(stopTime.stopId, {
-            stop: stop as ValidStop,
-            times: [stopTime],
-          });
-        }
-      }
-
-      return [...orderedStops.values()];
-    }
-
-    if (stops?.length) {
-      const orderedStops: Map<string, StopWithTimes> = new Map();
-
-      for (const stop of stops) {
-        if (
-          !orderedStops.has(stop.stopId) &&
-          stop.stopLat !== null &&
-          stop.stopLon !== null
-        ) {
-          orderedStops.set(stop.stopId, { stop: stop as ValidStop });
-        }
-      }
-
-      return [...orderedStops.values()];
-    }
-
-    return [];
-  }, [stopTimes, stops, stopsById]);
 
   const singleStop: StopWithTimes[] = useMemo(() => {
     if (
@@ -271,42 +320,47 @@ function MapContentLayer({
       <LayersControl.Overlay name="Nearby buses" checked>
         <FeatureGroup>
           {!!vehicleUpdates.length &&
-            vehicleUpdates
-              .filter((v) => Boolean(v.trip.tripId))
-              .map((vehicle) => (
-                <GPSGhost
-                  key={
-                    "gps" +
-                    vehicle.vehicle.id +
-                    vehicle.position.latitude +
-                    vehicle.position.longitude
-                  }
-                  vehicle={vehicle}
-                  routesById={routesById}
-                  zoom={zoomLevel}
-                  handleTrip={handleSelectedTrip}
-                />
-              ))}
+            vehicleUpdates.map((vehicle) => (
+              <GPSGhost
+                key={
+                  "gps" +
+                  vehicle.vehicle.id +
+                  vehicle.position.latitude +
+                  vehicle.position.longitude
+                }
+                vehicle={vehicle}
+                routesById={routesById}
+                zoom={zoomLevel}
+                handleTrip={handleSelectedTrip}
+              />
+            ))}
         </FeatureGroup>
       </LayersControl.Overlay>
 
       {/* Route stop markers */}
       <LayersControl.Overlay name="Stops" checked>
         <FeatureGroup ref={markerGroupRef}>
-          <MarkerClusterGroup maxClusterRadius={60}>
-            {(stopList.length ? stopList : singleStop).map((stopWithTimes) => {
-              return (
-                <StopMarker
-                  key={"mm" + stopWithTimes.stop.stopId}
-                  stopWithTimes={stopWithTimes}
-                  handleDestinationStop={handleDestinationStop}
-                  handleSaveStop={handleSaveStop}
-                  handleSelectedStop={handleSelectedStop}
-                  realtimeTrip={realtimeTrip}
-                  stopTimesByStopId={stopTimesByStopId}
-                ></StopMarker>
-              );
-            })}
+          <MarkerClusterGroup
+            maxClusterRadius={60}
+            disableClusteringAtZoom={MAX_MAP_ZOOM - 2}
+            spiderfyOnMaxZoom={false}
+            zoomToBoundsOnClick
+          >
+            {(stopsWithTimes.length ? stopsWithTimes : singleStop).map(
+              (stopWithTimes) => {
+                return (
+                  <StopMarker
+                    key={"mm" + stopWithTimes.stop.stopId}
+                    stopWithTimes={stopWithTimes}
+                    handleDestinationStop={handleDestinationStop}
+                    handleSaveStop={handleSaveStop}
+                    handleSelectedStop={handleSelectedStop}
+                    realtimeTrip={realtimeTrip}
+                    stopTimesByStopId={stopTimesByStopId}
+                  ></StopMarker>
+                );
+              },
+            )}
           </MarkerClusterGroup>
         </FeatureGroup>
       </LayersControl.Overlay>

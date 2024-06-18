@@ -392,7 +392,8 @@ body.modal-open {
   }
 }
 
-.react-select-container {
+.react-select-container,
+.react-select__menu-portal {
   .react-select__control {
     background-color: hsl(var(--popover));
     border-color: hsl(var(--border));
@@ -413,7 +414,8 @@ body.modal-open {
     background-color: hsl(var(--popover));
     color: hsl(var(--popover-foreground));
 
-    &:hover {
+    &.react-select__option--is-focused,
+    &:focus-visible {
       background-color: hsl(var(--accent));
     }
   }

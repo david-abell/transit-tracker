@@ -41,6 +41,9 @@ import dynamic from "next/dynamic";
 import { LatLngExpression, LatLngTuple } from "leaflet";
 import useRoute from "@/hooks/useRoute";
 import Changelog from "@/components/changelog/Changelog";
+import { isValidStop } from "@/lib/utils";
+import usePrevious from "@/hooks/usePrevious";
+import { StopWithTimes, ValidStop } from "@/components/Map/MapContentLayer";
 
 const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,
@@ -65,10 +68,20 @@ export default function Home() {
   const [routeId, setRouteId] = useQueryState("routeId", { history: "push" });
   const [tripId, setTripId] = useQueryState("tripId", { history: "push" });
   const [stopId, setStopId] = useQueryState("stopId", { history: "push" });
-  const [destId, setDestId] = useQueryState(
-    "destId",
-    parseAsString.withDefault("").withOptions({ history: "push" }),
-  );
+  const [destId, setDestId] = useQueryState("destId", { history: "push" });
+
+  const prevTrip = usePrevious(tripId);
+  const prevRoute = usePrevious(routeId);
+
+  // clear Destination stop on route and trip change
+  useEffect(() => {
+    if (
+      (prevTrip && prevTrip !== tripId) ||
+      (prevRoute && prevRoute !== routeId)
+    ) {
+      setDestId(null);
+    }
+  }, [prevRoute, prevTrip, routeId, setDestId, tripId]);
 
   // Query string helpers
   const removeQueryParams = useCallback(() => {
@@ -77,11 +90,6 @@ export default function Home() {
     setStopId(null);
     setDestId(null);
   }, [setDestId, setRouteId, setStopId, setTripId]);
-
-  // clear Destination stop on state change
-  useEffect(() => {
-    setDestId(null);
-  }, [routeId, tripId, stopId, setDestId]);
 
   // user state
   const [selectedDateTime, setSelectedDateTime] = useState(initDateTimeValue());
@@ -93,6 +101,7 @@ export default function Home() {
 
   // component visibility state
   const [mapCenter, setMapCenter] = useState<LatLngTuple>(INITIAL_LOCATION);
+  const [requestMapCenter, setRequestMapCenter] = useState(false);
   const [showTripModal, setShowTripModal] = useState(false);
   const [showSavedStops, setShowSavedStops] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -128,6 +137,13 @@ export default function Home() {
   );
 
   const { selectedStop, error: stopError, isLoadingStop } = useStopId(stopId);
+
+  // useEffect(() => {
+  //   if (!selectedStop) return;
+  //   const { stopLat, stopLon } = selectedStop;
+  //   if (!stopLat || !stopLon) return;
+  //   setMapCenter([stopLat, stopLon]);
+  // }, [selectedStop]);
 
   const {
     selectedStop: destinationStop,
@@ -175,6 +191,49 @@ export default function Home() {
   );
 
   // derived state
+  const stopsWithTimes: StopWithTimes[] = useMemo(() => {
+    const orderedStops: Map<string, StopWithTimes> = new Map();
+
+    if (stopTimes?.length) {
+      for (const stopTime of stopTimes) {
+        const stop = stopsById.get(stopTime.stopId);
+        if (!stop || stop?.stopLat === null || stop?.stopLon === null) continue;
+
+        if (orderedStops.has(stopTime.stopId)) {
+          const { stop, times } = orderedStops.get(stopTime.stopId)!;
+          orderedStops.set(stopTime.stopId, {
+            stop: stop as ValidStop,
+            times: times?.concat(stopTime),
+          });
+        } else {
+          orderedStops.set(stopTime.stopId, {
+            stop: stop as ValidStop,
+            times: [stopTime],
+          });
+        }
+      }
+
+      return [...orderedStops.values()];
+    }
+
+    if (stops?.length) {
+      const orderedStops: Map<string, StopWithTimes> = new Map();
+
+      for (const stop of stops) {
+        if (
+          !orderedStops.has(stop.stopId) &&
+          stop.stopLat !== null &&
+          stop.stopLon !== null
+        ) {
+          orderedStops.set(stop.stopId, { stop: stop as ValidStop });
+        }
+      }
+
+      return [...orderedStops.values()];
+    }
+
+    return [];
+  }, [stopTimes, stops, stopsById]);
 
   const destinationStops: StopAndStopTime[] = useMemo(() => {
     if (!stopTimes?.length || !stopId) return [];
@@ -192,7 +251,7 @@ export default function Home() {
 
     times?.forEach((stopTime) => {
       const stop = stopsById.get(stopTime.stopId);
-      if (!stop) return;
+      if (!stop || !isValidStop(stop)) return;
       orderedStops.push({ stop, stopTime });
     });
 
@@ -242,20 +301,49 @@ export default function Home() {
     },
     [setSavedStops, setShowSavedStops],
   );
+
+  const handleSelectedRoute = useCallback(
+    (routeId: string) => {
+      removeQueryParams();
+      setRouteId((prev) => {
+        if (prev !== routeId) {
+          removeQueryParams();
+          return routeId;
+        }
+        return prev;
+      });
+    },
+    [removeQueryParams, setRouteId],
+  );
+
   const handleSelectedTrip: TripHandler = useCallback(
     ({ stopId, tripId, newRouteId, from }) => {
       setShowTripModal(false);
       if (newRouteId) {
-        removeQueryParams();
-        setRouteId((prev) => (prev !== newRouteId ? newRouteId : prev));
+        setRouteId((prev) => {
+          if (prev !== newRouteId) {
+            removeQueryParams();
+            return newRouteId;
+          }
+          return prev;
+        });
       }
+      let isNewTrip = false;
+      setTripId((prev) => {
+        if (prev !== tripId) {
+          setDestId(null);
+          return tripId;
+        }
+        return prev;
+      });
+      // setMapCenter(from);
       if (stopId) {
         setStopId(stopId);
+      } else if (isNewTrip) {
+        setStopId(null);
       }
-      setTripId(tripId);
-      setMapCenter(from);
     },
-    [removeQueryParams, setRouteId, setStopId, setTripId],
+    [removeQueryParams, setDestId, setRouteId, setStopId, setTripId],
   );
 
   const handleSelectedStop = useCallback(
@@ -267,6 +355,17 @@ export default function Home() {
       }
     },
     [setStopId],
+  );
+
+  const handleSelectStopAndClear = useCallback(
+    (stopId: string) => {
+      removeQueryParams();
+      handleSelectedStop(stopId);
+      setShowSavedStops(false);
+      setShowTripModal(true);
+      setRequestMapCenter(true);
+    },
+    [handleSelectedStop, removeQueryParams],
   );
 
   const handleDestinationStop = useCallback(
@@ -281,6 +380,14 @@ export default function Home() {
     setStopId(null);
     setDestId(null);
   };
+
+  const handleMapCenter = useCallback(
+    (latLon: LatLngTuple, requestCenter: boolean = false) => {
+      setMapCenter(latLon);
+      setRequestMapCenter(requestCenter);
+    },
+    [],
+  );
 
   return (
     <main className="flex min-h-[100svh] flex-col items-center justify-between text-slate-950 dark:text-white">
@@ -301,8 +408,8 @@ export default function Home() {
               }
             >
               <SearchInput
+                handleSelectedRoute={handleSelectedRoute}
                 selectedRoute={selectedRoute}
-                removeQueryParams={removeQueryParams}
                 setStopId={handleSelectedStop}
               />
             </NavItem>
@@ -373,16 +480,17 @@ export default function Home() {
         </div>
         <div className="relative">
           <MapContainer
-            center={mapCenter}
+            mapCenter={mapCenter}
+            handleMapCenter={handleMapCenter}
+            requestMapCenter={requestMapCenter}
+            setRequestMapCenter={setRequestMapCenter}
             routesById={routesById}
             shape={shape}
             selectedDateTime={selectedDateTime}
-            selectedStopId={stopId}
-            selectedDestinationStopId={destId}
-            stopTimes={stopTimes}
+            selectedStop={selectedStop}
             stopTimesByStopId={stopTimesByStopId}
-            setShowSavedStops={setShowSavedStops}
             stops={stops}
+            stopsWithTimes={stopsWithTimes}
             stopsById={stopsById}
             handleSaveStop={handleSaveStop}
             handleSelectedStop={handleSelectedStop}
@@ -414,7 +522,7 @@ export default function Home() {
       <SavedStops
         isOpen={showSavedStops}
         setIsOpen={setShowSavedStops}
-        setShowTripModal={setShowTripModal}
+        handleSelectStopAndClear={handleSelectStopAndClear}
       />
 
       {/* Errors and loading messages */}
@@ -448,8 +556,14 @@ export default function Home() {
 
       <Footer
         destination={destinationStop}
+        destinationStops={destinationStops}
+        handleDestinationStop={handleDestinationStop}
+        handleMapCenter={handleMapCenter}
+        handleSelectedStop={handleSelectedStop}
         route={selectedRoute}
         stop={selectedStop}
+        stops={stops}
+        stopsById={stopsById}
         stopTimes={stopTimes}
         trip={selectedTrip}
         tripUpdatesByTripId={tripUpdatesByTripId}

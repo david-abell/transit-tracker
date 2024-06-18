@@ -1,13 +1,14 @@
 import {
   formatReadableDelay,
+  getArrivalCountdownText,
   getDelayStatus,
   getDelayedTime,
   getDifferenceInSeconds,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
-import { TripUpdate } from "@/types/realtime";
+import { StopTimeUpdate, TripUpdate } from "@/types/realtime";
 import { Route, Stop, StopTime, Trip } from "@prisma/client";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useInterval } from "usehooks-ts";
 
 import {
@@ -16,26 +17,58 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
 
 import useStopId from "@/hooks/useStopId";
+import TripTimeline from "./TripTimeline/TripTimeline";
+import { LatLngTuple } from "leaflet";
+import { StopAndStopTime } from "./DestinationSelect";
+import { parseAsString, useQueryState } from "nuqs";
+import StopModal from "./StopModal";
+import { ValidStop } from "./Map/MapContentLayer";
+import {
+  getAdjustedStopTimes,
+  getOrderedStops,
+  getStopsToDestination,
+  getStopsWithStopTimes,
+  isValidStop,
+} from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
+import LiveText, { LiveTextColor } from "./LiveText";
 
 type Props = {
   destination?: Stop;
+  destinationStops: StopAndStopTime[];
+  handleDestinationStop: (stopId: string) => void;
+  handleMapCenter: (latLon: LatLngTuple, requestCenter?: boolean) => void;
+  handleSelectedStop: (stopId: string, showModal?: boolean) => void;
   route?: Route;
   stop?: Stop;
+  stops: Stop[] | undefined;
+  stopsById: Map<string, Stop>;
   trip?: Trip;
   stopTimes?: StopTime[];
   tripUpdatesByTripId: Map<string, TripUpdate>;
 };
 
-const defaultSnapPoints = [0.03, 0.2, 0.4, 0.6, 0.86, 1];
+const defaultSnapPoints = ["30px"];
+
+for (let i = 5; i <= 100; i += 5) {
+  defaultSnapPoints.push(`${i}%`);
+}
 
 function Footer({
+  destination,
+  destinationStops,
+  handleDestinationStop,
+  handleSelectedStop,
+  handleMapCenter,
   trip,
   stop,
+  stops,
   route,
+  stopsById,
   stopTimes,
-  destination,
   tripUpdatesByTripId,
 }: Props) {
   // Rerender interval to arrival estimates
@@ -43,101 +76,157 @@ function Footer({
   useInterval(() => {
     setCount(count + 1);
   }, 1000);
-  const [snapPoints, setSnapPoints] = useState(defaultSnapPoints);
+  const [snapPoints, setSnapPoints] =
+    useState<(string | number)[]>(defaultSnapPoints);
 
-  const [snap, setSnap] = useState<number | string | null>(
-    defaultSnapPoints[0],
+  const [showPickupDialog, setShowPickupDialog] = useState(false);
+  const [showDestinationDialog, setShowDestinationDialog] = useState(false);
+  const onCloseDestinationDialog = useCallback(
+    () => setShowDestinationDialog(false),
+    [],
   );
+  const onClosePickupDialog = useCallback(() => {
+    setShowPickupDialog(false);
+  }, []);
 
-  const lastStopId = useMemo(() => {
-    if (!!destination) return "";
+  const [snap, setSnap] = useState<number | string>(defaultSnapPoints[0]);
 
-    return stopTimes?.at(-1)?.stopId ?? "";
-  }, [destination, stopTimes]);
+  const [stopId, setStopId] = useQueryState("stopId", { history: "push" });
+  const [destId, setDestId] = useQueryState("destId", { history: "push" });
+  const [tripId, setTripId] = useQueryState("tripId", { history: "push" });
 
-  const {
-    selectedStop: lastStop,
-    error: lastStopError,
-    isLoadingStop: isLoadingLastStop,
-  } = useStopId(lastStopId, true);
-
-  const destinationStop = destination ?? lastStop;
-
-  const pickupStopTime = stopTimes?.find(
-    ({ stopId }) => stopId === stop?.stopId,
-  );
-  const dropOffStopTime =
-    stopTimes?.find(({ stopId }) => stopId === destination?.stopId) ||
-    stopTimes?.find(({ stopId }) => stopId === lastStop?.stopId);
-
-  const {
-    arrivalTime: pickupArrivalTime,
-    departureTime: pickupDepartureTime,
-    stopSequence: pickupStopSequence,
-  } = pickupStopTime || {};
-
-  const { arrivalTime: dropOffArrivalTime, stopSequence: dropOffStopSequence } =
-    dropOffStopTime || {};
-
-  // Realtime derived state
   const stopTimeUpdates = useMemo(
     () => trip && tripUpdatesByTripId.get(trip?.tripId)?.stopTimeUpdate,
     [tripUpdatesByTripId, trip],
   );
 
-  const lastStopTimeUpdate = stopTimeUpdates?.at(-1);
-
-  const pickupStopUpdate =
-    (pickupStopSequence &&
-      stopTimeUpdates?.find(
-        ({ stopSequence }) => stopSequence >= pickupStopSequence,
-      )) ||
-    lastStopTimeUpdate;
-
-  const realtimePickupArrivalTime = getDelayedTime(
-    pickupDepartureTime,
-    pickupStopUpdate?.arrival?.delay || pickupStopUpdate?.departure?.delay,
+  const adjustedStopTimes = useMemo(
+    () => getAdjustedStopTimes(stopTimes, stopTimeUpdates),
+    [stopTimeUpdates, stopTimes],
   );
 
-  const pickupDelayStatus = getDelayStatus(pickupStopUpdate);
-
-  const pickupDelay = formatReadableDelay(
-    pickupStopUpdate?.arrival?.delay || pickupStopUpdate?.departure?.delay,
+  const orderdStops = useMemo(
+    () => getOrderedStops(adjustedStopTimes, stopsById),
+    [adjustedStopTimes, stopsById],
   );
 
-  const dropOffStopUpdate =
-    (dropOffStopSequence &&
-      stopTimeUpdates?.find(
-        ({ stopSequence }) => stopSequence >= dropOffStopSequence,
-      )) ||
-    lastStopTimeUpdate;
-
-  const dropOffDelayStatus = getDelayStatus(dropOffStopUpdate);
-
-  const dropOffDelay = formatReadableDelay(
-    dropOffStopUpdate?.arrival?.delay || dropOffStopUpdate?.departure?.delay,
+  const stopList = useMemo(
+    () => getStopsWithStopTimes(stopsById, adjustedStopTimes, destId),
+    [adjustedStopTimes, destId, stopsById],
   );
 
-  const realtimeDropOffArrivalTime = getDelayedTime(
-    dropOffArrivalTime,
-    dropOffStopUpdate?.arrival?.delay || dropOffStopUpdate?.departure?.delay,
+  const validDestinationStops: ValidStop[] = useMemo(
+    () =>
+      destinationStops
+        ?.map(({ stop }) => stop)
+        .filter((stop): stop is ValidStop => isValidStop(stop)),
+    [destinationStops],
   );
 
-  const isPastPickup =
-    !!pickupArrivalTime &&
-    isPastArrivalTime(realtimePickupArrivalTime ?? pickupArrivalTime);
+  const pickupStop = useMemo(
+    () => stopList.find(({ stop }) => stop.stopId === stopId),
+    [stopId, stopList],
+  );
+  const dropOffStop = useMemo(
+    () =>
+      stopList.find(({ stop }) => stop.stopId === destId) ?? stopList.at(-1),
+    [destId, stopList],
+  );
+  const nextStop = stopList.find(
+    ({ stopTime }) =>
+      !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
+  );
 
-  const isPastDropOff =
-    !!dropOffArrivalTime &&
-    isPastArrivalTime(realtimeDropOffArrivalTime ?? dropOffArrivalTime);
+  const isPastDropOff = dropOffStop && !nextStop;
 
-  const liveTextArrivalTime = isPastPickup
-    ? realtimeDropOffArrivalTime || dropOffArrivalTime
-    : realtimePickupArrivalTime || pickupArrivalTime;
+  const handleDelayStatus = useCallback(
+    (
+      pickup: StopAndStopTime | undefined,
+      dropOff: StopAndStopTime | undefined,
+    ) => {
+      if (!pickup || !dropOff) return "";
+      const next = stopList.find(
+        ({ stopTime }) =>
+          !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
+      );
 
-  const liveTextContent = liveTextArrivalTime
-    ? formatReadableDelay(getDifferenceInSeconds(liveTextArrivalTime))
-    : "";
+      if (!next) return "";
+
+      const lastUpdate = stopTimeUpdates?.at(-1);
+      if (!stopTimeUpdates || !lastUpdate) return "";
+      if (lastUpdate.scheduleRelationship === "CANCELED") return "Canceled";
+
+      const currentSequence = next.stopTime.stopSequence;
+
+      if (currentSequence <= pickup.stopTime.stopSequence) {
+        const stopUpdate =
+          stopTimeUpdates?.find(
+            ({ stopSequence }) => stopSequence >= pickup.stopTime.stopSequence,
+          ) || lastUpdate;
+
+        return `Pickup up ${getDelayStatus(stopUpdate)}`;
+      } else if (currentSequence <= dropOff.stopTime.stopSequence) {
+        const stopUpdate =
+          stopTimeUpdates?.find(
+            ({ stopSequence }) => stopSequence >= dropOff.stopTime.stopSequence,
+          ) || lastUpdate;
+
+        return `Dropping off ${getDelayStatus(stopUpdate)}`;
+      } else {
+        return "completed";
+      }
+    },
+    [stopList, stopTimeUpdates],
+  );
+
+  const handleStatusColor = useCallback(
+    (textContent: string): LiveTextColor => {
+      if (textContent.toLowerCase().includes("canceled")) return "alert";
+      if (textContent.toLowerCase().includes("late")) return "caution";
+      if (textContent.toLowerCase().includes("early")) return "info";
+      return "default";
+    },
+    [],
+  );
+
+  const handleTripCountdown = useCallback(
+    (
+      pickup: StopAndStopTime | undefined,
+      dropOff: StopAndStopTime | undefined,
+    ) => {
+      if (!pickup || !dropOff) return "";
+
+      const next = stopList.find(
+        ({ stopTime }) =>
+          !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
+      );
+      if (!next) return "";
+
+      const currentSequence = next.stopTime.stopSequence;
+
+      if (currentSequence < pickup.stopTime.stopSequence) {
+        return getArrivalCountdownText(pickup.stopTime);
+      } else if (currentSequence < dropOff.stopTime.stopSequence) {
+        return getArrivalCountdownText(dropOff.stopTime);
+      } else {
+        return "";
+      }
+    },
+    [stopList],
+  );
+
+  const handleArrivalCountdown = useCallback(
+    (stopTime: StopTime) => getArrivalCountdownText(stopTime),
+    [],
+  );
+
+  const handleSelectedPickup = useCallback(
+    (stopId: string) => {
+      handleSelectedStop(stopId, !tripId);
+      // setShowDestinationDialog(true);
+    },
+    [handleSelectedStop, tripId],
+  );
 
   return (
     <Drawer
@@ -145,158 +234,119 @@ function Footer({
       modal={false}
       dismissible={false}
       snapPoints={snapPoints}
-      activeSnapPoint={snap}
-      setActiveSnapPoint={setSnap}
-      handleOnly
+      onOpenChange={() => {
+        setSnap(snap);
+      }}
+      snap={snap}
+      setSnap={setSnap}
     >
-      <DrawerContent className="lg:max-w-7xl mx-auto p-2 z-[2000]">
-        <DrawerHeader>
-          <DrawerTitle className="sr-only">Selected route details</DrawerTitle>
-          <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] py-0 no-underline">
-            {
-              <div className="flex w-full flex-row content-center justify-between gap-2 md:gap-4 overflow-hidden px-2 text-left font-normal">
-                <p>
-                  {
-                    <>
-                      <span>Route </span>
-                      <b>{route?.routeShortName ?? ""}</b>
-                      <span className="max-lg:hidden">
-                        {" "}
-                        &#9830; {route?.routeLongName ?? "No route selected"}
-                      </span>
-                    </>
-                  }
-
-                  {!!trip && <> &#9830; heading towards {trip.tripHeadsign}</>}
-                </p>
-
-                {!!trip && !!stop && (
-                  <p>
-                    {isPastDropOff ? (
-                      "Completed"
-                    ) : isPastPickup ? (
-                      <span>
-                        Dropping off {dropOffDelayStatus} in{" "}
-                        <span
-                          className={`whitespace-nowrap ${
-                            dropOffDelayStatus === "early"
-                              ? "text-green-700 dark:text-green-500"
-                              : dropOffDelayStatus === "late"
-                                ? "text-red-700 dark:text-red-500"
-                                : ""
-                          }`}
-                        >
-                          {liveTextContent ?? ""}
-                        </span>
-                      </span>
-                    ) : (
-                      <span>
-                        Picking up {pickupDelayStatus} in{" "}
-                        <span
-                          className={`whitespace-nowrap ${
-                            dropOffDelayStatus === "early"
-                              ? "text-green-700 dark:text-green-500"
-                              : dropOffDelayStatus === "late"
-                                ? "text-red-700 dark:text-red-500"
-                                : ""
-                          }`}
-                        >
-                          {liveTextContent ?? ""}
-                        </span>
-                      </span>
-                    )}
-                  </p>
-                )}
-              </div>
-            }
-          </div>
-        </DrawerHeader>
-        <div className="last:pb-0">
-          <div className="grid-rows-[3rem 1fr] dark:bg-gray-700/90 mt-4 grid w-full grid-cols-1 overflow-hidden  rounded-lg text-left text-sm text-gray-950 dark:text-gray-50 lg:grid-cols-2">
-            <div className="grid grid-cols-3 grid-rows-[minmax(0,_3rem)_1fr] gap-x-2">
-              {/* Pickup Headers */}
-              <div className="dark:bg-gray-700/90 col-span-3 grid grid-cols-3 grid-rows-subgrid items-center  gap-2 bg-gray-200/90 p-2 uppercase text-gray-950 dark:text-gray-50">
-                {/* <span className="col-span-2 p-2">Route</span> */}
-                <span>From</span>
-                <span>Scheduled</span>
-                <span>Realtime</span>
-              </div>
-
-              {/* Pickup Data */}
-              <div className="dark:bg-gray-800/90 col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white/90 p-2  text-gray-900 dark:text-white">
-                <span>
-                  {!!stop?.stopId && (
-                    <p>
-                      <b>{stop.stopCode || stop.stopId || ""}</b>{" "}
-                      {stop.stopName || stop.stopName || ""}
-                    </p>
-                  )}
-                </span>
-                <span>
-                  {!!pickupArrivalTime && (
-                    <time dateTime={pickupArrivalTime}>
-                      {pickupArrivalTime}
-                    </time>
-                  )}
-                </span>
-                <span>
-                  {!!realtimePickupArrivalTime && (
-                    <>
-                      {isPastPickup && "Arrived @ "}
-                      <time dateTime={realtimePickupArrivalTime}>
-                        {realtimePickupArrivalTime}
-                      </time>
-                    </>
-                  )}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 grid-rows-[minmax(0,_3rem)_1fr] gap-x-2">
-              {/* Destination Headers */}
-              <div className="dark:bg-gray-700/90 col-span-3 grid grid-cols-3 grid-rows-subgrid items-center gap-2 bg-gray-200/90 p-2 uppercase text-gray-950 dark:text-gray-50 ">
-                <span>To</span>
-                <span>Scheduled</span>
-                {/* <span className="p-2">Delay</span> */}
-                <span>Realtime</span>
-              </div>
-
-              {/* Destination data */}
-              <div className="dark:bg-gray-800/90 col-span-3 grid grid-cols-3 grid-rows-subgrid gap-2 whitespace-break-spaces bg-white/90 p-2 text-gray-900 dark:text-white">
-                <span>
-                  {!!destinationStop && (
-                    <p>
-                      <b>
-                        {destinationStop.stopCode ?? destinationStop.stopId}
-                      </b>{" "}
-                      {destinationStop.stopName}
-                    </p>
-                  )}
-                </span>
-
-                <span>
-                  {!!dropOffArrivalTime && (
-                    <time dateTime={dropOffArrivalTime}>
-                      {dropOffArrivalTime}
-                    </time>
-                  )}
-                </span>
-
-                <span>
-                  <>
-                    {!!realtimeDropOffArrivalTime && (
+      <DrawerTitle />
+      <DrawerContent className="lg:max-w-7xl mx-auto px-4 pb-0 bg-background/80">
+        <div className="bg-background mt-2 pb-4 rounded-t-[10px] px-3">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="sr-only">
+              Selected route details
+            </DrawerTitle>
+            <div className="[&>svg]:h-[28px] [&>svg]:w-[28px] no-underline">
+              {
+                <div className="flex flex-col md:flex-row w-full content-center justify-between gap-2 md:gap-4 overflow-hidden font-normal">
+                  <h3 className="flex flex-wrap content-center gap-2 ">
+                    {
                       <>
-                        {isPastDropOff && "Arrived @ "}
-                        <time dateTime={realtimeDropOffArrivalTime}>
-                          {realtimeDropOffArrivalTime}
-                        </time>
+                        <b>{route?.routeShortName ?? ""}</b>
+                        <span className="max-lg:hidden">
+                          {" "}
+                          &#9830; {route?.routeLongName ?? ""}
+                        </span>
+                        {!route && <span>No route selected</span>}
+                      </>
+                    }
+
+                    {!!trip && (
+                      <>
+                        {" "}
+                        <ArrowRight className="inline-block" />{" "}
+                        {dropOffStop?.stop.stopName || trip.tripHeadsign}
                       </>
                     )}
-                  </>
-                </span>
-              </div>
+                  </h3>
+
+                  {/* Live trip status */}
+                  <div className="flex gap-2 max-md:w-full max-md:justify-between">
+                    <LiveText
+                      content={() => handleDelayStatus(pickupStop, dropOffStop)}
+                      colorFn={handleStatusColor}
+                    />
+                    <LiveText
+                      content={() =>
+                        handleTripCountdown(pickupStop, dropOffStop)
+                      }
+                    />
+                  </div>
+                </div>
+              }
             </div>
-          </div>
+
+            {/* Next Stop */}
+            {!!nextStop && !isPastDropOff && (
+              <div>
+                <p className="font-bold pt-2">Next Stop:</p>
+                <div className="flex flex-row justify-between">
+                  <p>
+                    <b>{nextStop.stop.stopCode ?? nextStop.stop.stopId}</b> -{" "}
+                    {nextStop.stop.stopName}{" "}
+                  </p>
+                  <p>
+                    <LiveText
+                      content={() => handleArrivalCountdown(nextStop.stopTime)}
+                      color="info"
+                    />
+                  </p>
+                </div>
+              </div>
+            )}
+          </DrawerHeader>
+
+          {(!stopId || !destId) && (
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => setShowPickupDialog(true)}
+                variant={stopId ? "secondary" : "default"}
+                disabled={!orderdStops.length}
+              >
+                Select a pickup stop
+              </Button>
+              <StopModal
+                closeHandler={onClosePickupDialog}
+                optionHandler={handleSelectedPickup}
+                title="Select a pickup stop"
+                open={showPickupDialog}
+                stops={orderdStops}
+              />
+              <Button
+                onClick={() => setShowDestinationDialog(true)}
+                disabled={!validDestinationStops.length}
+              >
+                Select a destination
+              </Button>
+              <StopModal
+                closeHandler={onCloseDestinationDialog}
+                optionHandler={handleDestinationStop}
+                title={"Select a destination"}
+                open={showDestinationDialog}
+                stops={validDestinationStops}
+              />
+            </div>
+          )}
+          {!!tripId && !!stopId && !!destId && (
+            <TripTimeline
+              destinationId={dropOffStop?.stop.stopId ?? null}
+              handleMapCenter={handleMapCenter}
+              pickupStop={stop}
+              stopList={stopList}
+              trip={trip}
+            />
+          )}
         </div>
       </DrawerContent>
     </Drawer>

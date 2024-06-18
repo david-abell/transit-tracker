@@ -8,7 +8,7 @@ import "leaflet-edgebuffer";
 type MapContentLayerProps = React.ComponentProps<typeof MapContentLayer>;
 
 interface Props extends MapContentLayerProps {
-  center: LatLngTuple;
+  mapCenter: LatLngTuple;
 }
 
 // leaflet-edgebuffer has no type definition. Declare it's options here.
@@ -19,13 +19,15 @@ declare module "react-leaflet" {
 }
 
 export const MAP_DEFAULT_ZOOM = 15;
+export const MAX_MAP_ZOOM = 18;
 
-function Map({ center, ...props }: Props) {
+function Map({ mapCenter, ...props }: Props) {
   return (
     <MapContainer
-      center={center}
+      center={mapCenter}
       zoom={MAP_DEFAULT_ZOOM}
       minZoom={8}
+      maxZoom={MAX_MAP_ZOOM}
       className={`relative h-full w-[100max]`}
       zoomSnap={0.5}
     >
@@ -37,11 +39,11 @@ function Map({ center, ...props }: Props) {
         edgeBufferTiles={3}
         keepBuffer={6}
         updateWhenIdle={false}
-        maxNativeZoom={20}
-        maxZoom={20}
+        maxNativeZoom={MAX_MAP_ZOOM}
+        maxZoom={MAX_MAP_ZOOM}
         crossOrigin="anonymous"
       />
-      <MapContentLayer center={center} {...props} />
+      <MapContentLayer mapCenter={mapCenter} {...props} />
     </MapContainer>
   );
 }

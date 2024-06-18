@@ -40,7 +40,7 @@ type Props = {
   destination?: Stop;
   destinationStops: StopAndStopTime[];
   handleDestinationStop: (stopId: string) => void;
-  handleMapCenter: (latLon: LatLngTuple) => void;
+  handleMapCenter: (latLon: LatLngTuple, requestCenter?: boolean) => void;
   handleSelectedStop: (stopId: string, showModal?: boolean) => void;
   route?: Route;
   stop?: Stop;

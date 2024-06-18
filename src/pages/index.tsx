@@ -138,12 +138,12 @@ export default function Home() {
 
   const { selectedStop, error: stopError, isLoadingStop } = useStopId(stopId);
 
-  useEffect(() => {
-    if (!selectedStop) return;
-    const { stopLat, stopLon } = selectedStop;
-    if (!stopLat || !stopLon) return;
-    setMapCenter([stopLat, stopLon]);
-  }, [selectedStop]);
+  // useEffect(() => {
+  //   if (!selectedStop) return;
+  //   const { stopLat, stopLon } = selectedStop;
+  //   if (!stopLat || !stopLon) return;
+  //   setMapCenter([stopLat, stopLon]);
+  // }, [selectedStop]);
 
   const {
     selectedStop: destinationStop,
@@ -381,10 +381,13 @@ export default function Home() {
     setDestId(null);
   };
 
-  const handleMapCenter = useCallback((latLon: LatLngTuple) => {
-    setMapCenter(latLon);
-    setRequestMapCenter(true);
-  }, []);
+  const handleMapCenter = useCallback(
+    (latLon: LatLngTuple, requestCenter: boolean = false) => {
+      setMapCenter(latLon);
+      setRequestMapCenter(requestCenter);
+    },
+    [],
+  );
 
   return (
     <main className="flex min-h-[100svh] flex-col items-center justify-between text-slate-950 dark:text-white">
@@ -485,6 +488,7 @@ export default function Home() {
             shape={shape}
             selectedDateTime={selectedDateTime}
             selectedStopId={stopId}
+            selectedStop={selectedStop}
             selectedDestinationStopId={destId}
             stopTimes={stopTimes}
             stopTimesByStopId={stopTimesByStopId}

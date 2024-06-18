@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   destinationId: string | null;
-  handleMapCenter: (latLon: LatLngTuple) => void;
+  handleMapCenter: (latLon: LatLngTuple, requestCenter?: boolean) => void;
   pickupStop: Stop | undefined;
   stopList: StopAndStopTime[];
   trip?: Trip;
@@ -56,7 +56,7 @@ function TripTimeline({
         setShowBetweenStops((prev) => !prev);
       } else {
         if (stop.stopLat && stop.stopLon)
-          handleMapCenter([stop.stopLat, stop.stopLon]);
+          handleMapCenter([stop.stopLat, stop.stopLon], true);
       }
     }
   };

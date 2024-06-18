@@ -48,7 +48,7 @@ type Props = {
   selectedDateTime: string;
   tripId: string | null;
   mapCenter: LatLngTuple;
-  handleMapCenter: (latLon: LatLngTuple) => void;
+  handleMapCenter: (latLon: LatLngTuple, requestCenter?: boolean) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
   handleSelectedStop: (stopId: string) => void;
   handleSelectedTrip: TripHandler;
@@ -62,6 +62,7 @@ type Props = {
   stopTimes: StopTime[] | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
   selectedStopId: string | null;
+  selectedStop: Stop | undefined;
   selectedDestinationStopId: string | null;
   setShowSavedStops: Dispatch<SetStateAction<boolean>>;
   stops: Stop[] | undefined;
@@ -86,6 +87,7 @@ function MapContentLayer({
   stops,
   stopsWithTimes,
   stopsById,
+  selectedStop,
   selectedStopId,
   selectedDestinationStopId,
   tripId,
@@ -106,11 +108,34 @@ function MapContentLayer({
 
   const [mapKM, setMapKM] = useState(getWidthHeightInKM());
   const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
+  const prevCenter = usePrevious(mapCenter);
+  const boundsRef = useRef<L.LatLngBounds | undefined>();
+  const moveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const effectMoveTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const mapEvents = useMapEvents({
     moveend() {
       const { lat, lng } = mapEvents.getCenter();
-      handleMapCenter([lat, lng]);
+      function moveToCenter() {
+        const { lat, lng } = mapEvents.getCenter();
+        handleMapCenter([lat, lng], false);
+      }
+
+      if (!prevCenter) {
+        if (moveTimer.current) {
+          clearTimeout(moveTimer.current);
+        }
+        moveTimer.current = setTimeout(moveToCenter, 200);
+        // handleMapCenter([lat, lng], false);
+      } else {
+        if (prevCenter[0] !== lat || prevCenter[1] !== lng) {
+          if (moveTimer.current) {
+            clearTimeout(moveTimer.current);
+          }
+          moveTimer.current = setTimeout(moveToCenter, 200);
+          // handleMapCenter([lat, lng], false);
+        }
+      }
     },
     zoomend() {
       setMapKM(getWidthHeightInKM());
@@ -123,26 +148,40 @@ function MapContentLayer({
   }, [stops]);
 
   const previousStopIds = usePrevious(stopIds);
-  const prevCenter = usePrevious(mapCenter);
 
-  const { selectedStop } = useStopId(selectedStopId);
-
-  // Set map center location on new route selection
+  // Center map on state updates
   useEffect(() => {
-    if (requestMapCenter) {
-      map.setView(mapCenter, zoomLevel);
-      setRequestMapCenter(false);
-      return;
+    const { stopLat, stopLon } = selectedStop || {};
+    const isSelectStopCentered =
+      !!stopLat &&
+      !!stopLon &&
+      (stopLat !== mapCenter[0] || stopLon !== mapCenter[1]);
+    const group = markerGroupRef.current;
+    const prevBounds = boundsRef.current;
+    const bounds = group?.getBounds();
+    let isNewBounds = false;
+
+    if (bounds?.isValid()) {
+      boundsRef.current = bounds;
+      if (!prevBounds) {
+        isNewBounds = true;
+      } else if (prevBounds.isValid() && !bounds.equals(prevBounds)) {
+        isNewBounds = true;
+      }
     }
 
     const isNewCenter =
       mapCenter[0] !== prevCenter?.[0] || mapCenter[1] !== prevCenter?.[1];
-    const isNewBounds = !isEqual(stopIds, previousStopIds);
+    const isNewIds = !isEqual(stopIds, previousStopIds);
+    const shouldNotMove =
+      !isNewCenter &&
+      !isNewBounds &&
+      !requestMapCenter &&
+      isSelectStopCentered &&
+      !isNewIds;
 
-    if (!isNewCenter && !isNewBounds) return;
+    if (shouldNotMove) return;
 
-    const group = markerGroupRef.current;
-    const bounds = group?.getBounds();
     const isSameNorth =
       bounds?.isValid() &&
       bounds?.getNorthEast()?.equals(bounds?.getNorthWest());
@@ -150,23 +189,57 @@ function MapContentLayer({
       bounds?.isValid() &&
       bounds?.getSouthEast()?.equals(bounds?.getSouthWest());
 
-    if (bounds?.isValid() && isNewBounds && stopIds.length) {
+    if (bounds?.isValid() && (isNewBounds || isNewIds)) {
       const boundsCenter = bounds.getCenter();
-      if (isSameNorth && isSameSouth) {
-        map.setView(boundsCenter, zoomLevel);
+      if (isSameNorth && isSameSouth && !stopIds.length) {
+        if (effectMoveTimer.current) {
+          clearTimeout(effectMoveTimer.current);
+        }
+        effectMoveTimer.current = setTimeout(
+          () => map.setView(boundsCenter, zoomLevel),
+          300,
+        );
       } else if (!isEqual(stopIds, previousStopIds)) {
-        map.fitBounds(bounds, { maxZoom: MAX_MAP_ZOOM });
+        if (effectMoveTimer.current) {
+          clearTimeout(effectMoveTimer.current);
+        }
+        effectMoveTimer.current = setTimeout(
+          () => map.fitBounds(bounds, { maxZoom: MAX_MAP_ZOOM }),
+          300,
+        );
+      }
+    } else if (requestMapCenter) {
+      setRequestMapCenter(false);
+      if (effectMoveTimer.current) {
+        clearTimeout(effectMoveTimer.current);
+      }
+      // Is selected stop centered
+      if (
+        !!stopLat &&
+        !!stopLon &&
+        (stopLat !== mapCenter[0] || stopLon !== mapCenter[1])
+      ) {
+        effectMoveTimer.current = setTimeout(
+          () => map.setView([stopLat, stopLon], zoomLevel),
+          300,
+        );
+      } else {
+        effectMoveTimer.current = setTimeout(
+          () => map.setView(mapCenter, zoomLevel),
+          300,
+        );
       }
     }
   }, [
-    handleMapCenter,
     map,
     mapCenter,
     prevCenter,
     previousStopIds,
     requestMapCenter,
+    selectedStop,
     setRequestMapCenter,
     stopIds,
+    stopsWithTimes,
     zoomLevel,
   ]);
 

@@ -59,7 +59,7 @@ function MainNav({
   return (
     <nav
       ref={navRef}
-      className="z-[1200] relative mx-auto flex min-h-[6rem] flex-row items-center justify-between
+      className="z-[1200] bg-background relative mx-auto flex min-h-[6rem] flex-row items-center justify-between
        gap-4 border-gray-200 p-4 
        dark:border-gray-700 md:max-w-screen-2xl lg:px-10"
     >

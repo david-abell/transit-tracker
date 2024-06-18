@@ -241,7 +241,7 @@ function Footer({
       setSnap={setSnap}
     >
       <DrawerTitle />
-      <DrawerContent className="lg:max-w-7xl mx-auto z-[1100] px-4 pb-0 bg-background/80">
+      <DrawerContent className="lg:max-w-7xl mx-auto px-4 pb-0 bg-background/80">
         <div className="bg-background mt-2 pb-4 rounded-t-[10px] px-3">
           <DrawerHeader className="text-left">
             <DrawerTitle className="sr-only">

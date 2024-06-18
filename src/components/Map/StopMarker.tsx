@@ -59,10 +59,11 @@ function StopMarker({
         show={showPopup}
         stopWithTimes={stopWithTimes}
         realtimeTrip={realtimeTrip}
+        setShowPopup={setShowPopup}
         stopTimesByStopId={stopTimesByStopId}
-        handleDestinationStop={handleDestinationStop}
+        onDestinationChange={handleDestinationStop}
         handleSaveStop={handleSaveStop}
-        handleSelectedStop={handleSelectedStop}
+        onPickupChange={handleSelectedStop}
       />
       {children}
     </Marker>

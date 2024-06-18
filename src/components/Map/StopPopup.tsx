@@ -1,7 +1,7 @@
-import { Popup } from "react-leaflet";
+import { Popup, useMap } from "react-leaflet";
 import { Button } from "../ui/button";
 import { Star } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
 import { StopTime } from "@prisma/client";
 import LiveMarkerTooltip from "./LiveMarkerTooltip";
 import { useQueryState } from "nuqs";
@@ -18,25 +18,31 @@ import LiveText from "../LiveText";
 
 type Props = {
   show: boolean;
-  handleDestinationStop: (stopId: string) => void;
+  onDestinationChange: (stopId: string) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
-  handleSelectedStop: (stopId: string, showModal?: boolean) => void;
+  onPickupChange: (stopId: string, showModal?: boolean) => void;
   realtimeTrip: TripUpdate | undefined;
+  setShowPopup: Dispatch<SetStateAction<boolean>>;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
   stopWithTimes: StopWithTimes;
 };
 
 function StopPopup({
   show, // React doesn't rerender popup content without this Prop
-  handleDestinationStop,
+  onDestinationChange,
   handleSaveStop,
-  handleSelectedStop,
+  onPickupChange,
   realtimeTrip,
+  setShowPopup,
   stopTimesByStopId,
   stopWithTimes,
 }: Props) {
-  const { stopId, stopCode, stopName } = stopWithTimes.stop;
+  const { stopId, stopCode, stopName } = useMemo(
+    () => stopWithTimes.stop,
+    [stopWithTimes.stop],
+  );
   const [selectedStopId] = useQueryState("stopId", { history: "push" });
+  const map = useMap();
 
   const { arrivalTime, stopSequence } = stopWithTimes.times?.at(0) || {};
 
@@ -102,8 +108,16 @@ function StopPopup({
     return delay ?? "";
   }, [arrivalTime, realtimeTrip, stopWithTimes.times]);
 
+  const handlePickupStop = (stopId: string, showTripSelect: boolean = true) => {
+    if (map && showTripSelect) {
+      map.closePopup();
+    }
+    setShowPopup(false);
+    onPickupChange(stopId, showTripSelect);
+  };
+
   return (
-    <Popup>
+    <Popup keepInView closeOnEscapeKey>
       <p>Stop {stopCode ?? stopId}</p>
       <h3 className="text-lg font-bold">{stopName}</h3>
       {!!arrivalTime && (
@@ -145,18 +159,19 @@ function StopPopup({
 
       <div className="flex flex-col gap-2 mt-4">
         <Button
-          onClick={() => handleSelectedStop(stopId, false)}
+          onClick={() => handlePickupStop(stopId, false)}
           disabled={isPastThisStop}
         >
           Board here
         </Button>
 
-        <Button onClick={() => handleSelectedStop(stopId)}>View trips</Button>
-        {isValidDestination && (
-          <Button onClick={() => handleDestinationStop(stopId)}>
-            set Destination
-          </Button>
-        )}
+        <Button onClick={() => handlePickupStop(stopId)}>View trips</Button>
+        <Button
+          onClick={() => onDestinationChange(stopId)}
+          disabled={!isValidDestination}
+        >
+          set Destination
+        </Button>
         <Button
           onClick={() => handleSaveStop(stopId, stopName)}
           className="flex flex-row justify-between gap-1"

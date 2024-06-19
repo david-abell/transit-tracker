@@ -41,7 +41,7 @@ export type ValidStop = Stop & {
   stopLat: NonNullable<Stop["stopLat"]>;
   stopLon: NonNullable<Stop["stopLon"]>;
 };
-export type StopWithTimes = { stop: ValidStop; times?: StopTime[] };
+export type StopWithGroupedTimes = { stop: ValidStop; times?: StopTime[] };
 
 type Props = {
   height: number;
@@ -58,7 +58,7 @@ type Props = {
   setRequestMapCenter: Dispatch<SetStateAction<boolean>>;
   shape: Position[] | undefined;
   stopsById: Map<string, Stop>;
-  stopsWithTimes: StopWithTimes[];
+  stopsWithTimes: StopWithGroupedTimes[];
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
   selectedStop: Stop | undefined;
   stops: Stop[] | undefined;
@@ -287,7 +287,7 @@ function MapContentLayer({
     [selectedDateTime],
   );
 
-  const singleStop: StopWithTimes[] = useMemo(() => {
+  const singleStop: StopWithGroupedTimes[] = useMemo(() => {
     if (
       selectedStop &&
       selectedStop.stopLat !== null &&

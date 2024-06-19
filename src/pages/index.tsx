@@ -43,7 +43,10 @@ import useRoute from "@/hooks/useRoute";
 import Changelog from "@/components/changelog/Changelog";
 import { isValidStop } from "@/lib/utils";
 import usePrevious from "@/hooks/usePrevious";
-import { StopWithTimes, ValidStop } from "@/components/Map/MapContentLayer";
+import {
+  StopWithGroupedTimes,
+  ValidStop,
+} from "@/components/Map/MapContentLayer";
 
 const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,
@@ -191,8 +194,8 @@ export default function Home() {
   );
 
   // derived state
-  const stopsWithTimes: StopWithTimes[] = useMemo(() => {
-    const orderedStops: Map<string, StopWithTimes> = new Map();
+  const stopsWithTimes: StopWithGroupedTimes[] = useMemo(() => {
+    const orderedStops: Map<string, StopWithGroupedTimes> = new Map();
 
     if (stopTimes?.length) {
       for (const stopTime of stopTimes) {
@@ -217,7 +220,7 @@ export default function Home() {
     }
 
     if (stops?.length) {
-      const orderedStops: Map<string, StopWithTimes> = new Map();
+      const orderedStops: Map<string, StopWithGroupedTimes> = new Map();
 
       for (const stop of stops) {
         if (

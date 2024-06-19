@@ -3,7 +3,7 @@ import { stopMarkerIcon } from "./stopMarkerIcon";
 import { ReactNode, useRef, useState } from "react";
 import isEqual from "react-fast-compare";
 import { TripUpdate } from "@/types/realtime";
-import { StopWithTimes } from "./MapContentLayer";
+import { StopWithGroupedTimes } from "./MapContentLayer";
 import { StopTime } from "@prisma/client";
 import StopPopup from "./StopPopup";
 
@@ -15,7 +15,7 @@ type Props = {
   handleDestinationStop: (stopId: string) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
   handleSelectedStop: (stopId: string, showModal?: boolean) => void;
-  stopWithTimes: StopWithTimes;
+  stopWithTimes: StopWithGroupedTimes;
   realtimeTrip: TripUpdate | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
 };

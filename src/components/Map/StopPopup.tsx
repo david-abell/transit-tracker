@@ -6,7 +6,7 @@ import { StopTime } from "@prisma/client";
 import LiveMarkerTooltip from "./LiveMarkerTooltip";
 import { useQueryState } from "nuqs";
 import { TripUpdate } from "@/types/realtime";
-import { StopWithTimes } from "./MapContentLayer";
+import { StopWithGroupedTimes } from "./MapContentLayer";
 import {
   formatReadableDelay,
   getDelayedTime,
@@ -24,7 +24,7 @@ type Props = {
   realtimeTrip: TripUpdate | undefined;
   setShowPopup: Dispatch<SetStateAction<boolean>>;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
-  stopWithTimes: StopWithTimes;
+  stopWithTimes: StopWithGroupedTimes;
 };
 
 function StopPopup({

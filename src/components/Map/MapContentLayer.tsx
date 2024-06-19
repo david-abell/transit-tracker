@@ -335,7 +335,7 @@ function MapContentLayer({
                 return (
                   <StopMarker
                     isLast={
-                      stopsWithTimes.length !== 1 ||
+                      stopsWithTimes.length > 1 &&
                       index === stopsWithTimes.length - 1
                     }
                     key={"mm" + stopWithTimes.stop.stopId}

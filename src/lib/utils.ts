@@ -62,29 +62,20 @@ export function getOrderedStops(
 export function getAdjustedStopTimes(
   stopTimes: StopTime[] | undefined,
   stopTimeUpdates: StopTimeUpdate[] | undefined,
-  stopUpdateSequence?: number,
 ): StopTime[] {
-  if (!stopTimeUpdates || !stopTimes) return stopTimes ?? [];
+  if (!stopTimeUpdates?.length || !stopTimes) return stopTimes ?? [];
   const adjustedStopTimes: StopTime[] = [];
-  let stopTimeUpdate: StopTimeUpdate | undefined;
-
-  if (Number.isNaN(stopUpdateSequence)) {
-    stopTimeUpdate = stopTimeUpdates?.at(-1);
-  } else {
-    stopTimeUpdate =
-      stopTimeUpdates?.find(
-        ({ stopSequence }) => stopSequence >= stopUpdateSequence!,
-      ) || stopTimeUpdates?.at(-1);
-  }
-
-  if (!stopTimeUpdate) {
-    return stopTimes;
-  }
 
   for (const time of stopTimes) {
-    adjustedStopTimes.push(getAdjustedStopTime(time, stopTimeUpdate));
+    const stopTimeUpdate = stopTimeUpdates.findLast(
+      ({ stopSequence }) => stopSequence <= time.stopSequence,
+    );
+    if (stopTimeUpdate) {
+      adjustedStopTimes.push(getAdjustedStopTime(time, stopTimeUpdate));
+    } else {
+      adjustedStopTimes.push(time);
+    }
   }
-
   return adjustedStopTimes;
 }
 

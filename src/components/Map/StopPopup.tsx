@@ -83,13 +83,9 @@ function StopPopup({
         !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
     )?.stopTime?.arrivalTime;
 
-    if (!arrivalTime || isPastArrivalTime(arrivalTime)) return "";
+    if (!arrivalTime) return "";
 
-    const arrivalSeconds = getDifferenceInSeconds(arrivalTime);
-
-    const delay = formatReadableDelay(arrivalSeconds);
-
-    return delay ?? "";
+    return formatReadableDelay(getDifferenceInSeconds(arrivalTime)) ?? "";
   }, [stopWithTimes.times]);
 
   const handlePickupStop = (stopId: string, showTripSelect: boolean = true) => {

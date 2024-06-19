@@ -5,6 +5,15 @@ export type Changelog = {
 };
 export const changelogs: Changelog[] = [
   {
+    version: "0.13.2",
+    title: "Better stop popup.",
+    changes: [
+      "fix: last stop on trip should not be selectable as a pickup location.",
+      "fix: replace popup time calculations with single global value for better consistency and performance.",
+      "style: reduce overall stop popup size by lowering text content top/bottom margins.",
+    ],
+  },
+  {
     version: "0.13.1",
     title: "Drawer time fixes.",
     changes: [

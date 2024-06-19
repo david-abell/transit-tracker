@@ -104,19 +104,36 @@ export function getAdjustedStopTime(
     stopTimeUpdate?.departure?.delay,
   );
 
-  let { arrivalTimestamp, departureTimestamp } = time;
-  if (arrivalTimestamp !== null) {
-    arrivalTimestamp = arrivalTimestamp + arrivalDelay;
+  let adjustedArrivalTimestamp = time.arrivalTimestamp;
+  let adjustedDepartureTimestamp = time.departureTimestamp;
+
+  if (
+    adjustedArrivalTimestamp === null ||
+    adjustedDepartureTimestamp === null
+  ) {
+    if (adjustedArrivalTimestamp && adjustedDepartureTimestamp === null) {
+      adjustedDepartureTimestamp = adjustedArrivalTimestamp;
+    } else {
+      adjustedArrivalTimestamp = adjustedDepartureTimestamp;
+    }
   }
-  if (departureTimestamp !== null) {
-    departureTimestamp = departureTimestamp + departureDelay;
+  if (
+    adjustedArrivalTimestamp !== null &&
+    adjustedDepartureTimestamp !== null
+  ) {
+    adjustedArrivalTimestamp = adjustedArrivalTimestamp + arrivalDelay;
+    adjustedDepartureTimestamp = adjustedDepartureTimestamp + departureDelay;
+
+    if (adjustedDepartureTimestamp < adjustedArrivalTimestamp) {
+      adjustedDepartureTimestamp = adjustedArrivalTimestamp;
+    }
   }
 
   return {
     ...time,
-    arrivalTimestamp,
+    arrivalTimestamp: adjustedArrivalTimestamp,
     arrivalTime,
-    departureTimestamp,
+    departureTimestamp: adjustedDepartureTimestamp,
     departureTime,
   };
 }

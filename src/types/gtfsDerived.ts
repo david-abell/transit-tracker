@@ -14,3 +14,7 @@ export type StopAndStopTime = {
   stop: Stop;
   stopTime: StopTime;
 };
+export type StopTimeAndUpdate = {
+  stopTime: StopTime;
+  stopTimeUpdate?: StopTimeUpdate;
+};

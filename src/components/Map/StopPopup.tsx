@@ -44,7 +44,8 @@ function StopPopup({
   const [selectedStopId] = useQueryState("stopId", { history: "push" });
   const map = useMap();
 
-  const { arrivalTime, stopSequence } = stopWithTimes.times?.at(0) || {};
+  const { arrivalTime, stopSequence } =
+    stopWithTimes.times?.at(0)?.stopTime || {};
 
   const thisStopUpdate = realtimeTrip?.stopTimeUpdate?.find(
     ({ stopId: thisId }) => stopId === thisId,
@@ -93,7 +94,7 @@ function StopPopup({
 
   const handleArrivalCountdown = useCallback(() => {
     const delayedArrivalTime = getDelayedTimeFromTripUpdate(
-      stopWithTimes.times?.at(0),
+      stopWithTimes.times?.at(0)?.stopTime,
       realtimeTrip,
     );
 

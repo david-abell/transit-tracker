@@ -3,7 +3,11 @@ import { Stop, StopTime } from "@prisma/client";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { getDelayedTime, isPastArrivalTime } from "./timeHelpers";
-import { StopAndStopTime, ValidStop } from "@/types/gtfsDerived";
+import {
+  StopAndStopTime,
+  StopTimeAndUpdate,
+  ValidStop,
+} from "@/types/gtfsDerived";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -21,7 +25,7 @@ export function filterValidStops(stops: Stop[] | undefined): ValidStop[] {
 }
 
 export function getOrderedStops(
-  stopTimes: StopTime[] | undefined,
+  stopTimes: StopTimeAndUpdate[] | undefined,
   stopsById: Map<string, Stop>,
 ): ValidStop[] {
   if (!stopTimes?.length) {
@@ -37,8 +41,8 @@ export function getOrderedStops(
   }
   let orderedStops: ValidStop[] = [];
 
-  for (const time of stopTimes) {
-    const stop = stopsById.get(time.stopId);
+  for (const { stopTime } of stopTimes) {
+    const stop = stopsById.get(stopTime.stopId);
     if (isValidStop(stop)) {
       orderedStops.push(stop as ValidStop);
     }
@@ -61,18 +65,22 @@ export function getOrderedStops(
 export function getAdjustedStopTimes(
   stopTimes: StopTime[] | undefined,
   stopTimeUpdates: StopTimeUpdate[] | undefined,
-): StopTime[] {
-  if (!stopTimeUpdates?.length || !stopTimes) return stopTimes ?? [];
-  const adjustedStopTimes: StopTime[] = [];
+): StopTimeAndUpdate[] {
+  if (!stopTimeUpdates?.length || !stopTimes)
+    return stopTimes?.map((stopTime) => ({ stopTime })) ?? [];
+  const adjustedStopTimes: StopTimeAndUpdate[] = [];
 
-  for (const time of stopTimes) {
+  for (const stopTime of stopTimes) {
     const stopTimeUpdate = stopTimeUpdates.findLast(
-      ({ stopSequence }) => stopSequence <= time.stopSequence,
+      ({ stopSequence }) => stopSequence <= stopTime.stopSequence,
     );
     if (stopTimeUpdate) {
-      adjustedStopTimes.push(getAdjustedStopTime(time, stopTimeUpdate));
+      adjustedStopTimes.push({
+        stopTime: getAdjustedStopTime(stopTime, stopTimeUpdate),
+        stopTimeUpdate,
+      });
     } else {
-      adjustedStopTimes.push(time);
+      adjustedStopTimes.push({ stopTime });
     }
   }
   return adjustedStopTimes;
@@ -128,11 +136,19 @@ export function getAdjustedStopTime(
   };
 }
 
-export function getNextStopTime(stopTimes: StopTime[]): StopTime | undefined {
-  return stopTimes.find(
-    (stopTime) =>
-      stopTime?.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
-  );
+export function getNextStopTime(
+  stopTimes: StopTime[] | StopTimeAndUpdate[],
+): StopTime | undefined {
+  const result = stopTimes.find((v) => {
+    if ("stopTime" in v) {
+      return (
+        v.stopTime.arrivalTime && !isPastArrivalTime(v.stopTime.arrivalTime)
+      );
+    }
+    return v.arrivalTime && !isPastArrivalTime(v.arrivalTime);
+  });
+
+  return result && "stopTime" in result ? result.stopTime : result;
 }
 
 export function getStopsToDestination(
@@ -154,18 +170,19 @@ export function getStopsToDestination(
 
 export function getStopsWithStopTimes(
   stopsById: Map<string, Stop>,
-  stopTimes: StopTime[] | undefined,
+  stopTimesAndUpdates: StopTimeAndUpdate[] | undefined,
   destinationStopId: string | null,
 ): StopAndStopTime[] {
-  const stopsWithStopTimes: StopAndStopTime[] = [];
+  const stopsWithStopTimes: (StopAndStopTime & StopTimeAndUpdate)[] = [];
 
-  if (stopTimes?.length && stopsById) {
-    for (const stopTime of stopTimes) {
+  if (stopTimesAndUpdates?.length && stopsById) {
+    for (const { stopTime, stopTimeUpdate } of stopTimesAndUpdates) {
       const stop = stopsById.get(stopTime.stopId);
       if (isValidStop(stop)) {
         stopsWithStopTimes.push({
           stop: stop as ValidStop,
           stopTime,
+          stopTimeUpdate,
         });
       }
     }

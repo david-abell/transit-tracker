@@ -214,7 +214,7 @@ export default function Home() {
     const orderedStops: Map<string, StopWithGroupedTimes> = new Map();
 
     if (adjustedStopTimes?.length) {
-      for (const stopTime of adjustedStopTimes) {
+      for (const { stopTime, stopTimeUpdate } of adjustedStopTimes) {
         const stop = stopsById.get(stopTime.stopId);
         if (!stop || stop?.stopLat === null || stop?.stopLon === null) continue;
 
@@ -222,12 +222,12 @@ export default function Home() {
           const { stop, times } = orderedStops.get(stopTime.stopId)!;
           orderedStops.set(stopTime.stopId, {
             stop: stop as ValidStop,
-            times: times?.concat(stopTime),
+            times: times?.concat({ stopTime, stopTimeUpdate }),
           });
         } else {
           orderedStops.set(stopTime.stopId, {
             stop: stop as ValidStop,
-            times: [stopTime],
+            times: [{ stopTime, stopTimeUpdate }],
           });
         }
       }

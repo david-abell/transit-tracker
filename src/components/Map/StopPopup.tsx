@@ -5,11 +5,8 @@ import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
 import { StopTime } from "@prisma/client";
 import LiveMarkerTooltip from "./LiveMarkerTooltip";
 import { useQueryState } from "nuqs";
-import { TripUpdate } from "@/types/realtime";
 import {
   formatReadableDelay,
-  getDelayedTime,
-  getDelayedTimeFromTripUpdate,
   getDifferenceInSeconds,
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
@@ -21,7 +18,6 @@ type Props = {
   onDestinationChange: (stopId: string) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
   onPickupChange: (stopId: string, showModal?: boolean) => void;
-  realtimeTrip: TripUpdate | undefined;
   setShowPopup: Dispatch<SetStateAction<boolean>>;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
   stopWithTimes: StopWithGroupedTimes;
@@ -32,7 +28,6 @@ function StopPopup({
   onDestinationChange,
   handleSaveStop,
   onPickupChange,
-  realtimeTrip,
   setShowPopup,
   stopTimesByStopId,
   stopWithTimes,
@@ -41,35 +36,31 @@ function StopPopup({
     () => stopWithTimes.stop,
     [stopWithTimes.stop],
   );
-  const [selectedStopId] = useQueryState("stopId", { history: "push" });
+  const [pickupStopId] = useQueryState("stopId", { history: "push" });
   const map = useMap();
 
-  const { arrivalTime, stopSequence } =
-    stopWithTimes.times?.at(0)?.stopTime || {};
-
-  const thisStopUpdate = stopWithTimes.times?.find(
+  const nextGroupedTimes = stopWithTimes.times?.find(
     ({ stopTime }) =>
       !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
   );
 
-  const { arrival: activeArrivalUpdate, departure: activeDepartureUpdate } =
-    thisStopUpdate?.stopTimeUpdate || {};
+  const { arrivalTime, stopSequence } = nextGroupedTimes?.stopTime || {};
 
-  const delayedArrivalTime = thisStopUpdate?.stopTime.arrivalTime;
+  const { arrival, departure } = nextGroupedTimes?.stopTimeUpdate || {};
 
   const formattedDelay = formatReadableDelay(
-    activeArrivalUpdate?.delay || activeDepartureUpdate?.delay,
+    arrival?.delay || departure?.delay,
   );
 
-  const isEarly = activeArrivalUpdate?.delay
-    ? activeArrivalUpdate?.delay < 0
-    : activeDepartureUpdate?.delay
-      ? activeDepartureUpdate.delay < 0
+  const isEarly = arrival?.delay
+    ? arrival?.delay < 0
+    : departure?.delay
+      ? departure.delay < 0
       : false;
 
   const selectedStoptime = useMemo(
-    () => selectedStopId && stopTimesByStopId.get(selectedStopId),
-    [selectedStopId, stopTimesByStopId],
+    () => pickupStopId && stopTimesByStopId.get(pickupStopId),
+    [pickupStopId, stopTimesByStopId],
   );
 
   const isValidDestination =
@@ -82,27 +73,22 @@ function StopPopup({
   const liveTextColor =
     status === "late" ? "alert" : status === "early" ? "info" : "default";
 
-  const hasArrivalTime = !!arrivalTime;
-
-  const isPastThisStop = delayedArrivalTime
-    ? isPastArrivalTime(delayedArrivalTime)
-    : arrivalTime
-      ? isPastArrivalTime(arrivalTime)
-      : false;
+  const isPastThisStop = arrivalTime ? isPastArrivalTime(arrivalTime) : false;
 
   const handleArrivalCountdown = useCallback(() => {
-    const delayedArrivalTime = thisStopUpdate?.stopTime.arrivalTime;
+    const arrivalTime = stopWithTimes.times?.find(
+      ({ stopTime }) =>
+        !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
+    )?.stopTime?.arrivalTime;
 
-    if (!delayedArrivalTime || isPastArrivalTime(delayedArrivalTime)) return "";
+    if (!arrivalTime || isPastArrivalTime(arrivalTime)) return "";
 
-    const arrivalSeconds = getDifferenceInSeconds(
-      delayedArrivalTime ?? arrivalTime,
-    );
+    const arrivalSeconds = getDifferenceInSeconds(arrivalTime);
 
     const delay = formatReadableDelay(arrivalSeconds);
 
     return delay ?? "";
-  }, [arrivalTime, thisStopUpdate?.stopTime.arrivalTime]);
+  }, [stopWithTimes.times]);
 
   const handlePickupStop = (stopId: string, showTripSelect: boolean = true) => {
     if (map && showTripSelect) {
@@ -122,7 +108,7 @@ function StopPopup({
         </p>
       )}
 
-      {hasArrivalTime && !isPastThisStop && (
+      {!!arrivalTime && !isPastThisStop && (
         <p className="font-bold">
           <LiveText
             content={handleArrivalCountdown}
@@ -132,7 +118,7 @@ function StopPopup({
         </p>
       )}
 
-      {hasArrivalTime && !isPastThisStop && (
+      {!!arrivalTime && !isPastThisStop && (
         <>
           {!!formattedDelay && status === "early" && (
             <p className="!mt-2 !mb-2">

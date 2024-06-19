@@ -350,7 +350,6 @@ function MapContentLayer({
                     handleDestinationStop={handleDestinationStop}
                     handleSaveStop={handleSaveStop}
                     handleSelectedStop={handleSelectedStop}
-                    realtimeTrip={realtimeTrip}
                     stopTimesByStopId={stopTimesByStopId}
                   ></StopMarker>
                 );

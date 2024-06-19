@@ -16,7 +16,6 @@ type Props = {
   handleSaveStop: (stopId: string, stopName: string | null) => void;
   handleSelectedStop: (stopId: string, showModal?: boolean) => void;
   stopWithTimes: StopWithGroupedTimes;
-  realtimeTrip: TripUpdate | undefined;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
 };
 
@@ -27,7 +26,6 @@ function StopMarker({
   handleDestinationStop,
   handleSaveStop,
   handleSelectedStop,
-  realtimeTrip,
   stopWithTimes,
   stopTimesByStopId,
   animate,
@@ -58,7 +56,6 @@ function StopMarker({
       <StopPopup
         show={showPopup}
         stopWithTimes={stopWithTimes}
-        realtimeTrip={realtimeTrip}
         setShowPopup={setShowPopup}
         stopTimesByStopId={stopTimesByStopId}
         onDestinationChange={handleDestinationStop}

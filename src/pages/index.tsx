@@ -32,18 +32,25 @@ import StopSelect from "@/components/StopSelect";
 import { Button } from "@/components/ui/button";
 import NavItem from "@/components/NavItem";
 import GlobalAlert from "@/components/GlobalAlert";
-import DestinationSelect, {
-  StopAndStopTime,
-} from "@/components/DestinationSelect";
+import DestinationSelect from "@/components/DestinationSelect";
 import NewUserPrompt from "@/components/NewUserPrompt";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { LatLngExpression, LatLngTuple } from "leaflet";
 import useRoute from "@/hooks/useRoute";
 import Changelog from "@/components/changelog/Changelog";
-import { isValidStop } from "@/lib/utils";
+import {
+  getAdjustedStopTimes,
+  getOrderedStops,
+  getStopsWithStopTimes,
+  isValidStop,
+} from "@/lib/utils";
 import usePrevious from "@/hooks/usePrevious";
-import { StopWithTimes, ValidStop } from "@/components/Map/MapContentLayer";
+import {
+  StopAndStopTime,
+  StopWithGroupedTimes,
+  ValidStop,
+} from "@/types/gtfsDerived";
 
 const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,
@@ -191,11 +198,23 @@ export default function Home() {
   );
 
   // derived state
-  const stopsWithTimes: StopWithTimes[] = useMemo(() => {
-    const orderedStops: Map<string, StopWithTimes> = new Map();
+  const stopTimeUpdates = useMemo(
+    () =>
+      selectedTrip &&
+      tripUpdatesByTripId.get(selectedTrip?.tripId)?.stopTimeUpdate,
+    [tripUpdatesByTripId, selectedTrip],
+  );
 
-    if (stopTimes?.length) {
-      for (const stopTime of stopTimes) {
+  const adjustedStopTimes = useMemo(
+    () => getAdjustedStopTimes(stopTimes, stopTimeUpdates),
+    [stopTimeUpdates, stopTimes],
+  );
+
+  const stopsWithTimes: StopWithGroupedTimes[] = useMemo(() => {
+    const orderedStops: Map<string, StopWithGroupedTimes> = new Map();
+
+    if (adjustedStopTimes?.length) {
+      for (const { stopTime, stopTimeUpdate } of adjustedStopTimes) {
         const stop = stopsById.get(stopTime.stopId);
         if (!stop || stop?.stopLat === null || stop?.stopLon === null) continue;
 
@@ -203,12 +222,12 @@ export default function Home() {
           const { stop, times } = orderedStops.get(stopTime.stopId)!;
           orderedStops.set(stopTime.stopId, {
             stop: stop as ValidStop,
-            times: times?.concat(stopTime),
+            times: times?.concat({ stopTime, stopTimeUpdate }),
           });
         } else {
           orderedStops.set(stopTime.stopId, {
             stop: stop as ValidStop,
-            times: [stopTime],
+            times: [{ stopTime, stopTimeUpdate }],
           });
         }
       }
@@ -217,7 +236,7 @@ export default function Home() {
     }
 
     if (stops?.length) {
-      const orderedStops: Map<string, StopWithTimes> = new Map();
+      const orderedStops: Map<string, StopWithGroupedTimes> = new Map();
 
       for (const stop of stops) {
         if (
@@ -233,7 +252,7 @@ export default function Home() {
     }
 
     return [];
-  }, [stopTimes, stops, stopsById]);
+  }, [adjustedStopTimes, stops, stopsById]);
 
   const destinationStops: StopAndStopTime[] = useMemo(() => {
     if (!stopTimes?.length || !stopId) return [];
@@ -257,6 +276,24 @@ export default function Home() {
 
     return orderedStops;
   }, [stopId, stopTimes, stopsById]);
+
+  // const orderdStops = useMemo(
+  //   () => getOrderedStops(adjustedStopTimes, stopsById),
+  //   [adjustedStopTimes, stopsById],
+  // );
+
+  // const stopList = useMemo(
+  //   () => getStopsWithStopTimes(stopsById, adjustedStopTimes, destId),
+  //   [adjustedStopTimes, destId, stopsById],
+  // );
+
+  // const validDestinationStops: ValidStop[] = useMemo(
+  //   () =>
+  //     destinationStops
+  //       ?.map(({ stop }) => stop)
+  //       .filter((stop): stop is ValidStop => isValidStop(stop)),
+  //   [destinationStops],
+  // );
 
   const isLoading =
     isWarmingDB ||

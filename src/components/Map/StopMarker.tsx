@@ -3,31 +3,31 @@ import { stopMarkerIcon } from "./stopMarkerIcon";
 import { ReactNode, useRef, useState } from "react";
 import isEqual from "react-fast-compare";
 import { TripUpdate } from "@/types/realtime";
-import { StopWithTimes } from "./MapContentLayer";
 import { StopTime } from "@prisma/client";
 import StopPopup from "./StopPopup";
+import { StopWithGroupedTimes } from "@/types/gtfsDerived";
 
 type Props = {
   animate?: boolean;
   big?: boolean;
   children?: ReactNode;
   isPast?: boolean;
+  isLast: boolean;
   handleDestinationStop: (stopId: string) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
   handleSelectedStop: (stopId: string, showModal?: boolean) => void;
-  stopWithTimes: StopWithTimes;
-  realtimeTrip: TripUpdate | undefined;
+  stopWithTimes: StopWithGroupedTimes;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
 };
 
 function StopMarker({
   big,
   children,
+  isLast,
   isPast,
   handleDestinationStop,
   handleSaveStop,
   handleSelectedStop,
-  realtimeTrip,
   stopWithTimes,
   stopTimesByStopId,
   animate,
@@ -56,9 +56,9 @@ function StopMarker({
       })}
     >
       <StopPopup
+        isLast={isLast}
         show={showPopup}
         stopWithTimes={stopWithTimes}
-        realtimeTrip={realtimeTrip}
         setShowPopup={setShowPopup}
         stopTimesByStopId={stopTimesByStopId}
         onDestinationChange={handleDestinationStop}

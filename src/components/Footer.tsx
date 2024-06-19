@@ -22,10 +22,8 @@ import { Button } from "@/components/ui/button";
 import useStopId from "@/hooks/useStopId";
 import TripTimeline from "./TripTimeline/TripTimeline";
 import { LatLngTuple } from "leaflet";
-import { StopAndStopTime } from "./DestinationSelect";
 import { parseAsString, useQueryState } from "nuqs";
 import StopModal from "./StopModal";
-import { ValidStop } from "./Map/MapContentLayer";
 import {
   getAdjustedStopTimes,
   getOrderedStops,
@@ -35,6 +33,7 @@ import {
 } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import LiveText, { LiveTextColor } from "./LiveText";
+import { StopAndStopTime, ValidStop } from "@/types/gtfsDerived";
 
 type Props = {
   destination?: Stop;

@@ -12,8 +12,8 @@ import { useMemo, useRef, MouseEvent, useCallback, useState } from "react";
 import { LatLngTuple } from "leaflet";
 import { Button } from "../ui/button";
 import LiveText from "../LiveText";
-import { StopAndStopTime } from "../DestinationSelect";
 import { cn } from "@/lib/utils";
+import { StopAndStopTime } from "@/types/gtfsDerived";
 
 type Props = {
   destinationId: string | null;

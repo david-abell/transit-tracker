@@ -100,60 +100,62 @@ function StopPopup({
 
   return (
     <Popup keepInView closeOnEscapeKey>
-      <p>Stop {stopCode ?? stopId}</p>
-      <h3 className="text-lg font-bold">{stopName}</h3>
-      {!!arrivalTime && (
-        <p className="!mb-0">
-          <b>Arriving</b>: {arrivalTime}
-        </p>
-      )}
+      <div className="[&_p]:!mb-1 [&_p]:!mt-1 [&_b]:!mt-1">
+        <p className="!mb-1">Stop {stopCode ?? stopId}</p>
+        <h3 className="text-lg font-bold">{stopName}</h3>
+        {!!arrivalTime && (
+          <p>
+            <b>Arriving</b>: {arrivalTime}
+          </p>
+        )}
 
-      {!!arrivalTime && !isPastThisStop && (
-        <p className="font-bold">
-          <LiveText
-            content={handleArrivalCountdown}
-            color={liveTextColor}
-            tooltip="marker"
-          />
-        </p>
-      )}
+        {!!arrivalTime && !isPastThisStop && (
+          <p className="font-bold">
+            <LiveText
+              content={handleArrivalCountdown}
+              color={liveTextColor}
+              tooltip="marker"
+            />
+          </p>
+        )}
 
-      {!!arrivalTime && !isPastThisStop && (
-        <>
-          {!!formattedDelay && status === "early" && (
-            <p className="!mt-2 !mb-2">
-              <span className="text-green-700 dark:text-green-500">
-                {formattedDelay}
-              </span>{" "}
-              early <LiveMarkerTooltip />
-            </p>
-          )}
-        </>
-      )}
+        {!!arrivalTime && !isPastThisStop && (
+          <>
+            {!!formattedDelay && status === "early" && (
+              <p>
+                <span className="text-green-700 dark:text-green-500">
+                  {formattedDelay}
+                </span>{" "}
+                early <LiveMarkerTooltip />
+              </p>
+            )}
+          </>
+        )}
 
-      <div className="flex flex-col gap-2 mt-4">
-        <Button
-          onClick={() => handlePickupStop(stopId, false)}
-          disabled={isPastThisStop}
-        >
-          Board here
-        </Button>
+        <div className="flex flex-col gap-2 mt-1">
+          <Button
+            onClick={() => handlePickupStop(stopId, false)}
+            disabled={isPastThisStop}
+          >
+            Board here
+          </Button>
 
-        <Button onClick={() => handlePickupStop(stopId)}>View trips</Button>
-        <Button
-          onClick={() => onDestinationChange(stopId)}
-          disabled={!isValidDestination}
-        >
-          set Destination
-        </Button>
-        <Button
-          onClick={() => handleSaveStop(stopId, stopName)}
-          className="flex flex-row justify-between gap-1"
-        >
-          <Star fill="#facc15" color="#facc15" />
-          <span>Favourite</span>
-          <Star fill="#facc15" color="#facc15" />
-        </Button>
+          <Button onClick={() => handlePickupStop(stopId)}>View trips</Button>
+          <Button
+            onClick={() => onDestinationChange(stopId)}
+            disabled={!isValidDestination}
+          >
+            set Destination
+          </Button>
+          <Button
+            onClick={() => handleSaveStop(stopId, stopName)}
+            className="flex flex-row justify-between gap-1"
+          >
+            <Star fill="#facc15" color="#facc15" />
+            <span>Favourite</span>
+            <Star fill="#facc15" color="#facc15" />
+          </Button>
+        </div>
       </div>
     </Popup>
   );

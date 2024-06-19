@@ -47,17 +47,15 @@ function StopPopup({
   const { arrivalTime, stopSequence } =
     stopWithTimes.times?.at(0)?.stopTime || {};
 
-  const thisStopUpdate = realtimeTrip?.stopTimeUpdate?.find(
-    ({ stopId: thisId }) => stopId === thisId,
+  const thisStopUpdate = stopWithTimes.times?.find(
+    ({ stopTime }) =>
+      !!stopTime.arrivalTime && !isPastArrivalTime(stopTime.arrivalTime),
   );
 
   const { arrival: activeArrivalUpdate, departure: activeDepartureUpdate } =
-    thisStopUpdate ?? realtimeTrip?.stopTimeUpdate?.at(-1) ?? {};
+    thisStopUpdate?.stopTimeUpdate || {};
 
-  const delayedArrivalTime = getDelayedTime(
-    arrivalTime,
-    activeArrivalUpdate?.delay || activeDepartureUpdate?.delay,
-  );
+  const delayedArrivalTime = thisStopUpdate?.stopTime.arrivalTime;
 
   const formattedDelay = formatReadableDelay(
     activeArrivalUpdate?.delay || activeDepartureUpdate?.delay,
@@ -93,10 +91,7 @@ function StopPopup({
       : false;
 
   const handleArrivalCountdown = useCallback(() => {
-    const delayedArrivalTime = getDelayedTimeFromTripUpdate(
-      stopWithTimes.times?.at(0)?.stopTime,
-      realtimeTrip,
-    );
+    const delayedArrivalTime = thisStopUpdate?.stopTime.arrivalTime;
 
     if (!delayedArrivalTime || isPastArrivalTime(delayedArrivalTime)) return "";
 
@@ -107,7 +102,7 @@ function StopPopup({
     const delay = formatReadableDelay(arrivalSeconds);
 
     return delay ?? "";
-  }, [arrivalTime, realtimeTrip, stopWithTimes.times]);
+  }, [arrivalTime, thisStopUpdate?.stopTime.arrivalTime]);
 
   const handlePickupStop = (stopId: string, showTripSelect: boolean = true) => {
     if (map && showTripSelect) {
@@ -123,7 +118,7 @@ function StopPopup({
       <h3 className="text-lg font-bold">{stopName}</h3>
       {!!arrivalTime && (
         <p className="!mb-0">
-          <b>Scheduled arrival</b>: {arrivalTime}
+          <b>Arriving</b>: {arrivalTime}
         </p>
       )}
 
@@ -145,14 +140,6 @@ function StopPopup({
                 {formattedDelay}
               </span>{" "}
               early <LiveMarkerTooltip />
-            </p>
-          )}
-          {!!formattedDelay && status === "late" && (
-            <p className="!mt-2 !mb-2">
-              <span className="text-red-700 dark:text-red-500">
-                {formattedDelay}
-              </span>{" "}
-              late <LiveMarkerTooltip />
             </p>
           )}
         </>

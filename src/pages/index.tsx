@@ -41,7 +41,12 @@ import dynamic from "next/dynamic";
 import { LatLngExpression, LatLngTuple } from "leaflet";
 import useRoute from "@/hooks/useRoute";
 import Changelog from "@/components/changelog/Changelog";
-import { isValidStop } from "@/lib/utils";
+import {
+  getAdjustedStopTimes,
+  getOrderedStops,
+  getStopsWithStopTimes,
+  isValidStop,
+} from "@/lib/utils";
 import usePrevious from "@/hooks/usePrevious";
 import {
   StopWithGroupedTimes,
@@ -194,11 +199,23 @@ export default function Home() {
   );
 
   // derived state
+  const stopTimeUpdates = useMemo(
+    () =>
+      selectedTrip &&
+      tripUpdatesByTripId.get(selectedTrip?.tripId)?.stopTimeUpdate,
+    [tripUpdatesByTripId, selectedTrip],
+  );
+
+  const adjustedStopTimes = useMemo(
+    () => getAdjustedStopTimes(stopTimes, stopTimeUpdates),
+    [stopTimeUpdates, stopTimes],
+  );
+
   const stopsWithTimes: StopWithGroupedTimes[] = useMemo(() => {
     const orderedStops: Map<string, StopWithGroupedTimes> = new Map();
 
-    if (stopTimes?.length) {
-      for (const stopTime of stopTimes) {
+    if (adjustedStopTimes?.length) {
+      for (const stopTime of adjustedStopTimes) {
         const stop = stopsById.get(stopTime.stopId);
         if (!stop || stop?.stopLat === null || stop?.stopLon === null) continue;
 
@@ -236,7 +253,7 @@ export default function Home() {
     }
 
     return [];
-  }, [stopTimes, stops, stopsById]);
+  }, [adjustedStopTimes, stops, stopsById]);
 
   const destinationStops: StopAndStopTime[] = useMemo(() => {
     if (!stopTimes?.length || !stopId) return [];
@@ -260,6 +277,24 @@ export default function Home() {
 
     return orderedStops;
   }, [stopId, stopTimes, stopsById]);
+
+  // const orderdStops = useMemo(
+  //   () => getOrderedStops(adjustedStopTimes, stopsById),
+  //   [adjustedStopTimes, stopsById],
+  // );
+
+  // const stopList = useMemo(
+  //   () => getStopsWithStopTimes(stopsById, adjustedStopTimes, destId),
+  //   [adjustedStopTimes, destId, stopsById],
+  // );
+
+  // const validDestinationStops: ValidStop[] = useMemo(
+  //   () =>
+  //     destinationStops
+  //       ?.map(({ stop }) => stop)
+  //       .filter((stop): stop is ValidStop => isValidStop(stop)),
+  //   [destinationStops],
+  // );
 
   const isLoading =
     isWarmingDB ||

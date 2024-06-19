@@ -5,6 +5,12 @@ export type Changelog = {
 };
 export const changelogs: Changelog[] = [
   {
+    version: "0.13.1",
+    changes: [
+      "fix: wrong arrival times in drawer elements caused by not matching stops with correct stoptime updates.",
+    ],
+  },
+  {
     version: "0.13.0",
     title: "Feature: Drawer timeline and status rework.",
     changes: [

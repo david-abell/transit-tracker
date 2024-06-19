@@ -3,9 +3,9 @@ import { stopMarkerIcon } from "./stopMarkerIcon";
 import { ReactNode, useRef, useState } from "react";
 import isEqual from "react-fast-compare";
 import { TripUpdate } from "@/types/realtime";
-import { StopWithGroupedTimes } from "./MapContentLayer";
 import { StopTime } from "@prisma/client";
 import StopPopup from "./StopPopup";
+import { StopWithGroupedTimes } from "@/types/gtfsDerived";
 
 type Props = {
   animate?: boolean;

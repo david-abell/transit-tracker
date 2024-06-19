@@ -6,7 +6,6 @@ import { StopTime } from "@prisma/client";
 import LiveMarkerTooltip from "./LiveMarkerTooltip";
 import { useQueryState } from "nuqs";
 import { TripUpdate } from "@/types/realtime";
-import { StopWithGroupedTimes } from "./MapContentLayer";
 import {
   formatReadableDelay,
   getDelayedTime,
@@ -15,6 +14,7 @@ import {
   isPastArrivalTime,
 } from "@/lib/timeHelpers";
 import LiveText from "../LiveText";
+import { StopWithGroupedTimes } from "@/types/gtfsDerived";
 
 type Props = {
   show: boolean;

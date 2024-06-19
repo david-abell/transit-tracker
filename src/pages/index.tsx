@@ -32,9 +32,7 @@ import StopSelect from "@/components/StopSelect";
 import { Button } from "@/components/ui/button";
 import NavItem from "@/components/NavItem";
 import GlobalAlert from "@/components/GlobalAlert";
-import DestinationSelect, {
-  StopAndStopTime,
-} from "@/components/DestinationSelect";
+import DestinationSelect from "@/components/DestinationSelect";
 import NewUserPrompt from "@/components/NewUserPrompt";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -49,9 +47,10 @@ import {
 } from "@/lib/utils";
 import usePrevious from "@/hooks/usePrevious";
 import {
+  StopAndStopTime,
   StopWithGroupedTimes,
   ValidStop,
-} from "@/components/Map/MapContentLayer";
+} from "@/types/gtfsDerived";
 
 const MapContainer = dynamic(() => import("../components/Map"), {
   ssr: false,

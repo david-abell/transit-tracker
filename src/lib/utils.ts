@@ -1,10 +1,9 @@
-import { StopAndStopTime } from "@/components/DestinationSelect";
-import { ValidStop } from "@/components/Map/MapContentLayer";
 import { StopTimeUpdate } from "@/types/realtime";
 import { Stop, StopTime } from "@prisma/client";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { getDelayedTime, isPastArrivalTime } from "./timeHelpers";
+import { StopAndStopTime, ValidStop } from "@/types/gtfsDerived";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

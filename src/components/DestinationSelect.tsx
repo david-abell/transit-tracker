@@ -1,8 +1,7 @@
 import Select from "react-select";
 import { Stop, StopTime } from "@prisma/client";
 import { useEffect, useState } from "react";
-
-export type StopAndStopTime = { stop: Stop; stopTime: StopTime };
+import { StopAndStopTime } from "@/types/gtfsDerived";
 
 type Props = {
   handler: (stopId: string) => void;

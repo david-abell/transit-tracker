@@ -36,12 +36,7 @@ import L from "leaflet";
 import GPSGhost from "./GPSGhost";
 import { MAP_DEFAULT_ZOOM, MAX_MAP_ZOOM } from ".";
 import UserLocation from "./UserLocation";
-
-export type ValidStop = Stop & {
-  stopLat: NonNullable<Stop["stopLat"]>;
-  stopLon: NonNullable<Stop["stopLon"]>;
-};
-export type StopWithGroupedTimes = { stop: ValidStop; times?: StopTime[] };
+import { StopWithGroupedTimes, ValidStop } from "@/types/gtfsDerived";
 
 type Props = {
   height: number;

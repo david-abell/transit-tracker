@@ -204,7 +204,7 @@ function Footer({
 
       const currentSequence = next.stopTime.stopSequence;
 
-      if (currentSequence < pickup.stopTime.stopSequence) {
+      if (currentSequence <= pickup.stopTime.stopSequence) {
         return getArrivalCountdownText(pickup.stopTime);
       } else if (currentSequence < dropOff.stopTime.stopSequence) {
         return getArrivalCountdownText(dropOff.stopTime);

@@ -62,29 +62,20 @@ export function getOrderedStops(
 export function getAdjustedStopTimes(
   stopTimes: StopTime[] | undefined,
   stopTimeUpdates: StopTimeUpdate[] | undefined,
-  stopUpdateSequence?: number,
 ): StopTime[] {
-  if (!stopTimeUpdates || !stopTimes) return stopTimes ?? [];
+  if (!stopTimeUpdates?.length || !stopTimes) return stopTimes ?? [];
   const adjustedStopTimes: StopTime[] = [];
-  let stopTimeUpdate: StopTimeUpdate | undefined;
-
-  if (Number.isNaN(stopUpdateSequence)) {
-    stopTimeUpdate = stopTimeUpdates?.at(-1);
-  } else {
-    stopTimeUpdate =
-      stopTimeUpdates?.find(
-        ({ stopSequence }) => stopSequence >= stopUpdateSequence!,
-      ) || stopTimeUpdates?.at(-1);
-  }
-
-  if (!stopTimeUpdate) {
-    return stopTimes;
-  }
 
   for (const time of stopTimes) {
-    adjustedStopTimes.push(getAdjustedStopTime(time, stopTimeUpdate));
+    const stopTimeUpdate = stopTimeUpdates.findLast(
+      ({ stopSequence }) => stopSequence <= time.stopSequence,
+    );
+    if (stopTimeUpdate) {
+      adjustedStopTimes.push(getAdjustedStopTime(time, stopTimeUpdate));
+    } else {
+      adjustedStopTimes.push(time);
+    }
   }
-
   return adjustedStopTimes;
 }
 
@@ -104,19 +95,36 @@ export function getAdjustedStopTime(
     stopTimeUpdate?.departure?.delay,
   );
 
-  let { arrivalTimestamp, departureTimestamp } = time;
-  if (arrivalTimestamp !== null) {
-    arrivalTimestamp = arrivalTimestamp + arrivalDelay;
+  let adjustedArrivalTimestamp = time.arrivalTimestamp;
+  let adjustedDepartureTimestamp = time.departureTimestamp;
+
+  if (
+    adjustedArrivalTimestamp === null ||
+    adjustedDepartureTimestamp === null
+  ) {
+    if (adjustedArrivalTimestamp && adjustedDepartureTimestamp === null) {
+      adjustedDepartureTimestamp = adjustedArrivalTimestamp;
+    } else {
+      adjustedArrivalTimestamp = adjustedDepartureTimestamp;
+    }
   }
-  if (departureTimestamp !== null) {
-    departureTimestamp = departureTimestamp + departureDelay;
+  if (
+    adjustedArrivalTimestamp !== null &&
+    adjustedDepartureTimestamp !== null
+  ) {
+    adjustedArrivalTimestamp = adjustedArrivalTimestamp + arrivalDelay;
+    adjustedDepartureTimestamp = adjustedDepartureTimestamp + departureDelay;
+
+    if (adjustedDepartureTimestamp < adjustedArrivalTimestamp) {
+      adjustedDepartureTimestamp = adjustedArrivalTimestamp;
+    }
   }
 
   return {
     ...time,
-    arrivalTimestamp,
+    arrivalTimestamp: adjustedArrivalTimestamp,
     arrivalTime,
-    departureTimestamp,
+    departureTimestamp: adjustedDepartureTimestamp,
     departureTime,
   };
 }

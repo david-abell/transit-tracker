@@ -21,9 +21,11 @@ type Props = {
   setShowPopup: Dispatch<SetStateAction<boolean>>;
   stopTimesByStopId: Map<StopTime["tripId"], StopTime>;
   stopWithTimes: StopWithGroupedTimes;
+  isLast: boolean;
 };
 
 function StopPopup({
+  isLast,
   show, // React doesn't rerender popup content without this Prop
   onDestinationChange,
   handleSaveStop,
@@ -135,7 +137,7 @@ function StopPopup({
         <div className="flex flex-col gap-2 mt-1">
           <Button
             onClick={() => handlePickupStop(stopId, false)}
-            disabled={isPastThisStop}
+            disabled={isPastThisStop || isLast}
           >
             Board here
           </Button>

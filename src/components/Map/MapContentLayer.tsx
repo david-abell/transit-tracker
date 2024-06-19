@@ -253,10 +253,10 @@ function MapContentLayer({
     zoomLevel,
   );
 
-  const realtimeTrip = useMemo(
-    () => (!!tripId ? realtimeScheduledByTripId.get(tripId) : undefined),
-    [realtimeScheduledByTripId, tripId],
-  );
+  // const realtimeTrip = useMemo(
+  //   () => (!!tripId ? realtimeScheduledByTripId.get(tripId) : undefined),
+  //   [realtimeScheduledByTripId, tripId],
+  // );
   // const { stopTimeUpdate } = realtimeTrip || {};
 
   // const isAddedTrip = useMemo(
@@ -281,17 +281,6 @@ function MapContentLayer({
     () => hasSameDay(selectedDateTime),
     [selectedDateTime],
   );
-
-  const singleStop: StopWithGroupedTimes[] = useMemo(() => {
-    if (
-      selectedStop &&
-      selectedStop.stopLat !== null &&
-      selectedStop.stopLon !== null
-    ) {
-      return [{ stop: selectedStop as ValidStop }];
-    }
-    return [];
-  }, [selectedStop]);
 
   return (
     <LayersControl>
@@ -341,10 +330,14 @@ function MapContentLayer({
             spiderfyOnMaxZoom={false}
             zoomToBoundsOnClick
           >
-            {(stopsWithTimes.length ? stopsWithTimes : singleStop).map(
-              (stopWithTimes) => {
+            {!!stopsWithTimes.length &&
+              stopsWithTimes.map((stopWithTimes, index) => {
                 return (
                   <StopMarker
+                    isLast={
+                      stopsWithTimes.length !== 1 ||
+                      index === stopsWithTimes.length - 1
+                    }
                     key={"mm" + stopWithTimes.stop.stopId}
                     stopWithTimes={stopWithTimes}
                     handleDestinationStop={handleDestinationStop}
@@ -353,8 +346,7 @@ function MapContentLayer({
                     stopTimesByStopId={stopTimesByStopId}
                   ></StopMarker>
                 );
-              },
-            )}
+              })}
           </MarkerClusterGroup>
         </FeatureGroup>
       </LayersControl.Overlay>

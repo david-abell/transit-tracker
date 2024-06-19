@@ -12,6 +12,7 @@ type Props = {
   big?: boolean;
   children?: ReactNode;
   isPast?: boolean;
+  isLast: boolean;
   handleDestinationStop: (stopId: string) => void;
   handleSaveStop: (stopId: string, stopName: string | null) => void;
   handleSelectedStop: (stopId: string, showModal?: boolean) => void;
@@ -22,6 +23,7 @@ type Props = {
 function StopMarker({
   big,
   children,
+  isLast,
   isPast,
   handleDestinationStop,
   handleSaveStop,
@@ -54,6 +56,7 @@ function StopMarker({
       })}
     >
       <StopPopup
+        isLast={isLast}
         show={showPopup}
         stopWithTimes={stopWithTimes}
         setShowPopup={setShowPopup}

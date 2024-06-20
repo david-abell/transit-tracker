@@ -37,6 +37,7 @@ import GPSGhost from "./GPSGhost";
 import { MAP_DEFAULT_ZOOM, MAX_MAP_ZOOM } from ".";
 import UserLocation from "./UserLocation";
 import { StopWithGroupedTimes, ValidStop } from "@/types/gtfsDerived";
+import ZoomHint from "./ZoomHint";
 
 type Props = {
   height: number;
@@ -95,6 +96,7 @@ function MapContentLayer({
 
   const [mapKM, setMapKM] = useState(getWidthHeightInKM());
   const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
+  const [showVehiclesHint, setShowVehiclesHint] = useState(true);
   const prevCenter = usePrevious(mapCenter);
   const boundsRef = useRef<L.LatLngBounds | undefined>();
   const moveTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -302,7 +304,16 @@ function MapContentLayer({
       </LayersControl.Overlay>
 
       <LayersControl.Overlay name="Nearby buses" checked>
-        <FeatureGroup>
+        <FeatureGroup
+          eventHandlers={{
+            add: () => {
+              setShowVehiclesHint(true);
+            },
+            remove: () => {
+              setShowVehiclesHint(false);
+            },
+          }}
+        >
           {!!vehicleUpdates.length &&
             vehicleUpdates.map((vehicle) => (
               <GPSGhost
@@ -318,6 +329,7 @@ function MapContentLayer({
                 handleTrip={handleSelectedTrip}
               />
             ))}
+          <ZoomHint show={showVehiclesHint} />
         </FeatureGroup>
       </LayersControl.Overlay>
 

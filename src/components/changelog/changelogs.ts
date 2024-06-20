@@ -5,6 +5,10 @@ export type Changelog = {
 };
 export const changelogs: Changelog[] = [
   {
+    version: "0.14.0",
+    changes: ["add hint that nearby buses do not load at low zoom levels."],
+  },
+  {
     version: "0.13.2",
     title: "Better stop popup.",
     changes: [

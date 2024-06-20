@@ -64,8 +64,9 @@ export function NewUserPrompt({
         >
           <X className="inline-block" />
         </Button>
-        Welcome to the Irish bus tracker. Try searching for a bus name like{" "}
-        <b>Ballycullen Road</b>, a route number like <b>15</b>, or a specific
+        Welcome to the Irish bus tracker. To get started, use the map to select
+        a nearby bus or use the menu to search for a Route name like{" "}
+        <b>Ballycullen Road</b>, a Route number like <b>15</b>, or a specific
         stop code like <b>4495</b>.
       </AlertDescription>
     </Alert>

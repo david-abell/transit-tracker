@@ -28,16 +28,21 @@ function ZoomHint({ show }: Props) {
       <div>
         <Alert className=" mx-auto bg-background/80 border-none">
           <Button
-            size={"icon"}
             variant={"ghost"}
-            className="absolute top-0 right-0  p-0.5 pointer-events-auto"
+            size={"icon"}
+            className="absolute right-0 top-0 p-0 pointer-events-auto"
             onClick={() => setRequestHide(true)}
           >
-            <X className="" />
+            <X className="h-4 w-4" />
+            <span className="sr-only">close</span>
           </Button>
           <AlertDescription>
             <p className="font-bold">Hint:</p>
-            <p>Nearby buses only load when zoomed far enough in.</p>
+            <p>New nearby buses do not load while zoomed out.</p>
+            <p>
+              They can also be hidden entirely with the map layer controls
+              located upper right.
+            </p>
           </AlertDescription>
         </Alert>
       </div>

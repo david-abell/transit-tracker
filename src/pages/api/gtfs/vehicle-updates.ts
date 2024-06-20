@@ -78,7 +78,9 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
     typeof rad !== "string"
   ) {
     // shouldn't happen
-    console.error("Shouldn't happen: lat or lng was an array...");
+    console.error(
+      `Invalid vehicleUpdates query, expected strings, received: , lat: ${lat}, lng ${lng}, rad ${rad}`,
+    );
     res.status(StatusCodes.BAD_REQUEST).end();
     return;
   }
@@ -212,12 +214,10 @@ const handler: ApiHandler<VehicleUpdatesResponse> = async (
     // expire after 120 seconds
     await redis.expire(GEO_RECORDS_KEY, REDIS_CACHE_EXPIRE_SECONDS);
 
-    return res
-      .status(200)
-      .json({
-        vehicleUpdates: vehiclesWithinRadius,
-        timestamp: String(timestamp),
-      });
+    return res.status(200).json({
+      vehicleUpdates: vehiclesWithinRadius,
+      timestamp: String(timestamp),
+    });
   } catch (error) {
     throw error;
   } finally {

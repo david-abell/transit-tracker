@@ -85,6 +85,7 @@ function MapContentLayer({
 
   const getWidthHeightInKM = useCallback(() => {
     const bounds = map.getBounds();
+    if (!bounds.isValid()) return 0;
 
     const width =
       map.distance(bounds.getNorthWest(), bounds.getNorthEast()) / 1000;

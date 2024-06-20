@@ -5,6 +5,12 @@ export type Changelog = {
 };
 export const changelogs: Changelog[] = [
   {
+    version: "0.14.1",
+    changes: [
+      "Possible fix for vehicleUpdates api throwing error when it shouldn't.",
+    ],
+  },
+  {
     version: "0.14.0",
     changes: [
       "Add hint that nearby buses do not load at low zoom levels.",

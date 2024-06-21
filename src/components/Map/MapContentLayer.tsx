@@ -30,7 +30,9 @@ import useStopId from "@/hooks/useStopId";
 import { Position } from "@turf/helpers";
 import MarkerClusterGroup from "./MarkerClusterGroup";
 import StopMarker from "./StopMarker";
-import useVehicleUpdates from "@/hooks/useVehicleUpdates";
+import useVehicleUpdates, {
+  MIN_ZOOM_FOR_REQUEST,
+} from "@/hooks/useVehicleUpdates";
 import { TripHandler } from "@/pages";
 import L from "leaflet";
 import GPSGhost from "./GPSGhost";
@@ -97,7 +99,9 @@ function MapContentLayer({
 
   const [mapKM, setMapKM] = useState(getWidthHeightInKM());
   const [zoomLevel, setZoomLevel] = useState(MAP_DEFAULT_ZOOM);
-  const [showVehiclesHint, setShowVehiclesHint] = useState(true);
+  const [showNearbyVehicles, setShowNearbyVehicles] = useState(
+    zoomLevel >= MIN_ZOOM_FOR_REQUEST,
+  );
   const prevCenter = usePrevious(mapCenter);
   const boundsRef = useRef<L.LatLngBounds | undefined>();
   const moveTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -253,7 +257,7 @@ function MapContentLayer({
   const { vehicleUpdates } = useVehicleUpdates(
     { lat: mapCenter[0], lng: mapCenter[1] },
     mapKM,
-    zoomLevel,
+    showNearbyVehicles ? zoomLevel : null,
   );
 
   // const realtimeTrip = useMemo(
@@ -308,10 +312,10 @@ function MapContentLayer({
         <FeatureGroup
           eventHandlers={{
             add: () => {
-              setShowVehiclesHint(true);
+              setShowNearbyVehicles(true);
             },
             remove: () => {
-              setShowVehiclesHint(false);
+              setShowNearbyVehicles(false);
             },
           }}
         >
@@ -330,7 +334,7 @@ function MapContentLayer({
                 handleTrip={handleSelectedTrip}
               />
             ))}
-          <ZoomHint show={showVehiclesHint} />
+          <ZoomHint show={showNearbyVehicles} />
         </FeatureGroup>
       </LayersControl.Overlay>
 

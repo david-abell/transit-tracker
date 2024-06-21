@@ -5,6 +5,12 @@ export type Changelog = {
 };
 export const changelogs: Changelog[] = [
   {
+    version: "0.14.2",
+    changes: [
+      "fix: don't query nearby vehicles api when nearby vehicle layer is disabled.",
+    ],
+  },
+  {
     version: "0.14.1",
     changes: [
       "Possible fix for vehicleUpdates api throwing error when it shouldn't.",

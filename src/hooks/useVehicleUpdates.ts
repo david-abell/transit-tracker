@@ -21,12 +21,16 @@ type Point = { lat: number; lng: number };
 
 export const MIN_ZOOM_FOR_REQUEST = 12;
 
-function useVehicleUpdates({ lat, lng }: Point, radius: number, zoom: number) {
+function useVehicleUpdates(
+  { lat, lng }: Point,
+  radius: number,
+  zoom: number | null,
+) {
   const [storeTimestamp, setStoreTimestamp] = useState<string | null>(null);
-  const prevZoom = useRef(0);
+  const prevZoom = useRef<number>(0);
 
   const url =
-    zoom > prevZoom.current || zoom < MIN_ZOOM_FOR_REQUEST
+    zoom === null || zoom > prevZoom.current || zoom < MIN_ZOOM_FOR_REQUEST
       ? null
       : `${API_URL}?${new URLSearchParams({
           lat: String(lat),
@@ -34,7 +38,9 @@ function useVehicleUpdates({ lat, lng }: Point, radius: number, zoom: number) {
           rad: String(radius),
         })}`;
 
-  prevZoom.current = zoom;
+  if (zoom !== null) {
+    prevZoom.current = zoom;
+  }
 
   const { data, error, isValidating, mutate } = useSWR<
     VehicleUpdatesResponse,
